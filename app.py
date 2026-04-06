@@ -1519,6 +1519,14 @@ function filter(type, btn) {{
             reply = handle_chat(msg)
             self.send_json({"reply": reply}); return
 
+        # ── Import base de données complète (migration one-shot) ──────────────
+        if path == "/api/seed":
+            try:
+                db.seed_all(data)
+                self.send_json({"success": True, "message": "Base de données importée avec succès"}); return
+            except Exception as e:
+                self.send_json({"error": str(e)}, 500); return
+
         self.send_json({"error": "Route inconnue"}, 404)
 
     def do_PUT(self):

@@ -581,6 +581,92 @@ def save_config(cfg):
             )
 
 
+# ─── Migration one-shot depuis JSON (seed Railway) ────────────────────────────
+
+def seed_all(payload):
+    """Importe toutes les données depuis un payload JSON (migration vers Railway)."""
+    with get_conn() as conn:
+        # Vider les tables existantes
+        for table in ("articles","ventes","credits","fournisseurs","cheques","factures","notifs","config"):
+            conn.execute(f"DELETE FROM {table}")
+
+        for a in payload.get("articles", []):
+            conn.execute("""INSERT OR REPLACE INTO articles
+                (id,article,poids,or_grs,d,em,r,s,p_fines,rosaces,em_clb,perles,pa,pv,date,notes,tags,paiements)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                a.get("id"), a.get("article"), a.get("poids"), a.get("or_grs"),
+                a.get("d"), a.get("em"), a.get("r"), a.get("s"),
+                a.get("p_fines"), a.get("rosaces"), a.get("em_clb"), a.get("perles"),
+                a.get("pa"), a.get("pv"), a.get("date"), a.get("notes"),
+                json.dumps(a.get("tags") or []),
+                json.dumps(a.get("paiements") or [])
+            ))
+
+        for v in payload.get("ventes", []):
+            conn.execute("""INSERT OR REPLACE INTO ventes
+                (id_vente,date_achat,date_vente,ref,article,or_grs,vente_au_poids,prix_or_achat,
+                 pa,d,em,r,s,p_fines,rosaces,em_clb,perles,pv,benef,client,mode_paiement,commentaire)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                v.get("id_vente"), v.get("date_achat"), v.get("date_vente"), v.get("ref"),
+                v.get("article"), v.get("or_grs"), int(bool(v.get("vente_au_poids"))), v.get("prix_or_achat"),
+                v.get("pa"), v.get("d"), v.get("em"), v.get("r"), v.get("s"),
+                v.get("p_fines"), v.get("rosaces"), v.get("em_clb"), v.get("perles"),
+                v.get("pv"), v.get("benef"), v.get("client"), v.get("mode_paiement"), v.get("commentaire")
+            ))
+
+        for c in payload.get("credits", []):
+            conn.execute("""INSERT OR REPLACE INTO credits
+                (id,client,telephone,ref_article,article,montant_total,avance,reste,statut,date_vente,date_solde,notes,paiements)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                c.get("id"), c.get("client"), c.get("telephone"), c.get("ref_article"),
+                c.get("article"), c.get("montant_total"), c.get("avance"), c.get("reste"),
+                c.get("statut"), c.get("date_vente"), c.get("date_solde"), c.get("notes"),
+                json.dumps(c.get("paiements") or [])
+            ))
+
+        for f in payload.get("fournisseurs", []):
+            conn.execute("""INSERT OR REPLACE INTO fournisseurs
+                (id,nom,telephone,montant_total,avance,reste,statut,date_achat,date_solde,notes,articles,paiements)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                f.get("id"), f.get("nom"), f.get("telephone"), f.get("montant_total"),
+                f.get("avance"), f.get("reste"), f.get("statut"), f.get("date_achat"),
+                f.get("date_solde"), f.get("notes"),
+                json.dumps(f.get("articles") or []),
+                json.dumps(f.get("paiements") or [])
+            ))
+
+        for ch in payload.get("cheques", []):
+            conn.execute("""INSERT OR REPLACE INTO cheques
+                (id,client,ref_article,montant,numero,nb_cheques,banque,date_cheque,
+                 date_encaissement,dates_encaissement,numeros_cheques,statuts_cheques,statut,credit_id,note,created_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                ch.get("id"), ch.get("client"), ch.get("ref_article"), ch.get("montant"),
+                ch.get("numero"), ch.get("nb_cheques"), ch.get("banque"), ch.get("date_cheque"),
+                ch.get("date_encaissement"), json.dumps(ch.get("dates_encaissement") or []),
+                json.dumps(ch.get("numeros_cheques") or []), json.dumps(ch.get("statuts_cheques") or []),
+                ch.get("statut"), ch.get("credit_id"), ch.get("note"), ch.get("created_at")
+            ))
+
+        for fac in payload.get("factures", []):
+            conn.execute("""INSERT OR REPLACE INTO factures
+                (id,numero,client,telephone,email,ville,articles,total,avance,mode_paiement,note,date,created_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                fac.get("id"), fac.get("numero"), fac.get("client"), fac.get("telephone"),
+                fac.get("email"), fac.get("ville"), json.dumps(fac.get("articles") or []),
+                fac.get("total"), fac.get("avance"), fac.get("mode_paiement"),
+                fac.get("note"), fac.get("date"), fac.get("created_at")
+            ))
+
+        for n in payload.get("notifs", []):
+            conn.execute("INSERT OR REPLACE INTO notifs (id,message,type,date,dismissed) VALUES (?,?,?,?,?)", (
+                n.get("id"), n.get("message"), n.get("type"), n.get("date"), int(bool(n.get("dismissed")))
+            ))
+
+        cfg = payload.get("config", {})
+        for k, v in cfg.items():
+            conn.execute("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)", (k, v))
+
+
 # ─── Point d'entrée ───────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
