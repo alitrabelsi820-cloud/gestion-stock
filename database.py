@@ -592,14 +592,12 @@ def seed_all(payload):
 
         for a in payload.get("articles", []):
             conn.execute("""INSERT OR REPLACE INTO articles
-                (id,article,poids,or_grs,d,em,r,s,p_fines,rosaces,em_clb,perles,pa,pv,date,notes,tags,paiements)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
-                a.get("id"), a.get("article"), a.get("poids"), a.get("or_grs"),
-                a.get("d"), a.get("em"), a.get("r"), a.get("s"),
+                (id,date,article,or_grs,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,fabricant,ismail_pierres)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                a.get("id"), a.get("date"), a.get("article"), a.get("or_grs"),
+                a.get("pa"), a.get("d"), a.get("em"), a.get("r"), a.get("s"),
                 a.get("p_fines"), a.get("rosaces"), a.get("em_clb"), a.get("perles"),
-                a.get("pa"), a.get("pv"), a.get("date"), a.get("notes"),
-                json.dumps(a.get("tags") or []),
-                json.dumps(a.get("paiements") or [])
+                a.get("fabricant"), int(bool(a.get("ismail_pierres", 0)))
             ))
 
         for v in payload.get("ventes", []):
