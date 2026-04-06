@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/static/manifest-mamoun.json">
+<meta name="theme-color" content="#b8923c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trabelsi">
+<meta name="apple-touch-icon" href="/static/icons/icon-192.png">
+<title>Mamoun — Résumé</title>
+<style>
+:root{
+  --gold:#b8923c;--gold-l:#c9a84c;--gold-d:#7a5c20;
+  --bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;
+  --txt:#1a1612;--muted:#9a8e7e;--green:#2e7d52;--red:#b5341e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+/* ── NAV ── */
+nav{
+  background:#fff;border-bottom:2px solid rgba(184,146,60,.25);
+  padding:0 20px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(0,0,0,.08);
+  min-height:64px;
+}
+.nav-brand{display:flex;align-items:center;gap:12px;}
+.nav-logo{
+  width:42px;height:42px;
+  background:linear-gradient(135deg,var(--gold-l),var(--gold-d));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:900;color:#fff;font-family:'Georgia',serif;
+  transform:rotate(45deg);flex-shrink:0;
+}
+.nav-logo span{transform:rotate(-45deg);display:block;}
+.nav-title{font-size:18px;font-weight:800;color:var(--txt);letter-spacing:.5px;}
+.nav-subtitle{font-size:11px;color:var(--muted);letter-spacing:.5px;}
+.nav-logout{
+  padding:8px 16px;border-radius:10px;border:1px solid var(--bd);
+  background:transparent;color:var(--muted);font-size:13px;font-weight:600;
+  cursor:pointer;text-decoration:none;white-space:nowrap;
+  transition:all .2s;
+}
+.nav-logout:hover{color:var(--red);border-color:rgba(181,52,30,.3);}
+
+/* ── PAGE ── */
+.page{padding:20px 16px 80px;max-width:600px;margin:0 auto;}
+
+/* ── TITRE PAGE ── */
+.page-hero{
+  text-align:center;padding:24px 20px 20px;
+  background:linear-gradient(135deg,#1a1200,#2d1f00);
+  border-radius:18px;margin-bottom:20px;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
+}
+.page-hero h1{font-size:22px;font-weight:900;color:var(--gold-l);letter-spacing:1px;margin-bottom:4px;}
+.page-hero p{font-size:12px;color:rgba(201,168,76,.6);letter-spacing:1.5px;text-transform:uppercase;}
+.page-hero .refresh-btn{
+  margin-top:14px;padding:8px 18px;border-radius:20px;
+  border:1px solid rgba(201,168,76,.35);background:rgba(201,168,76,.1);
+  color:var(--gold-l);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;
+}
+.page-hero .refresh-btn:hover{background:rgba(201,168,76,.22);}
+.page-hero .refresh-btn.spin{animation:spin .8s linear;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── PANEL ── */
+.panel{
+  background:var(--bg2);border:1px solid var(--bd);
+  border-radius:18px;overflow:hidden;margin-bottom:16px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+}
+.panel-header{
+  padding:16px 20px;border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;user-select:none;
+  transition:background .18s;
+  min-height:60px;
+}
+.panel-header:hover{background:rgba(184,146,60,.04);}
+.panel-ico{font-size:26px;flex-shrink:0;}
+.panel-title{flex:1;}
+.panel-title h2{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold-d);}
+.panel-title .sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.panel-chevron{
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  background:var(--bg3);border-radius:50%;
+  color:var(--muted);transition:transform .25s cubic-bezier(.4,0,.2,1);flex-shrink:0;
+}
+.panel-chevron svg{width:13px;height:13px;}
+.panel.collapsed .panel-chevron{transform:rotate(-90deg);}
+.panel-body{
+  overflow:hidden;
+  max-height:3000px;
+  transition:max-height .4s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+  opacity:1;
+}
+.panel.collapsed .panel-body{max-height:0;opacity:0;}
+
+/* ── LIGNES STOCK ── */
+.s-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:15px 20px;border-bottom:1px solid var(--bd);
+}
+.s-row:last-child{border-bottom:none;}
+.s-label{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);font-weight:500;}
+.s-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.s-val{font-size:18px;font-weight:800;color:var(--txt);}
+.s-val.gold{color:var(--gold-d);}
+.s-val.big{font-size:22px;}
+.gold-sep{height:1.5px;background:linear-gradient(90deg,transparent,var(--gold-l),transparent);margin:4px 20px;}
+
+/* ── TOTAL CRÉDIT ── */
+.credit-total{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;
+  background:rgba(181,52,30,.06);border-bottom:2px solid rgba(181,52,30,.15);
+}
+.credit-total .lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);}
+.credit-total .val{font-size:28px;font-weight:900;color:var(--red);}
+
+/* ── CLIENTS ── */
+.client-row{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;border-bottom:1px solid var(--bd);
+}
+.client-row:last-child{border-bottom:none;}
+.client-avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--bg3),var(--bd));
+  border:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:var(--gold-d);flex-shrink:0;
+}
+.client-info{flex:1;min-width:0;}
+.client-name{font-size:15px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.client-date{font-size:12px;color:var(--muted);margin-top:2px;}
+.client-amount{font-size:18px;font-weight:900;color:var(--red);white-space:nowrap;}
+
+/* ── BOUTON IMPRIMER ── */
+.btn-print{
+  margin:14px 20px;padding:12px 20px;border-radius:12px;width:calc(100% - 40px);
+  border:1px solid rgba(184,146,60,.35);
+  background:rgba(184,146,60,.08);
+  color:var(--gold-d);font-size:14px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;
+}
+.btn-print:hover{background:rgba(184,146,60,.18);border-color:var(--gold);}
+
+/* ── CA (Chiffre d'Affaire) ── */
+.ca-period-block{
+  padding:18px 20px;border-bottom:1px solid var(--bd);
+}
+.ca-period-block:last-child{border-bottom:none;}
+.ca-period-lbl{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;
+  color:var(--gold);margin-bottom:12px;
+}
+.ca-line{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--bg3);
+}
+.ca-line:last-child{border-bottom:none;}
+.ca-lbl{font-size:14px;color:var(--muted);font-weight:500;}
+.ca-val{font-size:20px;font-weight:800;color:var(--gold-d);}
+.ca-val.benef{color:var(--green);}
+
+/* ── VIDE ── */
+.empty{padding:32px 20px;text-align:center;color:var(--muted);font-size:14px;}
+
+/* ── IMPRESSION ── */
+#print-zone{position:absolute;left:-99999px;top:0;width:210mm;visibility:hidden;}
+@media print{
+  body *{visibility:hidden;}
+  #print-zone{position:absolute;inset:0;left:0;top:0;width:100%;visibility:visible;padding:32px 40px;font-family:'Segoe UI',Arial,sans-serif;color:#1a1612;}
+  #print-zone *{visibility:visible;}
+  .print-header{display:flex !important;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #b8923c;}
+  .print-header .ph-brand{font-size:20px;font-weight:900;letter-spacing:3px;color:#7a5c20;}
+  .print-header .ph-sub{font-size:10px;letter-spacing:2px;color:#9a8e7e;text-transform:uppercase;margin-top:2px;}
+  .print-header .ph-date{font-size:11px;color:#9a8e7e;text-align:right;}
+  .print-title{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#7a5c20;margin-bottom:12px;}
+  .print-total-row{display:flex !important;justify-content:space-between;align-items:center;padding:12px 16px;background:#faf7f2;border:1px solid #e8e0d4;border-radius:8px;margin-bottom:16px;}
+  .print-total-row .pt-lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9a8e7e;font-weight:700;}
+  .print-total-row .pt-val{font-size:20px;font-weight:900;color:#b5341e;}
+  .print-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .print-table thead th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9a8e7e;border-bottom:1px solid #e8e0d4;}
+  .print-table thead th:last-child{text-align:right;}
+  .print-table tbody td{padding:11px 12px;border-bottom:1px solid #f0ece4;color:#1a1612;}
+  .print-table tbody td:last-child{text-align:right;font-weight:700;color:#b5341e;}
+  .print-table tbody tr:last-child td{border-bottom:none;}
+  .print-footer{margin-top:32px;padding-top:12px;border-top:1px solid #e8e0d4;font-size:9px;color:#c8b898;text-align:center;letter-spacing:2px;text-transform:uppercase;}
+}
+
+/* ── LOADING STATE ── */
+.skel{display:inline-block;background:linear-gradient(90deg,var(--bg3) 25%,var(--bd) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;color:transparent;min-width:80px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo"><span>T</span></div>
+    <div>
+      <div class="nav-title">Trabelsi</div>
+      <div class="nav-subtitle">Résumé · Mamoun</div>
+    </div>
+  </div>
+  <a href="/logout" class="nav-logout">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="page-hero">
+    <h1>📊 Vue d'ensemble</h1>
+    <p>Stock · Crédits · Chiffre d'Affaire</p>
+    <button class="refresh-btn" onclick="refresh(this)">🔄 Actualiser</button>
+  </div>
+
+  <!-- ── STOCK ── -->
+  <div class="panel" id="panel-stock">
+    <div class="panel-header" onclick="toggle('panel-stock')">
+      <span class="panel-ico">📦</span>
+      <div class="panel-title">
+        <h2>Stock</h2>
+        <div class="sub">Inventaire actuel</div>
+      </div>
+      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+    <div class="panel-body">
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#c9a84c"></span>Valeur du Stock</span>
+        <span class="s-val gold big" id="s-valeur">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#e8d48a"></span>Quantité d'Or</span>
+        <span class="s-val gold" id="s-or">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#9a8e7e"></span>Nombre d'Articles</span>
+        <span class="s-val" id="s-nb">—</span>
+      </div>
+      <div class="gold-sep"></div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#b8d4f0"></span>Diamants</span>
+        <span class="s-val" id="s-diamants">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#7ec8a0"></span>Émeraudes</span>
+        <span class="s-val" id="s-emeraudes">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#e88a8a"></span>Rubis</span>
+        <span class="s-val" id="s-rubis">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#8aaee8"></span>Saphirs</span>
+        <span class="s-val" id="s-saphirs">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#f0f0f0;border:1px solid #ccc"></span>Perles</span>
+        <span class="s-val" id="s-perles">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CRÉDITS CLIENTS ── -->
+  <div class="panel" id="panel-credits">
+    <div class="panel-header" onclick="toggle('panel-credits')">
+      <span class="panel-ico">💳</span>
+      <div class="panel-title">
+        <h2>Crédits Clients</h2>
+        <div class="sub">Montants en attente</div>
+      </div>
+      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+    <div class="panel-body">
+      <div class="credit-total">
+        <span class="lbl">Total dû</span>
+        <span class="val" id="c-total">—</span>
+      </div>
+      <div id="c-list"><div class="empty">Chargement…</div></div>
+      <button class="btn-print" onclick="imprimerCredits()">🖨️ Imprimer la liste des crédits</button>
+    </div>
+  </div>
+
+  <!-- ── CHIFFRE D'AFFAIRE ── -->
+  <div class="panel" id="panel-ca">
+    <div class="panel-header" onclick="toggle('panel-ca')">
+      <span class="panel-ico">📈</span>
+      <div class="panel-title">
+        <h2>Chiffre d'Affaire</h2>
+        <div class="sub">Ventes & bénéfices</div>
+      </div>
+      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+    <div class="panel-body">
+      <div class="ca-period-block">
+        <div class="ca-period-lbl">📅 Ce mois</div>
+        <div class="ca-line"><span class="ca-lbl">Chiffre d'Affaire</span><span class="ca-val" id="ca-mois">—</span></div>
+        <div class="ca-line"><span class="ca-lbl">Bénéfice</span><span class="ca-val benef" id="b-mois">—</span></div>
+      </div>
+      <div class="ca-period-block">
+        <div class="ca-period-lbl">📆 Cette année</div>
+        <div class="ca-line"><span class="ca-lbl">Chiffre d'Affaire</span><span class="ca-val" id="ca-annee">—</span></div>
+        <div class="ca-line"><span class="ca-lbl">Bénéfice</span><span class="ca-val benef" id="b-annee">—</span></div>
+      </div>
+      <div class="ca-period-block">
+        <div class="ca-period-lbl">🗓️ Année dernière</div>
+        <div class="ca-line"><span class="ca-lbl">Chiffre d'Affaire</span><span class="ca-val" id="ca-last">—</span></div>
+        <div class="ca-line"><span class="ca-lbl">Bénéfice</span><span class="ca-val benef" id="b-last">—</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Zone d'impression -->
+<div id="print-zone"></div>
+
+<script>
+const fmtN = v => Number(v).toLocaleString('fr-FR', {maximumFractionDigits:0});
+const fmt2 = v => Number(v).toLocaleString('fr-FR', {maximumFractionDigits:2});
+
+async function load(){
+  // Stock
+  try{
+    const s = await fetch('/api/stats').then(r=>r.json());
+    document.getElementById('s-valeur').textContent   = fmtN(s.valeur_stock) + ' MAD';
+    document.getElementById('s-or').textContent       = fmt2(s.total_or) + ' g';
+    document.getElementById('s-nb').textContent       = fmtN(s.nb_articles) + ' articles';
+    document.getElementById('s-diamants').textContent  = fmt2(s.diamants)  + ' ct';
+    document.getElementById('s-emeraudes').textContent = fmt2(s.emeraudes) + ' ct';
+    document.getElementById('s-rubis').textContent     = fmt2(s.rubis)     + ' ct';
+    document.getElementById('s-saphirs').textContent   = fmt2(s.saphirs)   + ' ct';
+    document.getElementById('s-perles').textContent    = fmt2(s.perles)    + ' pcs';
+  }catch(e){}
+
+  // Crédits
+  try{
+    const credits = await fetch('/api/credits').then(r=>r.json());
+    const ouverts = credits.filter(c => c.statut === 'rien' || c.statut === 'avance');
+    const totalDu = ouverts.reduce((s,c) => s + (c.reste||0), 0);
+
+    document.getElementById('c-total').textContent = fmtN(totalDu) + ' MAD';
+
+    const list = document.getElementById('c-list');
+    if(ouverts.length === 0){
+      list.innerHTML = '<div class="empty">Aucun crédit en cours</div>';
+    } else {
+      ouverts.sort((a,b) => new Date(a.date||0) - new Date(b.date||0));
+      list.innerHTML = ouverts.map(c => {
+        const initials = (c.client||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        const date = c.date ? new Date(c.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
+        return `
+          <div class="client-row">
+            <div class="client-avatar">${initials}</div>
+            <div class="client-info">
+              <div class="client-name">${c.client||'—'}</div>
+              <div class="client-date">${date}</div>
+            </div>
+            <div class="client-amount">${fmtN(c.reste)} MAD</div>
+          </div>`;
+      }).join('');
+    }
+  }catch(e){}
+
+  // Chiffre d'affaire
+  try{
+    const adv = await fetch('/api/stats/advanced').then(r=>r.json());
+    const now = new Date();
+    const moisKey  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const anneeKey = String(now.getFullYear());
+    const lastKey  = String(now.getFullYear()-1);
+
+    const moisData  = adv.monthly.find(m=>m.mois===moisKey)   || {ca:0,benef:0};
+    const anneeData = adv.annual.find(a=>a.annee===anneeKey)   || {ca:0,benef:0};
+    const lastData  = adv.annual.find(a=>a.annee===lastKey)    || {ca:0,benef:0};
+
+    document.getElementById('ca-mois').textContent  = fmtN(moisData.ca)    + ' MAD';
+    document.getElementById('b-mois').textContent   = fmtN(moisData.benef) + ' MAD';
+    document.getElementById('ca-annee').textContent = fmtN(anneeData.ca)   + ' MAD';
+    document.getElementById('b-annee').textContent  = fmtN(anneeData.benef)+ ' MAD';
+    document.getElementById('ca-last').textContent  = fmtN(lastData.ca)    + ' MAD';
+    document.getElementById('b-last').textContent   = fmtN(lastData.benef) + ' MAD';
+  }catch(e){}
+}
+
+load();
+setInterval(load, 30000);
+
+function refresh(btn){
+  btn.classList.add('spin');
+  load().finally(()=> setTimeout(()=>btn.classList.remove('spin'), 600));
+}
+
+function imprimerCredits(){
+  const now = new Date();
+  const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const mois  = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const dateStr = jours[now.getDay()] + ' ' + now.getDate() + ' ' + mois[now.getMonth()] + ' ' + now.getFullYear();
+  const heureStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+
+  const rows = document.querySelectorAll('#c-list .client-row');
+  const total = document.getElementById('c-total').textContent;
+
+  // ── Regrouper les clients en double (PDF uniquement) ──
+  const map = new Map(); // clé = nom normalisé
+  rows.forEach(r => {
+    const nom     = (r.querySelector('.client-name')?.textContent   || '—').trim();
+    const date    = (r.querySelector('.client-date')?.textContent   || '—').trim();
+    // Extraire le montant numérique (enlever " MAD" et espaces)
+    const montantTxt = (r.querySelector('.client-amount')?.textContent || '0').replace(/\s/g,'').replace('MAD','').replace(/\u202f/g,'').replace(/\s/g,'');
+    const montantNum = parseFloat(montantTxt.replace(/[^\d]/g,'')) || 0;
+    const key = nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(map.has(key)){
+      const existing = map.get(key);
+      existing.montant += montantNum;
+      // Garder la date la plus ancienne pour l'affichage, et tracker la plus récente pour le tri
+      if(date && date !== '—'){
+        if(!existing.dateMin || existing.dateMin === '—') existing.dateMin = date;
+        if(!existing.dateMax || new Date(date) > new Date(existing.dateMax)) existing.dateMax = date;
+      }
+    } else {
+      map.set(key, { nom, date, dateMin: date, dateMax: date, montant: montantNum });
+    }
+  });
+
+  // Trier par date du crédit le plus ancien en premier (ordre chronologique)
+  const grouped = [...map.values()].sort((a,b) => {
+    const da = a.dateMin && a.dateMin !== '—' ? new Date(a.dateMin) : new Date(0);
+    const db = b.dateMin && b.dateMin !== '—' ? new Date(b.dateMin) : new Date(0);
+    return da - db;
+  });
+
+  let lignes = '';
+  grouped.forEach((c, idx) => {
+    const montantFmt = Number(c.montant).toLocaleString('fr-FR', {maximumFractionDigits:0}) + ' MAD';
+    lignes += `<tr>
+      <td style="color:#9a8e7e;font-size:12px">${idx+1}</td>
+      <td><strong>${c.nom}</strong></td>
+      <td>${c.date||'—'}</td>
+      <td>${montantFmt}</td>
+    </tr>`;
+  });
+
+  document.getElementById('print-zone').innerHTML = `
+    <div class="print-header">
+      <div>
+        <div class="ph-brand">TRABELSI</div>
+        <div class="ph-sub">Bijouterie · Joaillerie · Mega Mall · Rabat</div>
+      </div>
+      <div class="ph-date">Édité le ${dateStr} à ${heureStr}</div>
+    </div>
+    <div class="print-title">Crédits Clients — En cours</div>
+    <div class="print-total-row">
+      <span class="pt-lbl">Total dû</span>
+      <span class="pt-val">${total}</span>
+    </div>
+    <table class="print-table">
+      <thead><tr>
+        <th>#</th><th>Client</th><th>Date</th><th style="text-align:right">Montant restant</th>
+      </tr></thead>
+      <tbody>${lignes}</tbody>
+    </table>
+    <div class="print-footer">Trabelsi Bijouterie · Document interne · ${dateStr}</div>
+  `;
+  window.print();
+}
+
+function toggle(id){
+  document.getElementById(id).classList.toggle('collapsed');
+}
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+<script src="/static/notifications.js?v=3"></script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

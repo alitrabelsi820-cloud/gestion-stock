@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Encaissement Chèques — TRABELSI</title>
+<style>
+:root{
+  --bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;
+  --txt:#1a1612;--muted:#9a8e7e;--gold:#b8923c;--gold-l:#7a5c20;
+  --gold-bg:rgba(184,146,60,.08);--radius:12px;
+  --green:#27ae60;--red:#e74c3c;--orange:#e67e22;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Segoe UI',Arial,sans-serif;color:var(--txt);min-height:100vh;}
+
+/* NAV */
+nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),#9a7530);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:24px 28px 0;}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:18px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.c1::before{background:linear-gradient(90deg,var(--gold),var(--gold-l));}
+.c2::before{background:linear-gradient(90deg,#1a6a3a,var(--green));}
+.c3::before{background:linear-gradient(90deg,#b85c00,var(--orange));}
+.c4::before{background:linear-gradient(90deg,#6a1a1a,var(--red));}
+.card-ico{font-size:24px;margin-bottom:8px;}
+.card-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.card-val{font-size:22px;font-weight:700;margin-top:3px;}
+.c1 .card-val{color:var(--gold-l);}
+.c2 .card-val{color:var(--green);}
+.c3 .card-val{color:var(--orange);}
+.c4 .card-val{color:var(--red);}
+
+/* ── CALENDRIER ── */
+.cal-section{margin:24px 28px 0;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--radius);overflow:hidden;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--bd);background:var(--bg3);}
+.cal-title{font-size:15px;font-weight:700;color:var(--gold-l);}
+.cal-nav{display:flex;gap:8px;align-items:center;}
+.cal-nav button{background:none;border:1px solid var(--bd);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .2s;font-family:inherit;}
+.cal-nav button:hover{border-color:var(--gold);color:var(--gold);}
+.cal-nav span{font-size:14px;font-weight:600;color:var(--txt);min-width:140px;text-align:center;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:16px 12px 12px;}
+.cal-day-name{text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding-bottom:10px;}
+.cal-day{min-height:64px;padding:6px;border-radius:8px;cursor:default;transition:background .15s;position:relative;}
+.cal-day.other-month .cal-day-num{color:var(--bd);}
+.cal-day.today .cal-day-num{background:var(--gold-l);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.cal-day-num{font-size:13px;font-weight:600;color:var(--txt);width:26px;height:26px;display:flex;align-items:center;justify-content:center;}
+.cal-day.has-events{cursor:pointer;}
+.cal-day.has-events:hover{background:rgba(184,146,60,.07);}
+.cal-events{display:flex;flex-direction:column;gap:2px;margin-top:3px;}
+.cal-evt{font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.cal-evt.attente{background:rgba(230,126,34,.15);color:var(--orange);}
+.cal-evt.encaisse{background:rgba(39,174,96,.12);color:var(--green);}
+.cal-evt.rejete{background:rgba(231,76,60,.1);color:var(--red);}
+.cal-legend{display:flex;gap:16px;padding:10px 20px 14px;border-top:1px solid var(--bd);}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+.cal-legend-dot{width:10px;height:10px;border-radius:3px;}
+
+/* POPUP JOUR */
+.day-popup{position:absolute;z-index:50;background:var(--bg2);border:1px solid var(--bd);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);padding:14px;min-width:220px;max-width:280px;font-size:13px;top:70px;left:50%;transform:translateX(-50%);}
+.day-popup h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold-l);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bd);}
+.day-popup-item{padding:7px 0;border-bottom:1px solid var(--bg3);display:flex;flex-direction:column;gap:2px;}
+.day-popup-item:last-child{border-bottom:none;}
+.day-popup-close{position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;}
+
+/* TOOLBAR */
+.toolbar{padding:18px 28px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.search-wrap{flex:1;min-width:180px;position:relative;}
+.search-wrap input{width:100%;padding:9px 14px 9px 38px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;transition:border-color .2s;}
+.search-wrap input:focus{border-color:var(--gold);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+select{padding:9px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;cursor:pointer;}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;font-family:inherit;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#9a7530);color:#1a1200;}
+.btn-gold:hover{filter:brightness(1.1);}
+.btn-outline{background:transparent;border:1px solid var(--bd);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.count-lbl{font-size:12px;color:var(--muted);white-space:nowrap;}
+.count-lbl span{color:var(--gold);font-weight:700;}
+
+/* TABLE */
+.tbl-wrap{padding:0 28px 40px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:var(--bg3);padding:11px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--bd);transition:background .15s;}
+tbody tr:hover{background:rgba(201,168,76,.04);}
+tbody td{padding:10px 13px;vertical-align:middle;white-space:nowrap;}
+
+/* STATUS BADGES */
+.st{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+.st-attente{background:rgba(230,126,34,.12);color:var(--orange);border:1px solid rgba(230,126,34,.3);}
+.st-encaisse{background:rgba(39,174,96,.12);color:var(--green);border:1px solid rgba(39,174,96,.3);}
+.st-rejete{background:rgba(231,76,60,.12);color:var(--red);border:1px solid rgba(231,76,60,.3);}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:28px;width:560px;max-width:94vw;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.12);}
+.modal h2{font-size:18px;color:var(--gold-l);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--bd);}
+.close-btn{position:absolute;top:14px;right:14px;background:var(--bd);border:none;color:var(--txt);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.close-btn:hover{background:var(--red);color:#fff;}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.form-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.form-group input,.form-group select{padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;font-family:inherit;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--gold);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.modal-actions{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;}
+
+/* dates multiples */
+.enc-dates-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.enc-dates-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;}
+.btn-autofill{background:rgba(184,146,60,.1);border:1px solid rgba(184,146,60,.3);color:var(--gold-l);border-radius:7px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .2s;}
+.btn-autofill:hover{background:rgba(184,146,60,.2);}
+.enc-date-row{display:grid;grid-template-columns:28px 1fr;align-items:center;gap:8px;margin-bottom:8px;}
+.enc-date-num{font-size:12px;font-weight:700;color:var(--gold-l);text-align:center;background:rgba(184,146,60,.1);border-radius:6px;padding:4px 0;line-height:1;}
+.enc-date-row input{padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;font-family:inherit;transition:border-color .2s;width:100%;}
+.enc-date-row input:focus{border-color:var(--gold);}
+.enc-date-row3{display:grid;grid-template-columns:28px 1fr 1fr;align-items:center;gap:8px;margin-bottom:8px;}
+.enc-date-row3 input{padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;font-family:inherit;transition:border-color .2s;width:100%;}
+.enc-date-row3 input:focus{border-color:var(--gold);}
+.enc-row3-header{display:grid;grid-template-columns:28px 1fr 1fr;gap:8px;margin-bottom:4px;padding:0 0 4px 0;border-bottom:1px solid rgba(184,146,60,.15);}
+.enc-row3-header span{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.enc-single{margin-bottom:14px;}
+.enc-single label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;}
+.enc-single input{padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;font-family:inherit;transition:border-color .2s;width:100%;}
+.enc-single input:focus{border-color:var(--gold);}
+
+/* ENCAISSEMENT PAR CHÈQUE */
+.enc-check-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid var(--bd);margin-bottom:8px;background:var(--bg3);transition:all .2s;}
+.enc-check-row.done{border-color:rgba(39,174,96,.35);background:rgba(39,174,96,.04);}
+.enc-check-info{flex:1;min-width:0;}
+.enc-check-label{font-size:12px;font-weight:700;color:var(--gold-l);}
+.enc-check-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.enc-check-amount{font-size:14px;font-weight:700;white-space:nowrap;}
+.btn-enc-toggle{padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;transition:all .2s;font-family:inherit;white-space:nowrap;}
+.btn-enc-attente{background:rgba(230,126,34,.1);border-color:rgba(230,126,34,.3);color:var(--orange);}
+.btn-enc-attente:hover{background:rgba(230,126,34,.22);}
+.btn-enc-done{background:rgba(39,174,96,.12);border-color:rgba(39,174,96,.3);color:var(--green);}
+.btn-enc-done:hover{background:rgba(39,174,96,.24);}
+.enc-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding:12px 14px;background:var(--bg3);border-radius:10px;border:1px solid var(--bd);}
+.enc-summary-item{display:flex;flex-direction:column;gap:3px;}
+.enc-summary-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.enc-summary-val{font-size:16px;font-weight:700;}
+.enc-summary-val.green{color:var(--green);}
+.enc-summary-val.orange{color:var(--orange);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{background:#1a5c35;border:1px solid var(--green);color:var(--green);}
+.toast.error{background:#5c1a1a;border:1px solid var(--red);color:var(--red);}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+
+/* ── MOBILE NAV / HAMBURGER ── */
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;border-radius:8px;line-height:1;transition:background .2s;}
+.hamburger:hover{background:var(--bg3);}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:97;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);max-height:calc(100vh - 69px);overflow-y:auto;}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px !important;border-radius:10px;white-space:nowrap;}
+  .nav-overlay.nav-open{display:block;}
+  nav > a[href="/logout"]{display:none;}
+  .mob-logout{display:block !important;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand" style="text-decoration:none;color:inherit">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links">
+    <a href="/accueil">Accueil</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/stock">Stock</a>
+    <a href="/vendu">Ventes</a>
+    <a href="/credit">Crédits Clients</a>
+    <a href="/cheques" class="active">Chèques</a>
+    <a href="/facture">Facture</a>
+    <a href="/fournisseurs">Fournisseurs</a>
+    <a href="/fiche">Fiche</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
+
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<!-- CARTES RÉSUMÉ -->
+<div class="cards">
+  <div class="card c1"><div class="card-ico">📄</div><div class="card-lbl">Total Chèques</div><div class="card-val" id="s-total">—</div></div>
+  <div class="card c2"><div class="card-ico">✅</div><div class="card-lbl">Montant Encaissé</div><div class="card-val" id="s-encaisse">—</div></div>
+  <div class="card c3"><div class="card-ico">⏳</div><div class="card-lbl">En attente</div><div class="card-val" id="s-attente">—</div></div>
+  <div class="card c4"><div class="card-ico">❌</div><div class="card-lbl">Rejetés</div><div class="card-val" id="s-rejete">—</div></div>
+</div>
+
+<!-- ══════════════ CALENDRIER ══════════════ -->
+<div class="cal-section">
+  <div class="cal-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">📅</span>
+      <span class="cal-title">Calendrier des Encaissements</span>
+    </div>
+    <div class="cal-nav">
+      <button onclick="calPrev()">‹</button>
+      <span id="cal-month-label">—</span>
+      <button onclick="calNext()">›</button>
+      <button onclick="calToday()" style="margin-left:4px">Aujourd'hui</button>
+    </div>
+  </div>
+  <div class="cal-grid" id="cal-grid">
+    <div class="cal-day-name">Lun</div>
+    <div class="cal-day-name">Mar</div>
+    <div class="cal-day-name">Mer</div>
+    <div class="cal-day-name">Jeu</div>
+    <div class="cal-day-name">Ven</div>
+    <div class="cal-day-name">Sam</div>
+    <div class="cal-day-name">Dim</div>
+  </div>
+  <div class="cal-legend">
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(230,126,34,.4)"></div>En attente</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(39,174,96,.4)"></div>Encaissé</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(231,76,60,.3)"></div>Rejeté</div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="q" placeholder="Client, n° chèque, réf article…" oninput="filter()">
+  </div>
+  <select id="fs" onchange="filter()">
+    <option value="">Tous les statuts</option>
+    <option value="en_attente">En attente</option>
+    <option value="encaisse">Encaissé</option>
+    <option value="rejete">Rejeté</option>
+  </select>
+  <button class="btn btn-gold" onclick="openAdd()">＋ Nouveau chèque</button>
+  <span class="count-lbl"><span id="cnt">0</span> chèque(s)</span>
+</div>
+
+<!-- TABLEAU -->
+<div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Réf Article</th>
+        <th>Montant (MAD)</th>
+        <th>N° Chèque</th>
+        <th>Nb Chèques</th>
+        <th>Banque</th>
+        <th>Date Chèque</th>
+        <th>Date Encaissement</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div id="empty" class="empty" style="display:none">
+    <p style="font-size:32px;margin-bottom:12px">🏦</p>
+    <p>Aucun chèque enregistré.</p>
+  </div>
+</div>
+
+<!-- MODAL AJOUTER / MODIFIER -->
+<div class="overlay" id="ov" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h2 id="modal-title">＋ Nouveau Chèque</h2>
+    <form onsubmit="submitCheque(event)">
+
+      <div class="form-group">
+        <label>Client *</label>
+        <input type="text" id="f-client" placeholder="Nom du client" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Réf Article</label>
+          <input type="text" id="f-ref" placeholder="ex: 4243">
+        </div>
+        <div class="form-group">
+          <label>Montant total (MAD) *</label>
+          <input type="number" id="f-montant" placeholder="0" min="0" step="1" required>
+        </div>
+      </div>
+
+      <div class="form-row3">
+        <div class="form-group">
+          <label>N° 1er chèque</label>
+          <input type="text" id="f-num" placeholder="ex: 000123">
+        </div>
+        <div class="form-group">
+          <label>Nombre de chèques</label>
+          <input type="number" id="f-nb" placeholder="1" min="1" value="1" oninput="onNbChange()">
+        </div>
+        <div class="form-group">
+          <label>Banque</label>
+          <input type="text" id="f-banque" placeholder="ex: Attijariwafa…">
+        </div>
+      </div>
+
+      <!-- Date du chèque (remise) -->
+      <div class="form-group">
+        <label>Date de remise du 1er chèque *</label>
+        <input type="date" id="f-date" required>
+      </div>
+
+      <!-- Bloc dates d'encaissement dynamiques -->
+      <div id="enc-bloc">
+        <!-- rempli par onNbChange() -->
+      </div>
+
+      <div class="form-group">
+        <label>Statut</label>
+        <select id="f-statut">
+          <option value="en_attente">⏳ En attente</option>
+          <option value="encaisse">✅ Encaissé</option>
+          <option value="rejete">❌ Rejeté</option>
+        </select>
+      </div>
+
+      <!-- Crédit associé -->
+      <div class="form-group" style="background:rgba(52,152,219,.05);border:1px solid rgba(52,152,219,.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+        <label style="color:#2980b9">🔗 Crédit client associé <span style="font-weight:400;font-size:10px;color:var(--muted)">(optionnel — lie ce chèque à un crédit)</span></label>
+        <select id="f-credit" style="margin-top:6px;width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;font-family:inherit;">
+          <option value="">— Aucun crédit associé —</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Note</label>
+        <input type="text" id="f-note" placeholder="Informations complémentaires…">
+      </div>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-gold" id="submit-btn">💾 Enregistrer</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ENCAISSEMENT PAR CHÈQUE -->
+<div class="overlay" id="ov-enc" onclick="closeEnc(event)">
+  <div class="modal" style="width:480px">
+    <button class="close-btn" onclick="closeEnc()">✕</button>
+    <h2 id="enc-modal-title">💳 Encaissement</h2>
+    <div id="enc-modal-body"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-gold" onclick="submitEnc()">💾 Enregistrer</button>
+      <button class="btn btn-outline" onclick="closeEnc()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let ALL = [], filtered = [];
+let CREDITS = [];
+let editId = null;
+let calYear, calMonth; // mois affiché dans le calendrier
+let openPopupDay = null; // date YYYY-MM-DD du popup ouvert
+
+const MOIS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+function fmtN(v){ return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
+function fmtD(d){ if(!d)return '—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+function stBadge(s){
+  if(s==='encaisse') return '<span class="st st-encaisse">✅ Encaissé</span>';
+  if(s==='rejete')   return '<span class="st st-rejete">❌ Rejeté</span>';
+  return '<span class="st st-attente">⏳ En attente</span>';
+}
+
+/* ══ CHARGEMENT ══ */
+async function load(){
+  try{
+    [ALL, CREDITS] = await Promise.all([
+      fetch('/api/cheques').then(r=>r.json()),
+      fetch('/api/credits').then(r=>r.json()),
+    ]);
+    populateCreditSelect();
+    updateCards();
+    renderCal();
+    filter();
+  }catch(e){
+    document.getElementById('empty').style.display='block';
+    document.getElementById('empty').innerHTML='<p>Erreur de connexion au serveur.</p>';
+  }
+}
+
+function populateCreditSelect(selectedId){
+  const sel = document.getElementById('f-credit');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Aucun crédit associé —</option>';
+  CREDITS.filter(cr=>cr.statut!=='solde').forEach(cr=>{
+    const opt = document.createElement('option');
+    opt.value = cr.id;
+    opt.textContent = `${cr.client||'?'} — ${cr.article||cr.refs||''}  (Reste: ${fmtN(cr.reste)} MAD)`;
+    if(cr.id===selectedId) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  // Ajouter aussi les crédits soldés si un était sélectionné
+  if(selectedId){
+    const already = Array.from(sel.options).some(o=>parseInt(o.value)===selectedId);
+    if(!already){
+      const cr = CREDITS.find(c=>c.id===selectedId);
+      if(cr){
+        const opt = document.createElement('option');
+        opt.value = cr.id;
+        opt.textContent = `${cr.client||'?'} — ✅ Soldé`;
+        opt.selected = true;
+        sel.appendChild(opt);
+      }
+    }
+  }
+}
+
+function updateCards(){
+  const encaisses = ALL.filter(c=>c.statut==='encaisse');
+  const attente   = ALL.filter(c=>c.statut==='en_attente');
+  const rejetes   = ALL.filter(c=>c.statut==='rejete');
+  document.getElementById('s-total').textContent=ALL.length;
+  document.getElementById('s-encaisse').textContent=fmtN(encaisses.reduce((s,c)=>s+(c.montant||0),0))+' MAD';
+  document.getElementById('s-attente').textContent=attente.length;
+  document.getElementById('s-rejete').textContent=rejetes.length;
+}
+
+/* ══ CALENDRIER ══ */
+function calToday(){ const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth(); renderCal(); }
+function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); }
+function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); }
+
+function buildDateMap(){
+  // map : YYYY-MM-DD → liste d'entrées {cheque, index}
+  // Pour chèques multiples : une entrée PAR date d'encaissement
+  const map = {};
+  ALL.forEach(c=>{
+    const dates = (c.dates_encaissement && c.dates_encaissement.length)
+      ? c.dates_encaissement
+      : [c.date_encaissement || c.date_cheque];
+    dates.forEach((date, idx)=>{
+      if(!date) return;
+      if(!map[date]) map[date]=[];
+      map[date].push({cheque:c, index:idx});
+    });
+  });
+  return map;
+}
+
+function renderCal(){
+  document.getElementById('cal-month-label').textContent = MOIS_FR[calMonth]+' '+calYear;
+  const dateMap = buildDateMap();
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  // Premier jour du mois (lundi=0)
+  const firstDay = new Date(calYear, calMonth, 1);
+  let startDow = firstDay.getDay(); // 0=dim
+  startDow = startDow===0?6:startDow-1; // convertir en lundi=0
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+
+  // Garder les en-têtes (7 premières divs)
+  const grid = document.getElementById('cal-grid');
+  // Supprimer tout sauf les en-têtes
+  const headers = Array.from(grid.querySelectorAll('.cal-day-name'));
+  grid.innerHTML='';
+  headers.forEach(h=>grid.appendChild(h));
+
+  // Jours du mois précédent
+  for(let i=startDow-1;i>=0;i--){
+    const d=daysInPrev-i;
+    const cell=document.createElement('div');
+    cell.className='cal-day other-month';
+    cell.innerHTML=`<div class="cal-day-num">${d}</div>`;
+    grid.appendChild(cell);
+  }
+
+  // Jours du mois courant
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const events = dateMap[dateStr]||[];
+    const isToday = dateStr===todayStr;
+
+    const cell=document.createElement('div');
+    cell.className='cal-day'+(isToday?' today':'')+(events.length?' has-events':'');
+    cell.setAttribute('data-date', dateStr);
+
+    let numHtml = isToday
+      ? `<div class="cal-day-num" style="background:var(--gold-l);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700">${d}</div>`
+      : `<div class="cal-day-num">${d}</div>`;
+
+    let evtsHtml='';
+    if(events.length){
+      evtsHtml='<div class="cal-events">';
+      events.slice(0,3).forEach(({cheque:c, index:idx})=>{
+        const cls=c.statut==='encaisse'?'encaisse':c.statut==='rejete'?'rejete':'attente';
+        const nbLabel=c.nb_cheques>1?` #${idx+1}/${c.nb_cheques}`:'';
+        evtsHtml+=`<div class="cal-evt ${cls}" title="${c.client||''}${nbLabel} — ${fmtN(c.montant)} MAD">${c.client||'—'}${nbLabel}</div>`;
+      });
+      if(events.length>3) evtsHtml+=`<div style="font-size:10px;color:var(--muted);padding-left:5px">+${events.length-3} autre(s)</div>`;
+      evtsHtml+='</div>';
+    }
+
+    cell.innerHTML=numHtml+evtsHtml;
+
+    if(events.length){
+      cell.onclick=(e)=>{
+        e.stopPropagation();
+        togglePopup(cell, dateStr, events);
+      };
+    }
+    grid.appendChild(cell);
+  }
+
+  // Compléter la dernière semaine
+  const totalCells = startDow + daysInMonth;
+  const remaining = totalCells%7===0 ? 0 : 7-(totalCells%7);
+  for(let d=1;d<=remaining;d++){
+    const cell=document.createElement('div');
+    cell.className='cal-day other-month';
+    cell.innerHTML=`<div class="cal-day-num">${d}</div>`;
+    grid.appendChild(cell);
+  }
+}
+
+function togglePopup(cell, dateStr, events){
+  // Fermer un popup déjà ouvert
+  document.querySelectorAll('.day-popup').forEach(p=>p.remove());
+  if(openPopupDay===dateStr){ openPopupDay=null; return; }
+  openPopupDay=dateStr;
+
+  const popup=document.createElement('div');
+  popup.className='day-popup';
+  const [y,m,d]=dateStr.split('-');
+  popup.innerHTML=`
+    <button class="day-popup-close" onclick="closePopup()">✕</button>
+    <h4>📅 ${d}/${m}/${y}</h4>
+    ${events.map(({cheque:c, index:idx})=>{
+      const nbLabel=c.nb_cheques>1?`<span style="font-size:11px;font-weight:700;color:var(--gold-l);background:rgba(184,146,60,.12);padding:1px 7px;border-radius:10px;margin-left:5px">Chèque ${idx+1}/${c.nb_cheques}</span>`:'';
+      const montantCheque=c.nb_cheques>1?Math.round(c.montant/c.nb_cheques):c.montant;
+      return`
+      <div class="day-popup-item">
+        <div style="font-weight:700;color:var(--txt);display:flex;align-items:center">${c.client||'—'}${nbLabel}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
+          <span style="color:var(--gold-l);font-size:12px">${c.ref_article?'#'+c.ref_article:''} ${c.banque?'· '+c.banque:''}</span>
+          <span style="font-weight:700;font-size:14px">${fmtN(montantCheque)} MAD</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
+          <span style="font-size:11px;color:var(--muted)">N° ${(c.numeros_cheques&&c.numeros_cheques[idx])||c.numero||'—'}</span>
+          ${stBadge(c.statut)}
+        </div>
+      </div>`}).join('')}
+  `;
+  cell.style.position='relative';
+  cell.appendChild(popup);
+}
+
+function closePopup(){
+  document.querySelectorAll('.day-popup').forEach(p=>p.remove());
+  openPopupDay=null;
+}
+
+// Fermer popup en cliquant ailleurs
+document.addEventListener('click',()=>{ closePopup(); });
+
+/* ══ TABLE ══ */
+function filter(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const fs=document.getElementById('fs').value;
+  filtered=ALL.filter(c=>
+    (!q||(c.numero||'').toLowerCase().includes(q)||(c.banque||'').toLowerCase().includes(q)||(c.client||'').toLowerCase().includes(q)||(String(c.ref_article||'')).toLowerCase().includes(q))&&
+    (!fs||c.statut===fs)
+  ).sort((a,b)=>{
+    // Trier par date d'encaissement puis date chèque
+    const da=(a.date_encaissement||a.date_cheque||'');
+    const db=(b.date_encaissement||b.date_cheque||'');
+    return da<db?-1:da>db?1:0;
+  });
+  document.getElementById('cnt').textContent=filtered.length;
+  render();
+}
+
+function render(){
+  const body=document.getElementById('tbody');
+  const empty=document.getElementById('empty');
+  if(!filtered.length){body.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+
+  // Mettre en évidence les chèques proches (≤7j) ou en retard
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  body.innerHTML=filtered.map(c=>{
+    // Alerte sur la 1ère date d'encaissement encore en attente
+    const dates=(c.dates_encaissement&&c.dates_encaissement.length)?c.dates_encaissement:[c.date_encaissement];
+    const prochaine=dates.filter(Boolean).sort()[0];
+    let rowStyle='';
+    if(c.statut==='en_attente'&&prochaine){
+      const d=new Date(prochaine); d.setHours(0,0,0,0);
+      const diff=Math.floor((d-today)/(1000*60*60*24));
+      if(diff<0) rowStyle='background:rgba(231,76,60,.04);border-left:3px solid rgba(231,76,60,.4);';
+      else if(diff<=7) rowStyle='background:rgba(230,126,34,.05);border-left:3px solid rgba(230,126,34,.35);';
+    }
+    // Afficher les dates d'encaissement
+    let datesHtml='';
+    const nb=c.nb_cheques||1;
+    if(nb<=1){
+      datesHtml=fmtD(dates[0]);
+    } else {
+      // Afficher chaque date avec son numéro
+      datesHtml=dates.filter(Boolean).map((dt,i)=>
+        `<div style="font-size:11px;white-space:nowrap"><span style="color:var(--gold-l);font-weight:700">${i+1}.</span> ${fmtD(dt)}</div>`
+      ).join('');
+      if(!datesHtml) datesHtml='—';
+    }
+    return`<tr${rowStyle?` style="${rowStyle}"`:''}>
+      <td><strong>${c.client||'—'}</strong></td>
+      <td style="color:var(--gold-l);font-family:monospace;font-weight:700">${c.ref_article?'#'+c.ref_article:'—'}</td>
+      <td style="font-weight:700;font-size:14px">${fmtN(c.montant)} MAD</td>
+      <td style="font-family:monospace;color:var(--gold-l);line-height:1.7">${(()=>{
+        if(nb<=1) return c.numero||'—';
+        const nums=c.numeros_cheques||[];
+        const html=nums.filter(Boolean).map((n,i)=>`<div style="font-size:11px;white-space:nowrap"><span style="color:var(--gold-l);font-weight:700">${i+1}.</span> ${n}</div>`).join('');
+        return html||c.numero||'—';
+      })()}</td>
+      <td style="text-align:center">
+        <span style="display:inline-block;min-width:28px;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:700;background:rgba(184,146,60,.12);color:var(--gold-l)">${nb}</span>
+      </td>
+      <td style="color:var(--muted)">${c.banque||'—'}</td>
+      <td>${fmtD(c.date_cheque)}</td>
+      <td style="line-height:1.7">${datesHtml}</td>
+      <td>${stBadge(c.statut)}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn" style="padding:4px 10px;font-size:11px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:var(--green)" onclick="openEnc(${c.id})" title="Encaisser les chèques">💳</button>
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openEdit(${c.id})">✏️</button>
+        <button class="btn" style="padding:4px 10px;font-size:11px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red)" onclick="deleteCheque(${c.id})">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══ GESTION DATES DYNAMIQUES ══ */
+function onNbChange(){
+  const nb=parseInt(document.getElementById('f-nb').value)||1;
+  renderEncBloc(nb, [], []);
+}
+
+function renderEncBloc(nb, existingDates, existingNums){
+  existingNums = existingNums || [];
+  const bloc=document.getElementById('enc-bloc');
+  if(nb<=1){
+    // Un seul chèque : un seul champ de date (le N° est dans f-num en haut)
+    bloc.innerHTML=`
+      <div class="enc-single">
+        <label>Date d'encaissement prévue</label>
+        <input type="date" id="enc-0" value="${existingDates[0]||''}">
+      </div>`;
+  } else {
+    // Plusieurs chèques : un N° + une date par chèque + bouton auto
+    let rows='';
+    for(let i=0;i<nb;i++){
+      rows+=`
+        <div class="enc-date-row3">
+          <div class="enc-date-num">${i+1}</div>
+          <input type="text" id="num-${i}" value="${existingNums[i]||''}" placeholder="N° chèque ${i+1}">
+          <input type="date" id="enc-${i}" value="${existingDates[i]||''}">
+        </div>`;
+    }
+    bloc.innerHTML=`
+      <div style="background:rgba(184,146,60,.05);border:1px solid rgba(184,146,60,.2);border-radius:10px;padding:14px;margin-bottom:14px;">
+        <div class="enc-dates-header">
+          <span class="enc-dates-title">📅 Dates d'encaissement (${nb} chèques)</span>
+          <button type="button" class="btn-autofill" onclick="autoFillDates()">↩ Espacer d'1 mois</button>
+        </div>
+        <div class="enc-row3-header">
+          <span></span>
+          <span>N° Chèque</span>
+          <span>Date d'encaissement</span>
+        </div>
+        ${rows}
+      </div>`;
+  }
+}
+
+function autoFillDates(){
+  // Remplir automatiquement : 1er chèque = date remise + 1 mois, puis +1 mois chacun
+  const nb=parseInt(document.getElementById('f-nb').value)||1;
+  const baseDate=document.getElementById('f-date').value;
+  if(!baseDate){ showToast('Entrez d\'abord la date de remise','error'); return; }
+  let d=new Date(baseDate);
+  for(let i=0;i<nb;i++){
+    d.setMonth(d.getMonth()+1);
+    const inp=document.getElementById(`enc-${i}`);
+    if(inp) inp.value=d.toISOString().slice(0,10);
+  }
+}
+
+function getDatesEncaissement(){
+  const nb=parseInt(document.getElementById('f-nb').value)||1;
+  const dates=[];
+  for(let i=0;i<nb;i++){
+    const inp=document.getElementById(`enc-${i}`);
+    dates.push(inp?inp.value||null:null);
+  }
+  return dates;
+}
+
+function getNumerosChecques(){
+  const nb=parseInt(document.getElementById('f-nb').value)||1;
+  if(nb<=1) return [document.getElementById('f-num').value.trim()];
+  const nums=[];
+  for(let i=0;i<nb;i++){
+    const inp=document.getElementById(`num-${i}`);
+    nums.push(inp?inp.value.trim():'');
+  }
+  return nums;
+}
+
+/* ══ FORMULAIRE ══ */
+function openAdd(){
+  editId=null;
+  document.getElementById('modal-title').textContent='＋ Nouveau Chèque';
+  document.getElementById('submit-btn').textContent='💾 Enregistrer';
+  document.getElementById('f-client').value='';
+  document.getElementById('f-ref').value='';
+  document.getElementById('f-montant').value='';
+  document.getElementById('f-num').value='';
+  document.getElementById('f-nb').value='1';
+  document.getElementById('f-banque').value='';
+  document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('f-statut').value='en_attente';
+  document.getElementById('f-note').value='';
+  populateCreditSelect(null);
+  renderEncBloc(1,[]);
+  document.getElementById('ov').classList.add('open');
+}
+
+function openEdit(id){
+  const c=ALL.find(x=>x.id===id);
+  if(!c) return;
+  editId=id;
+  document.getElementById('modal-title').textContent='✏️ Modifier le Chèque';
+  document.getElementById('submit-btn').textContent='💾 Sauvegarder';
+  document.getElementById('f-client').value=c.client||'';
+  document.getElementById('f-ref').value=c.ref_article||'';
+  document.getElementById('f-montant').value=c.montant||'';
+  document.getElementById('f-num').value=c.numero||'';
+  const nb=c.nb_cheques||1;
+  document.getElementById('f-nb').value=nb;
+  document.getElementById('f-banque').value=c.banque||'';
+  document.getElementById('f-date').value=c.date_cheque||'';
+  document.getElementById('f-statut').value=c.statut||'en_attente';
+  document.getElementById('f-note').value=c.note||'';
+  populateCreditSelect(c.credit_id||null);
+  // Restaurer les dates : tableau ou ancien champ unique
+  const existingDates=c.dates_encaissement&&c.dates_encaissement.length
+    ? c.dates_encaissement
+    : (c.date_encaissement ? [c.date_encaissement] : []);
+  const existingNums=c.numeros_cheques&&c.numeros_cheques.length
+    ? c.numeros_cheques
+    : (c.numero ? [c.numero] : []);
+  renderEncBloc(nb, existingDates, existingNums);
+  document.getElementById('ov').classList.add('open');
+}
+
+async function submitCheque(e){
+  e.preventDefault();
+  const nb=parseInt(document.getElementById('f-nb').value)||1;
+  const dates=getDatesEncaissement();
+  const numeros = getNumerosChecques();
+  const payload={
+    client: document.getElementById('f-client').value.trim(),
+    ref_article: document.getElementById('f-ref').value.trim()||null,
+    montant: parseFloat(document.getElementById('f-montant').value)||0,
+    numero: numeros[0]||document.getElementById('f-num').value.trim(),
+    numeros_cheques: numeros,
+    nb_cheques: nb,
+    banque: document.getElementById('f-banque').value.trim(),
+    date_cheque: document.getElementById('f-date').value,
+    dates_encaissement: dates,
+    date_encaissement: dates[0]||null,
+    statut: document.getElementById('f-statut').value,
+    credit_id: parseInt(document.getElementById('f-credit').value)||null,
+    note: document.getElementById('f-note').value.trim(),
+  };
+  try{
+    const method=editId?'PUT':'POST';
+    const url=editId?`/api/cheques/${editId}`:'/api/cheques';
+    const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const j=await r.json();
+    if(j.success){
+      closeModal();
+      showToast(editId?'Chèque modifié !':'Chèque enregistré !','success');
+      await load();
+    }else showToast(j.error||'Erreur','error');
+  }catch(err){showToast('Erreur réseau','error');}
+}
+
+async function deleteCheque(id){
+  if(!confirm('Supprimer ce chèque ?')) return;
+  try{
+    const r=await fetch(`/api/cheques/${id}`,{method:'DELETE'});
+    const j=await r.json();
+    if(j.success){showToast('Chèque supprimé','success');await load();}
+    else showToast(j.error||'Erreur','error');
+  }catch(e){showToast('Erreur réseau','error');}
+}
+
+function closeModal(e){if(e&&e.target!==document.getElementById('ov'))return;document.getElementById('ov').classList.remove('open');}
+
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show '+type;
+  setTimeout(()=>t.className='toast',2800);
+}
+
+/* ══ ENCAISSEMENT PAR CHÈQUE ══ */
+let encId = null;
+let encStatuts = [];
+
+function openEnc(id){
+  const c = ALL.find(x=>x.id===id);
+  if(!c) return;
+  encId = id;
+  const nb = c.nb_cheques || 1;
+  // Récupérer statuts existants ou initialiser à en_attente
+  encStatuts = [];
+  for(let i=0;i<nb;i++){
+    encStatuts.push((c.statuts_cheques&&c.statuts_cheques[i]) || 'en_attente');
+  }
+  document.getElementById('enc-modal-title').textContent = `💳 Encaissement — ${c.client||''}`;
+  // Bannière crédit lié
+  const linkedCredit = c.credit_id ? CREDITS.find(cr=>cr.id===c.credit_id) : null;
+  const banner = linkedCredit
+    ? `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(52,152,219,.07);border:1px solid rgba(52,152,219,.25);border-radius:10px;margin-bottom:14px;font-size:12px;">
+        <span style="font-size:18px">🔗</span>
+        <div>
+          <div style="font-weight:700;color:#2980b9">Crédit associé : ${linkedCredit.client||'?'}</div>
+          <div style="color:var(--muted);margin-top:2px">${linkedCredit.article||''} — Reste avant encaissement : <strong style="color:var(--orange)">${fmtN(linkedCredit.reste)} MAD</strong></div>
+        </div>
+      </div>`
+    : '';
+  renderEncModal(c, banner);
+  document.getElementById('ov-enc').classList.add('open');
+}
+
+function renderEncModal(c, banner){
+  const nb = c.nb_cheques || 1;
+  const montantParCheque = Math.round((c.montant||0) / nb);
+  const nums = c.numeros_cheques || [];
+
+  let rows = '';
+  for(let i=0;i<nb;i++){
+    const statut = encStatuts[i];
+    const done = statut === 'encaisse';
+    const numLabel = nums[i] ? `N° ${nums[i]}` : `Chèque ${i+1}`;
+    const dates = (c.dates_encaissement&&c.dates_encaissement.length) ? c.dates_encaissement : [c.date_encaissement];
+    const dateLabel = dates[i] ? fmtD(dates[i]) : '—';
+    rows += `
+      <div class="enc-check-row${done?' done':''}" id="enc-row-${i}">
+        <div class="enc-check-info">
+          <div class="enc-check-label">${i+1}. ${numLabel}</div>
+          <div class="enc-check-sub">📅 ${dateLabel}${c.banque?' · '+c.banque:''}</div>
+        </div>
+        <div class="enc-check-amount" style="color:${done?'var(--green)':'var(--txt)'}">${fmtN(montantParCheque)} MAD</div>
+        <button class="btn-enc-toggle ${done?'btn-enc-done':'btn-enc-attente'}" onclick="toggleEnc(${i})">
+          ${done?'✅ Encaissé':'⏳ En attente'}
+        </button>
+      </div>`;
+  }
+
+  // Calcul du résumé
+  const nbEnc = encStatuts.filter(s=>s==='encaisse').length;
+  const montantEnc = nbEnc * montantParCheque;
+  const reste = (c.montant||0) - montantEnc;
+
+  rows += `
+    <div class="enc-summary">
+      <div class="enc-summary-item">
+        <span class="enc-summary-lbl">✅ Encaissé</span>
+        <span class="enc-summary-val green">${fmtN(montantEnc)} MAD</span>
+        <span style="font-size:11px;color:var(--muted)">${nbEnc} / ${nb} chèque(s)</span>
+      </div>
+      <div class="enc-summary-item">
+        <span class="enc-summary-lbl">⏳ Reste à encaisser</span>
+        <span class="enc-summary-val orange">${fmtN(reste)} MAD</span>
+        <span style="font-size:11px;color:var(--muted)">${nb-nbEnc} / ${nb} chèque(s)</span>
+      </div>
+    </div>`;
+
+  document.getElementById('enc-modal-body').innerHTML = (banner||'') + rows;
+}
+
+function toggleEnc(idx){
+  encStatuts[idx] = encStatuts[idx]==='encaisse' ? 'en_attente' : 'encaisse';
+  // Re-render avec les données actuelles
+  const c = ALL.find(x=>x.id===encId);
+  if(!c) return;
+  const linkedCredit = c.credit_id ? CREDITS.find(cr=>cr.id===c.credit_id) : null;
+  const banner = linkedCredit
+    ? `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(52,152,219,.07);border:1px solid rgba(52,152,219,.25);border-radius:10px;margin-bottom:14px;font-size:12px;">
+        <span style="font-size:18px">🔗</span>
+        <div>
+          <div style="font-weight:700;color:#2980b9">Crédit associé : ${linkedCredit.client||'?'}</div>
+          <div style="color:var(--muted);margin-top:2px">${linkedCredit.article||''} — Reste avant encaissement : <strong style="color:var(--orange)">${fmtN(linkedCredit.reste)} MAD</strong></div>
+        </div>
+      </div>`
+    : '';
+  renderEncModal(c, banner);
+}
+
+async function submitEnc(){
+  const c = ALL.find(x=>x.id===encId);
+  if(!c) return;
+  // Déterminer le statut global
+  const nbEnc = encStatuts.filter(s=>s==='encaisse').length;
+  const nb = c.nb_cheques || 1;
+  let statutGlobal = 'en_attente';
+  if(nbEnc===nb) statutGlobal = 'encaisse';
+  // garder rejete si c'était le statut et rien n'est encaissé
+  if(c.statut==='rejete' && nbEnc===0) statutGlobal = 'rejete';
+
+  const payload = {
+    statuts_cheques: encStatuts,
+    statut: statutGlobal,
+  };
+  try{
+    const r = await fetch(`/api/cheques/${encId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    const j = await r.json();
+    if(j.success){
+      document.getElementById('ov-enc').classList.remove('open');
+      encId = null;
+      showToast('Encaissement mis à jour !','success');
+      await load();
+    } else showToast(j.error||'Erreur','error');
+  }catch(err){ showToast('Erreur réseau','error'); }
+}
+
+function closeEnc(e){
+  if(e && e.target!==document.getElementById('ov-enc')) return;
+  document.getElementById('ov-enc').classList.remove('open');
+  encId = null;
+}
+
+// Init calendrier sur le mois courant
+const _now=new Date();
+calYear=_now.getFullYear(); calMonth=_now.getMonth();
+load();
+</script>
+<script src="/static/notifications.js?v=3"></script>
+<script>
+/* ── HAMBURGER NAV ── */
+function toggleNav(){
+  const nl=document.querySelector('.nav-links');
+  const ov=document.querySelector('.nav-overlay');
+  const btn=document.getElementById('hamburger-btn');
+  if(!nl)return;
+  const open=nl.classList.toggle('nav-open');
+  if(ov)ov.classList.toggle('nav-open',open);
+  if(btn)btn.textContent=open?'✕':'☰';
+}
+(function(){
+  const ov=document.createElement('div');
+  ov.className='nav-overlay';
+  ov.onclick=function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  };
+  document.body.appendChild(ov);
+  // Close nav when a link is clicked
+  document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  }));
+})();
+</script>
+<script src="/chatbot.js"></script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

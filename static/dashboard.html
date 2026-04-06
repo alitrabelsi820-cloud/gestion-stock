@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Trabelsi">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — TRABELSI</title>
+<style>
+:root{
+  --gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;
+  --bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;
+  --txt:#1a1612;--muted:#9a8e7e;
+  --green:#2ecc71;--red:#e74c3c;--blue:#3498db;--orange:#e67e22;--purple:#9b59b6;--teal:#1abc9c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+/* NAV */
+nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+
+/* LAYOUT */
+.page{padding:24px 28px 70px;}
+.page-header{margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.page-header h1{font-size:22px;color:var(--gold-l);}
+.date-badge{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:6px 14px;font-size:13px;color:var(--muted);}
+.date-badge span{color:var(--gold);font-weight:600;}
+.refresh-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;}
+.refresh-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* GRIDS */
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:1100px){.grid4{grid-template-columns:repeat(2,1fr);}.grid3{grid-template-columns:1fr 1fr;}}
+@media(max-width:700px){.grid4,.grid2,.grid3{grid-template-columns:1fr;}}
+
+/* CARDS KPI */
+.kpi{background:#ffffff;border:1px solid #e8e0d4;border-radius:14px;padding:20px 22px;position:relative;overflow:hidden;transition:transform .18s,border-color .18s,box-shadow .18s;}
+.kpi:hover{transform:translateY(-2px);border-color:rgba(201,168,76,.45);box-shadow:0 4px 16px rgba(184,146,60,.15),0 0 0 1px rgba(184,146,60,.2);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi-ico{font-size:24px;margin-bottom:10px;}
+.kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.kpi-val{font-size:22px;font-weight:800;line-height:1.1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.kpi-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-top:6px;}
+
+/* KPI colors — tous en or, uniforme */
+.k-gold::before,.k-green::before,.k-blue::before,.k-orange::before,.k-red::before,.k-teal::before,.k-purple::before{background:linear-gradient(90deg,rgba(201,168,76,.15),rgba(224,192,106,.45));}
+.kpi .kpi-val{color:var(--gold-l);}
+
+/* PANELS */
+.panel{background:#ffffff;border:1px solid #e8e0d4;border-radius:14px;padding:20px;}
+.panel-full{background:#ffffff;border:1px solid #e8e0d4;border-radius:14px;padding:20px;margin-bottom:16px;}
+.panel-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+
+/* PIERRES GRID */
+.pierre-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.pierre-card{background:var(--bg3);border:1px solid var(--bd);border-radius:9px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
+.pierre-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.pierre-info{flex:1;min-width:0;}
+.pierre-name{font-size:11px;color:var(--muted);white-space:nowrap;}
+.pierre-val{font-size:15px;font-weight:700;color:var(--txt);}
+.pierre-unit{font-size:10px;color:var(--muted);}
+
+/* CRÉDITS TOP */
+.credit-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd);}
+.credit-item:last-child{border-bottom:none;}
+.credit-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:rgba(231,76,60,.15);color:var(--red);border:1px solid rgba(231,76,60,.25);flex-shrink:0;}
+.credit-name{font-size:13px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.credit-amount{font-size:13px;font-weight:700;color:var(--red);white-space:nowrap;}
+.credit-bar-wrap{height:4px;background:var(--bd);border-radius:2px;margin-top:4px;}
+.credit-bar{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--red),#c0392b);}
+
+/* VENTES TABLE */
+.v-table{width:100%;border-collapse:collapse;font-size:13px;}
+.v-table th{padding:8px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-bottom:1px solid var(--bd);}
+.v-table td{padding:9px 10px;border-bottom:1px solid var(--bd);}
+.v-table tr:last-child td{border-bottom:none;}
+.v-table tr:hover td{background:rgba(184,146,60,.04);}
+.pos{color:var(--green);font-weight:600;}
+.neg{color:var(--red);font-weight:600;}
+
+/* COMPARAISON M vs M-1 */
+.compare-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--bd);}
+.compare-row:last-child{border-bottom:none;}
+.compare-lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;}
+.compare-vals{display:flex;align-items:center;gap:14px;}
+.compare-prev{font-size:13px;color:var(--muted);}
+.compare-cur{font-size:14px;font-weight:700;}
+.trend{font-size:12px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.trend-up{background:rgba(39,174,96,.1);color:#1e7e46;}
+.trend-down{background:rgba(192,57,43,.1);color:#c0392b;}
+.trend-flat{background:rgba(0,0,0,.04);color:var(--muted);}
+
+/* ANALYSES TABS */
+.tabs{display:flex;gap:4px;margin-bottom:16px;}
+.tab{padding:8px 18px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;}
+.tab:hover{border-color:var(--gold);color:var(--gold);}
+.tab.active{background:rgba(201,168,76,.15);border-color:rgba(201,168,76,.4);color:var(--gold-l);}
+
+/* PERIOD FILTER */
+.period-filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:14px 18px;background:var(--bg3);border-radius:10px;}
+.period-filter label{font-size:12px;color:var(--muted);}
+.period-filter input[type=date]{padding:7px 10px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;}
+.period-filter input:focus{border-color:var(--gold);}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
+.btn-gold:hover{filter:brightness(1.12);}
+.btn-quick{padding:5px 12px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;transition:all .2s;}
+.btn-quick:hover,.btn-quick.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08);}
+
+/* PERIOD STATS */
+.period-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.period-card{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:14px;}
+.period-card label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;}
+.period-card .val{font-size:18px;font-weight:700;}
+.pc-nb .val,.pc-ca .val,.pc-b .val,.pc-or .val{color:var(--gold-l);}
+
+/* MONTHLY TABLE */
+.monthly-table{width:100%;border-collapse:collapse;font-size:13px;}
+.monthly-table th{padding:9px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-bottom:1px solid var(--bd);}
+.monthly-table td{padding:10px 12px;border-bottom:1px solid var(--bd);}
+.monthly-table tr:hover td{background:rgba(255,255,255,.015);}
+.monthly-table tr:last-child td{border-bottom:none;}
+
+/* BAR CHART CSS */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px;}
+.bar-group{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px;}
+.bar-pair{display:flex;align-items:flex-end;gap:2px;width:100%;justify-content:center;}
+.bar-ca{background:linear-gradient(180deg,var(--gold-l),var(--gold-d));border-radius:3px 3px 0 0;min-height:2px;flex:1;}
+.bar-b{background:linear-gradient(180deg,rgba(201,168,76,.45),rgba(154,117,48,.45));border-radius:3px 3px 0 0;min-height:2px;flex:1;}
+.bar-lbl{font-size:9px;color:var(--muted);text-align:center;white-space:nowrap;}
+.chart-legend{display:flex;gap:16px;margin-bottom:10px;font-size:12px;color:var(--muted);}
+.legend-dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;}
+
+
+/* ── HERO KPIs ── */
+.hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+@media(max-width:960px){.hero-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.hero-grid{grid-template-columns:1fr;}}
+.hero-kpi{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:24px 26px;position:relative;overflow:hidden;transition:box-shadow .2s;}
+.hero-kpi:hover{box-shadow:0 8px 32px rgba(0,0,0,.1);}
+.hero-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.hero-gold::before{background:linear-gradient(90deg,var(--gold),#e8c96f);}
+.hero-green::before{background:linear-gradient(90deg,#27ae60,#2ecc71);}
+.hero-red::before{background:linear-gradient(90deg,#c0392b,#e74c3c);}
+.hero-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;}
+.hero-val{font-size:30px;font-weight:900;line-height:1.1;margin-bottom:12px;}
+.hero-gold .hero-val{color:var(--gold-l);}
+.hero-green .hero-val{color:#1a7a40;}
+.hero-red .hero-val{color:#c0392b;}
+.hero-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.hero-sub{font-size:12px;color:var(--muted);margin-top:6px;}
+.marge-badge{background:rgba(46,204,113,.12);color:#1a7a40;padding:2px 9px;border-radius:12px;font-size:12px;font-weight:700;border:1px solid rgba(46,204,113,.25);}
+.credit-badge{background:rgba(231,76,60,.08);color:#c0392b;padding:2px 9px;border-radius:12px;font-size:12px;font-weight:700;border:1px solid rgba(192,57,43,.2);}
+
+/* Secondary KPI row — plus compact */
+.kpi2{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;transition:box-shadow .18s;}
+.kpi2:hover{box-shadow:0 4px 14px rgba(0,0,0,.07);}
+.kpi2 .kpi-lbl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.kpi2 .kpi-val{font-size:18px;font-weight:800;color:var(--gold-l);}
+.kpi2 .kpi-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* ── MOBILE NAV / HAMBURGER ── */
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;border-radius:8px;line-height:1;transition:background .2s;}
+.hamburger:hover{background:var(--bg3);}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:97;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);max-height:calc(100vh - 69px);overflow-y:auto;}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px !important;border-radius:10px;white-space:nowrap;}
+  .nav-overlay.nav-open{display:block;}
+  nav > a[href="/logout"]{display:none;}
+  .mob-logout{display:block !important;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand" style="text-decoration:none;color:inherit">
+    <div class="nav-logo">♦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links">
+    <a href="/accueil">Accueil</a>
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/stock">Stock</a>
+    <a href="/vendu">Ventes</a>
+    <a href="/credit">Crédits Clients</a>
+    <a href="/cheques">Chèques</a>
+    <a href="/facture">Facture</a>
+    <a href="/fournisseurs">Fournisseurs</a>
+    <a href="/fiche">Fiche</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
+
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>📊 Tableau de Bord</h1>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="date-badge">Mis à jour : <span id="now">—</span></div>
+      <button class="refresh-btn" onclick="load()">🔄 Actualiser</button>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 1 : 3 CHIFFRES CLÉS ══ -->
+  <div class="hero-grid">
+
+    <!-- CA du mois -->
+    <div class="hero-kpi hero-gold">
+      <div class="hero-label">📈 Chiffre d'Affaires — Ce Mois</div>
+      <div class="hero-val" id="v-ca-month">—</div>
+      <div class="hero-footer">
+        <span class="trend trend-flat" id="hero-ca-trend">—</span>
+        <span class="hero-sub" id="hero-ca-sub">—</span>
+      </div>
+    </div>
+
+    <!-- Bénéfice du mois -->
+    <div class="hero-kpi hero-green">
+      <div class="hero-label">💵 Bénéfice Net — Ce Mois</div>
+      <div class="hero-val" id="v-b-month">—</div>
+      <div class="hero-footer">
+        <span class="trend trend-flat" id="hero-b-trend">—</span>
+        <span class="marge-badge" id="v-marge-month">—</span>
+      </div>
+    </div>
+
+    <!-- Créances clients -->
+    <div class="hero-kpi hero-red">
+      <div class="hero-label">⚠️ Total Dû Clients</div>
+      <div class="hero-val" id="c-du">—</div>
+      <div class="hero-footer">
+        <span class="credit-badge"><span id="c-nb-ouverts">—</span> créances ouvertes</span>
+        <a href="/credit" style="color:#c0392b;font-size:12px;text-decoration:none;font-weight:600;margin-left:auto;">Voir tout →</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ SECTION 2 : MÉTRIQUES SECONDAIRES ══ -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
+    <div class="kpi2">
+      <div class="kpi-lbl">Articles en Stock</div>
+      <div class="kpi-val" id="s-nb">—</div>
+      <div class="kpi-sub" id="s-date">—</div>
+    </div>
+    <div class="kpi2">
+      <div class="kpi-lbl">Valeur Stock (P.R)</div>
+      <div class="kpi-val" id="s-val">—</div>
+      <div class="kpi-sub">Prix de revient</div>
+    </div>
+    <div class="kpi2">
+      <div class="kpi-lbl">OR en Stock</div>
+      <div class="kpi-val" id="s-or">—</div>
+      <div class="kpi-sub">grammes</div>
+    </div>
+    <div class="kpi2">
+      <div class="kpi-lbl">OR Vendu ce Mois</div>
+      <div class="kpi-val" id="v-or-month">—</div>
+      <div class="kpi-sub">grammes</div>
+    </div>
+    <div class="kpi2">
+      <div class="kpi-lbl">Ventes Aujourd'hui</div>
+      <div class="kpi-val" id="v-nb-day">—</div>
+      <div class="kpi-sub" id="v-ca-day">—</div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 3 : STOCK + CRÉANCES ══ -->
+  <div class="grid2" style="margin-bottom:20px;">
+
+    <!-- Composition du stock -->
+    <div class="panel">
+      <div class="panel-title">💎 Composition du Stock</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Total OR</div>
+          <div style="font-size:20px;font-weight:800;color:var(--gold-l)" id="big-or">—</div>
+          <div style="font-size:11px;color:var(--muted)">grammes</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Articles</div>
+          <div style="font-size:20px;font-weight:800;color:var(--txt)" id="big-nb">—</div>
+          <div style="font-size:11px;color:var(--muted)">en stock</div>
+        </div>
+      </div>
+      <div class="pierre-grid">
+        <div class="pierre-card"><div class="pierre-dot" style="background:#f7dc6f"></div><div class="pierre-info"><div class="pierre-name">Diamants</div><div><span class="pierre-val" id="p-d">—</span> <span class="pierre-unit">cts</span></div></div></div>
+        <div class="pierre-card"><div class="pierre-dot" style="background:#2ecc71"></div><div class="pierre-info"><div class="pierre-name">Émeraudes</div><div><span class="pierre-val" id="p-em">—</span> <span class="pierre-unit">cts</span></div></div></div>
+        <div class="pierre-card"><div class="pierre-dot" style="background:#e74c3c"></div><div class="pierre-info"><div class="pierre-name">Rubis</div><div><span class="pierre-val" id="p-r">—</span> <span class="pierre-unit">cts</span></div></div></div>
+        <div class="pierre-card"><div class="pierre-dot" style="background:#3498db"></div><div class="pierre-info"><div class="pierre-name">Saphirs</div><div><span class="pierre-val" id="p-s">—</span> <span class="pierre-unit">cts</span></div></div></div>
+        <div class="pierre-card"><div class="pierre-dot" style="background:#9b59b6"></div><div class="pierre-info"><div class="pierre-name">Rosaces</div><div><span class="pierre-val" id="p-ros">—</span> <span class="pierre-unit">cts</span></div></div></div>
+        <div class="pierre-card"><div class="pierre-dot" style="background:#1abc9c"></div><div class="pierre-info"><div class="pierre-name">Ém. Colombie</div><div><span class="pierre-val" id="p-ec">—</span> <span class="pierre-unit">cts</span></div></div></div>
+        <div class="pierre-card"><div class="pierre-dot" style="background:#e67e22"></div><div class="pierre-info"><div class="pierre-name">Perles</div><div><span class="pierre-val" id="p-per">—</span> <span class="pierre-unit">grs</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- Droite : Top créances + Comparaison -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <div class="panel" style="flex:1;">
+        <div class="panel-title">
+          <span>💳 Top Créances Ouvertes</span>
+          <a href="/credit" style="font-size:11px;color:var(--gold);text-decoration:none;font-weight:600;">Voir tout →</a>
+        </div>
+        <div id="top-credits">
+          <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Chargement…</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">📊 Ce mois vs Mois précédent</div>
+        <div class="compare-row">
+          <div class="compare-lbl">C.A</div>
+          <div class="compare-vals">
+            <span class="compare-prev" id="cmp-ca-prev">—</span>
+            <span class="compare-cur" id="cmp-ca-cur" style="color:var(--gold-l)">—</span>
+            <span class="trend" id="cmp-ca-trend">—</span>
+          </div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-lbl">Bénéfice</div>
+          <div class="compare-vals">
+            <span class="compare-prev" id="cmp-b-prev">—</span>
+            <span class="compare-cur" id="cmp-b-cur" style="color:var(--gold-l)">—</span>
+            <span class="trend" id="cmp-b-trend">—</span>
+          </div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-lbl">Ventes (nb)</div>
+          <div class="compare-vals">
+            <span class="compare-prev" id="cmp-nb-prev">—</span>
+            <span class="compare-cur" id="cmp-nb-cur">—</span>
+            <span class="trend" id="cmp-nb-trend">—</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ SECTION 4 : DERNIÈRES VENTES + ARTICLES ══ -->
+  <div class="grid2" style="margin-bottom:20px;">
+    <div class="panel">
+      <div class="panel-title">
+        <span>🕐 Dernières Ventes</span>
+        <a href="/vendu" style="font-size:11px;color:var(--gold);text-decoration:none;font-weight:600;">Voir tout →</a>
+      </div>
+      <table class="v-table">
+        <thead><tr><th>Réf</th><th>Article</th><th>P.V</th><th>Bénéfice</th><th>Client</th></tr></thead>
+        <tbody id="last-ventes"></tbody>
+      </table>
+      <div id="no-ventes" style="display:none;text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucune vente enregistrée.</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">
+        <span>📦 Derniers Articles Ajoutés</span>
+        <a href="/stock" style="font-size:11px;color:var(--gold);text-decoration:none;font-weight:600;">Voir tout →</a>
+      </div>
+      <table class="v-table">
+        <thead><tr><th>Réf</th><th>Type</th><th>OR</th><th>P.R</th><th>Date</th></tr></thead>
+        <tbody id="last-articles"></tbody>
+      </table>
+      <div id="no-articles" style="display:none;text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucun article.</div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 5 : ANALYSES FINANCIÈRES ══ -->
+  <div class="panel-full">
+    <div class="panel-title"><span>📈 Analyses Financières</span></div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('periode')">Période personnalisée</button>
+      <button class="tab" onclick="switchTab('mensuel')">Résumé Mensuel</button>
+      <button class="tab" onclick="switchTab('annuel')">Résumé Annuel</button>
+    </div>
+
+    <div id="tab-periode">
+      <div class="period-filter">
+        <label>Du :</label>
+        <input type="date" id="p-from">
+        <label>Au :</label>
+        <input type="date" id="p-to">
+        <button class="btn btn-gold" onclick="loadPeriod()">Analyser</button>
+        <button class="btn-quick" onclick="setQuick('today',event)">Aujourd'hui</button>
+        <button class="btn-quick" onclick="setQuick('week',event)">Cette semaine</button>
+        <button class="btn-quick" onclick="setQuick('month',event)">Ce mois</button>
+        <button class="btn-quick" onclick="setQuick('year',event)">Cette année</button>
+        <button class="btn-quick" onclick="setQuick('all',event)">Tout (2025+)</button>
+      </div>
+      <div id="period-label" style="font-size:13px;color:var(--gold);font-weight:600;margin-bottom:12px;padding:8px 12px;background:rgba(201,168,76,.07);border-radius:8px;display:none"></div>
+      <div class="period-stats">
+        <div class="period-card pc-nb"><label>Nombre de Ventes</label><div class="val" id="p-nb">—</div></div>
+        <div class="period-card pc-ca"><label>Chiffre d'Affaires</label><div class="val" id="p-ca">—</div></div>
+        <div class="period-card pc-b"><label>Bénéfice Net</label><div class="val" id="p-benef">—</div></div>
+        <div class="period-card pc-or"><label>OR Vendu (grs)</label><div class="val" id="p-or">—</div></div>
+      </div>
+    </div>
+
+    <div id="tab-mensuel" style="display:none">
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:var(--blue)"></span>C.A</span>
+        <span><span class="legend-dot" style="background:var(--green)"></span>Bénéfice</span>
+      </div>
+      <div class="bar-chart" id="bar-chart" style="margin-bottom:20px;overflow-x:auto;min-height:160px;"></div>
+      <div style="overflow-x:auto">
+        <table class="monthly-table">
+          <thead><tr><th>Mois</th><th>Ventes</th><th>C.A (MAD)</th><th>Bénéfice (MAD)</th><th>OR vendu (grs)</th><th>Marge</th></tr></thead>
+          <tbody id="monthly-body"></tbody>
+        </table>
+        <div id="no-monthly" style="display:none;text-align:center;padding:30px;color:var(--muted)">Aucune donnée.</div>
+      </div>
+    </div>
+
+    <!-- TAB ANNUEL -->
+    <div id="tab-annuel" style="display:none">
+      <div style="overflow-x:auto">
+        <table class="monthly-table">
+          <thead><tr><th>Année</th><th>Ventes</th><th>C.A (MAD)</th><th>Bénéfice (MAD)</th><th>Marge</th></tr></thead>
+          <tbody id="annual-body"></tbody>
+        </table>
+        <div id="no-annual" style="display:none;text-align:center;padding:30px;color:var(--muted)">Aucune donnée.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const fmt  = (v,d=2) => v==null?'—':Number(v).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:d});
+const fmtN = v => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+const fmtD = d => { if(!d) return '—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+const NOMS_MOIS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+const NOMS_MOIS_L = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+let advancedData = null;
+
+async function load(){
+  try{
+    const now = new Date();
+    document.getElementById('now').textContent = now.toLocaleString('fr-FR');
+    document.getElementById('s-date').textContent = 'Au ' + now.toLocaleDateString('fr-FR');
+
+    const [stats, ventes, advanced, articles, creditStats] = await Promise.all([
+      fetch('/api/stats').then(r=>r.json()),
+      fetch('/api/ventes').then(r=>r.json()),
+      fetch('/api/stats/advanced').then(r=>r.json()),
+      fetch('/api/articles').then(r=>r.json()),
+      fetch('/api/credits/stats').then(r=>r.json()),
+    ]);
+    advancedData = advanced;
+
+    // ── KPIs Stock ──
+    document.getElementById('s-nb').textContent    = stats.nb_articles;
+    document.getElementById('s-or').textContent    = fmt(stats.total_or) + ' grs';
+    document.getElementById('s-val').textContent   = fmtN(stats.valeur_stock) + ' MAD';
+    document.getElementById('big-or').textContent  = fmt(stats.total_or);
+    document.getElementById('big-nb').textContent  = stats.nb_articles;
+
+    // ── Crédits KPI ──
+    document.getElementById('c-du').textContent        = fmtN(creditStats.total_du) + ' MAD';
+    document.getElementById('c-nb-ouverts').textContent = creditStats.nb_ouverts;
+
+    // ── Pierres ──
+    document.getElementById('p-d').textContent   = fmt(stats.diamants);
+    document.getElementById('p-em').textContent  = fmt(stats.emeraudes);
+    document.getElementById('p-r').textContent   = fmt(stats.rubis);
+    document.getElementById('p-s').textContent   = fmt(stats.saphirs);
+    document.getElementById('p-ros').textContent = fmt(stats.rosaces);
+    document.getElementById('p-ec').textContent  = fmt(stats.em_clb);
+    document.getElementById('p-per').textContent = fmt(stats.perles);
+
+    // ── Mois courant ──
+    const moisKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const moisPrevKey = (() => {
+      const d = new Date(now.getFullYear(), now.getMonth()-1, 1);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    })();
+    const moisCur  = advanced.monthly.find(m=>m.mois===moisKey)  || {nb:0,ca:0,benef:0};
+    const moisPrev = advanced.monthly.find(m=>m.mois===moisPrevKey) || {nb:0,ca:0,benef:0};
+    const nomMois  = NOMS_MOIS_L[now.getMonth()] + ' ' + now.getFullYear();
+
+    document.getElementById('v-ca-month').textContent  = fmtN(moisCur.ca) + ' MAD';
+    document.getElementById('v-b-month').textContent   = fmtN(moisCur.benef) + ' MAD';
+    document.getElementById('v-or-month').textContent  = fmt(moisCur.or_vendu||0) + ' grs';
+    const marge = moisCur.ca > 0 ? Math.round((moisCur.benef/moisCur.ca)*100) : 0;
+    document.getElementById('v-marge-month').textContent = `Marge : ${marge}%`;
+    document.getElementById('hero-ca-sub').textContent =
+      `${moisCur.nb} vente${moisCur.nb>1?'s':''} ce mois · Aujourd'hui : ${fmtN(stats.ca_today||0)} MAD`;
+
+    document.getElementById('v-nb-day').textContent  = stats.nb_ventes_today;
+    document.getElementById('v-ca-day').textContent  = 'CA : ' + fmtN(stats.ca_today) + ' MAD';
+
+    // ── Comparaison M vs M-1 ──
+    renderComparison(moisCur, moisPrev);
+
+    // ── Top créances ──
+    renderTopCredits();
+
+    // ── Dernières ventes ──
+    const lastV = [...ventes].reverse().slice(0, 6);
+    const bodyV = document.getElementById('last-ventes');
+    if(!lastV.length){ bodyV.innerHTML=''; document.getElementById('no-ventes').style.display='block'; }
+    else {
+      document.getElementById('no-ventes').style.display='none';
+      bodyV.innerHTML = lastV.map(v => {
+        const b = v.benef||0;
+        return `<tr>
+          <td style="font-family:monospace;color:var(--gold-l);font-weight:700">#${v.ref}</td>
+          <td style="color:var(--muted);font-size:12px">${v.article||'—'}</td>
+          <td style="font-weight:600">${v.pv?fmtN(v.pv)+' MAD':'—'}</td>
+          <td class="${b>=0?'pos':'neg'}">${fmtN(b)} MAD</td>
+          <td style="font-size:12px">${v.client||'—'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // ── Derniers articles ajoutés ──
+    const lastA = [...articles].slice(-6).reverse();
+    const bodyA = document.getElementById('last-articles');
+    if(!lastA.length){ bodyA.innerHTML=''; document.getElementById('no-articles').style.display='block'; }
+    else {
+      document.getElementById('no-articles').style.display='none';
+      bodyA.innerHTML = lastA.map(a => `<tr>
+        <td style="font-family:monospace;color:var(--gold-l);font-weight:700">#${a.id}</td>
+        <td style="color:var(--muted);font-size:12px">${a.article||'—'}</td>
+        <td>${a.or_grs?fmt(a.or_grs)+' g':'—'}</td>
+        <td style="font-weight:600">${a.pa?fmtN(a.pa)+' MAD':'—'}</td>
+        <td style="font-size:11px;color:var(--muted)">${fmtD(a.date)}</td>
+      </tr>`).join('');
+    }
+
+    // ── Analyses ──
+    renderMonthly(advanced.monthly);
+    renderAnnual(advanced.annual);
+    renderPeriodStats(moisCur, nomMois);
+
+  }catch(e){ console.error(e); }
+}
+
+function renderComparison(cur, prev){
+  const trend = (cur, prev, elId, format) => {
+    const el = document.getElementById(elId+'-trend');
+    if(!prev || prev === 0){ el.textContent='—'; el.className='trend trend-flat'; return; }
+    const pct = Math.round(((cur-prev)/prev)*100);
+    if(pct > 0){ el.textContent='▲ +'+pct+'%'; el.className='trend trend-up'; }
+    else if(pct < 0){ el.textContent='▼ '+pct+'%'; el.className='trend trend-down'; }
+    else { el.textContent='→ 0%'; el.className='trend trend-flat'; }
+  };
+  document.getElementById('cmp-ca-prev').textContent  = fmtN(prev.ca)+' MAD';
+  document.getElementById('cmp-ca-cur').textContent   = fmtN(cur.ca)+' MAD';
+  document.getElementById('cmp-b-prev').textContent   = fmtN(prev.benef)+' MAD';
+  document.getElementById('cmp-b-cur').textContent    = fmtN(cur.benef)+' MAD';
+  document.getElementById('cmp-nb-prev').textContent  = prev.nb+' ventes';
+  document.getElementById('cmp-nb-cur').textContent   = cur.nb+' ventes';
+  trend(cur.ca, prev.ca, 'cmp-ca');
+  trend(cur.benef, prev.benef, 'cmp-b');
+  trend(cur.nb, prev.nb, 'cmp-nb');
+  // Sync tendances vers les hero cards
+  ['ca','b'].forEach(k=>{
+    const src=document.getElementById('cmp-'+k+'-trend');
+    const dst=document.getElementById('hero-'+k+'-trend');
+    if(src&&dst){dst.textContent=src.textContent;dst.className=src.className;}
+  });
+}
+
+async function renderTopCredits(){
+  try{
+    const credits = await fetch('/api/credits').then(r=>r.json());
+    const ouverts = credits.filter(c=>c.statut!=='solde' && c.reste > 0)
+      .sort((a,b)=>b.reste-a.reste).slice(0,5);
+    const maxReste = ouverts[0]?.reste || 1;
+    const el = document.getElementById('top-credits');
+    if(!ouverts.length){
+      el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">✅ Aucune créance ouverte</div>'; return;
+    }
+    el.innerHTML = ouverts.map(c => {
+      const initials = (c.client||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const pct = Math.round((c.reste/maxReste)*100);
+      return `<div class="credit-item">
+        <div class="credit-avatar">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="credit-name">${c.client}</span>
+            <span class="credit-amount">${fmtN(c.reste)} MAD</span>
+          </div>
+          <div class="credit-bar-wrap"><div class="credit-bar" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){}
+}
+
+function renderPeriodStats(p, label){
+  document.getElementById('p-nb').textContent    = p.nb;
+  document.getElementById('p-ca').textContent    = fmtN(p.ca)+' MAD';
+  document.getElementById('p-benef').textContent = fmtN(p.benef)+' MAD';
+  document.getElementById('p-or').textContent    = fmt(p.or_vendu||0)+' grs';
+  const lbl = document.getElementById('period-label');
+  if(label){ lbl.textContent='📊 '+label; lbl.style.display='block'; }
+  else { lbl.style.display='none'; }
+}
+
+async function loadPeriod(){
+  const from = document.getElementById('p-from').value;
+  const to   = document.getElementById('p-to').value;
+  let url = '/api/stats/advanced';
+  const params = [];
+  if(from) params.push('from='+from);
+  if(to)   params.push('to='+to);
+  if(params.length) url += '?'+params.join('&');
+  try{
+    const data = await fetch(url).then(r=>r.json());
+    const label = from||to ? (from?fmtD(from):'début')+' → '+(to?fmtD(to):'aujourd\'hui') : '';
+    renderPeriodStats(data.period, label);
+  }catch(e){}
+}
+
+function setQuick(type, e){
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const today = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  let from='', to=today;
+  if(type==='today'){ from=today; }
+  else if(type==='week'){ const d=new Date(now); const dow=d.getDay()===0?6:d.getDay()-1; d.setDate(d.getDate()-dow); from=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+  else if(type==='month'){ from=`${now.getFullYear()}-${pad(now.getMonth()+1)}-01`; }
+  else if(type==='year'){ from=`${now.getFullYear()}-01-01`; }
+  else if(type==='all'){ from=''; to=''; }
+  document.getElementById('p-from').value=from;
+  document.getElementById('p-to').value=to;
+  document.querySelectorAll('.btn-quick').forEach(b=>b.classList.remove('active'));
+  if(e?.target) e.target.classList.add('active');
+  loadPeriod();
+}
+
+function renderMonthly(monthly){
+  const body = document.getElementById('monthly-body');
+  const noM  = document.getElementById('no-monthly');
+  if(!monthly||!monthly.length){ body.innerHTML=''; noM.style.display='block'; return; }
+  noM.style.display='none';
+
+  // Bar chart
+  const last12 = [...monthly].reverse().slice(0,12).reverse();
+  const maxCA = Math.max(...last12.map(m=>m.ca), 1);
+  const chart = document.getElementById('bar-chart');
+  chart.innerHTML = last12.map(m => {
+    const [y,mo] = m.mois.split('-');
+    const hCA = Math.max(Math.round((m.ca/maxCA)*140), 2);
+    const hB  = m.ca>0 ? Math.max(Math.round((m.benef/maxCA)*140), 2) : 2;
+    return `<div class="bar-group">
+      <div class="bar-pair" style="height:${hCA}px;align-items:flex-end">
+        <div class="bar-ca" style="height:${hCA}px" title="CA: ${fmtN(m.ca)} MAD"></div>
+        <div class="bar-b"  style="height:${hB}px"  title="Bénéf: ${fmtN(m.benef)} MAD"></div>
+      </div>
+      <div class="bar-lbl">${NOMS_MOIS[parseInt(mo)-1]}<br><span style="font-size:8px">${y}</span></div>
+    </div>`;
+  }).join('');
+
+  // Table
+  body.innerHTML = [...monthly].map(m => {
+    const [y,mo] = m.mois.split('-');
+    const nomMois = NOMS_MOIS[parseInt(mo)-1]+' '+y;
+    const marge = m.ca>0 ? Math.round((m.benef/m.ca)*100) : 0;
+    const margeColor = marge>=30?'var(--green)':marge>=15?'var(--orange)':'var(--red)';
+    return `<tr>
+      <td style="font-weight:700;color:var(--gold)">${nomMois}</td>
+      <td style="color:var(--muted)">${m.nb}</td>
+      <td style="color:var(--blue);font-weight:600">${fmtN(m.ca)} MAD</td>
+      <td style="color:var(--green);font-weight:600">${fmtN(m.benef)} MAD</td>
+      <td style="color:var(--muted)">${fmt(m.or_vendu||0)} grs</td>
+      <td><span style="padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,.05);color:${margeColor}">${marge}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAnnual(annual){
+  const body = document.getElementById('annual-body');
+  const noA  = document.getElementById('no-annual');
+  if(!annual||!annual.length){ body.innerHTML=''; noA.style.display='block'; return; }
+  noA.style.display='none';
+  body.innerHTML = annual.map(a => {
+    const marge = a.ca>0?Math.round((a.benef/a.ca)*100):0;
+    return `<tr>
+      <td style="font-size:20px;font-weight:900;color:var(--gold-l)">${a.annee}</td>
+      <td style="font-weight:600;color:var(--muted)">${a.nb}</td>
+      <td style="color:var(--blue);font-weight:700;font-size:15px">${fmtN(a.ca)} MAD</td>
+      <td style="color:var(--green);font-weight:700;font-size:15px">${fmtN(a.benef)} MAD</td>
+      <td><span style="background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.25);color:var(--green);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700">${marge}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function switchTab(tab){
+  ['periode','mensuel','annuel'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active', ['periode','mensuel','annuel'][i]===tab);
+  });
+}
+
+load();
+setInterval(load, 60000);
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+<script src="/static/notifications.js?v=3"></script>
+<script>
+/* ── HAMBURGER NAV ── */
+function toggleNav(){
+  const nl=document.querySelector('.nav-links');
+  const ov=document.querySelector('.nav-overlay');
+  const btn=document.getElementById('hamburger-btn');
+  if(!nl)return;
+  const open=nl.classList.toggle('nav-open');
+  if(ov)ov.classList.toggle('nav-open',open);
+  if(btn)btn.textContent=open?'✕':'☰';
+}
+(function(){
+  const ov=document.createElement('div');
+  ov.className='nav-overlay';
+  ov.onclick=function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  };
+  document.body.appendChild(ov);
+  // Close nav when a link is clicked
+  document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  }));
+})();
+</script>
+<script src="/chatbot.js"></script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

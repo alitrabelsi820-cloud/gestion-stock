@@ -1,0 +1,24 @@
+{
+  "name": "Trabelsi — Références",
+  "short_name": "Références",
+  "description": "Fiche référence articles bijouterie Trabelsi",
+  "start_url": "/fiche-employe",
+  "display": "standalone",
+  "background_color": "#0d1a16",
+  "theme_color": "#1abc9c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/icons/icon-ref-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-ref-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

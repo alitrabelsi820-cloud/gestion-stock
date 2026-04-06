@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalogue — Bijouterie TRABELSI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root{
+  --gold:#C8A951;--gold-light:#F5E9C4;--gold-dark:#8B6914;
+  --dark:#0F0E0C;--dark2:#1C1A15;--dark3:#2A2720;
+  --cream:#FAF7F0;--text2:#6B6450;--border:rgba(200,169,81,.25);--radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 15% 15%,rgba(200,169,81,.07) 0%,transparent 50%),radial-gradient(ellipse at 85% 85%,rgba(200,169,81,.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
+
+.layout{display:grid;grid-template-columns:380px 1fr;min-height:100vh;position:relative;z-index:1;}
+
+/* Panneau gauche */
+.panel-left{padding:36px 24px 80px;overflow-y:auto;border-right:.5px solid var(--border);max-height:100vh;position:sticky;top:0;}
+.panel-right{padding:28px 24px;overflow-y:auto;background:rgba(0,0,0,.2);}
+
+.header{text-align:center;margin-bottom:30px;}
+.badge{display:inline-block;font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);border:.5px solid rgba(200,169,81,.4);padding:5px 14px;border-radius:100px;margin-bottom:12px;}
+.header h1{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;color:var(--cream);margin-bottom:6px;}
+.header h1 em{font-style:italic;color:var(--gold);}
+.header p{font-size:11px;color:var(--text2);}
+
+/* Cards */
+.card{background:var(--dark2);border:.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px;transition:border-color .3s;}
+.card.active{border-color:rgba(200,169,81,.6);}
+.card.done{border-color:rgba(80,180,80,.4);}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.step-num{width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--gold);flex-shrink:0;}
+.card.done .step-num{background:#3C8C3C;border-color:#3C8C3C;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;}
+.card-title{font-size:13px;font-weight:500;color:var(--cream);}
+.card-sub{font-size:10px;color:var(--text2);margin-top:1px;}
+
+/* Connexion */
+.connect-box{background:var(--dark3);border:.5px solid var(--border);border-radius:8px;padding:14px;text-align:center;}
+.connect-icon{font-size:28px;margin-bottom:8px;}
+.connect-label{font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.5;}
+.btn-connect{width:100%;padding:11px;background:var(--gold);color:var(--dark);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;}
+.btn-connect:hover:not(:disabled){background:#D4B862;}
+.btn-connect:disabled{opacity:.5;cursor:not-allowed;}
+
+/* Tags */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:4px 10px;border-radius:100px;margin-top:8px;}
+.tag.ok{background:rgba(60,140,60,.15);color:#6EC96E;border:.5px solid rgba(60,140,60,.35);}
+.tag.err{background:rgba(180,60,60,.12);color:#E87070;border:.5px solid rgba(180,60,60,.3);}
+.tag.info{background:rgba(200,169,81,.12);color:var(--gold);border:.5px solid rgba(200,169,81,.3);}
+
+/* Dropzone photos */
+.dropzone{border:1px dashed rgba(200,169,81,.35);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:all .25s;background:rgba(200,169,81,.03);position:relative;}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--gold);background:rgba(200,169,81,.07);}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.dz-icon{font-size:20px;margin-bottom:5px;}
+.dz-text{font-size:10px;color:var(--text2);line-height:1.4;}
+.dz-text strong{color:var(--gold);}
+.dz-hint{font-size:9px;color:var(--text2);margin-top:6px;font-style:italic;}
+
+.photos-mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:3px;margin-top:8px;max-height:90px;overflow-y:auto;}
+.photos-mini img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:3px;border:.5px solid var(--border);}
+
+/* Options */
+.sec-title{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;margin-top:14px;}
+.sec-title:first-child{margin-top:0;}
+.opts-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opt label{font-size:10px;color:var(--text2);display:block;margin-bottom:3px;}
+.opt select,.opt input[type=text]{width:100%;background:var(--dark3);border:.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:11px;color:var(--cream);font-family:'DM Sans',sans-serif;appearance:none;outline:none;}
+.opt select:focus,.opt input[type=text]:focus{border-color:var(--gold);}
+
+/* Taille photo */
+.size-row{display:flex;gap:7px;}
+.sopt{cursor:pointer;flex:1;}
+.sopt input{display:none;}
+.scard{border:.5px solid var(--border);border-radius:8px;padding:9px 5px;text-align:center;transition:all .2s;background:var(--dark3);}
+.sopt input:checked+.scard{border-color:var(--gold);background:rgba(200,169,81,.1);}
+.sprv{background:rgba(200,169,81,.2);border-radius:2px;margin:0 auto 5px;border:.5px solid rgba(200,169,81,.4);}
+.sname{font-size:10px;color:var(--cream);font-weight:500;}
+.sdesc{font-size:9px;color:var(--text2);margin-top:1px;}
+
+/* Colonnes toggles */
+.cols-wrap{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.ctog{display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--dark3);border:.5px solid var(--border);border-radius:7px;padding:6px 8px;transition:all .2s;user-select:none;}
+.ctog:hover{border-color:rgba(200,169,81,.5);}
+.ctog.on{border-color:var(--gold);background:rgba(200,169,81,.1);}
+.ctog input{display:none;}
+.cdot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--text2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.ctog.on .cdot{border-color:var(--gold);background:var(--gold);}
+.cdot::after{content:'✓';font-size:7px;color:var(--dark);opacity:0;}
+.ctog.on .cdot::after{opacity:1;}
+.clbl{font-size:10px;color:var(--text2);}
+.ctog.on .clbl{color:var(--cream);}
+
+/* Thèmes */
+.themes-row{display:flex;gap:8px;flex-wrap:wrap;}
+.topt{cursor:pointer;text-align:center;}
+.topt input{display:none;}
+.tswatch{width:28px;height:28px;border-radius:50%;border:2px solid transparent;transition:all .2s;margin:0 auto;}
+.topt input:checked+.tswatch{border-color:white;transform:scale(1.18);}
+.tlbl{font-size:9px;color:var(--text2);margin-top:2px;}
+
+/* Stats */
+.stats-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
+.smi{text-align:center;background:var(--dark2);border:.5px solid var(--border);border-radius:8px;padding:9px 5px;}
+.smi-val{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);}
+.smi-lbl{font-size:9px;color:var(--text2);margin-top:1px;}
+
+/* Boutons */
+.btns-row{display:flex;gap:8px;margin-top:10px;}
+.btn-preview{flex:1;padding:12px;background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .25s;}
+.btn-preview:hover:not(:disabled){background:rgba(200,169,81,.1);}
+.btn-gen{flex:1.4;padding:12px;background:var(--gold);color:var(--dark);border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .25s;}
+.btn-gen:hover:not(:disabled){background:#D4B862;transform:translateY(-1px);}
+.btn-preview:disabled,.btn-gen:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+
+/* Progress */
+.prog-wrap{display:none;margin-top:10px;}
+.prog-bg{background:var(--dark3);border-radius:100px;height:3px;overflow:hidden;margin-bottom:6px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));border-radius:100px;transition:width .3s;width:0%;}
+.prog-text{font-size:10px;color:var(--text2);text-align:center;}
+
+/* Lien retour */
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);text-decoration:none;margin-bottom:20px;transition:color .2s;}
+.back-link:hover{color:var(--gold);}
+
+/* Panneau droit */
+.preview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.preview-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--cream);}
+.preview-title em{font-style:italic;color:var(--gold);}
+.preview-info{font-size:11px;color:var(--text2);}
+
+.preview-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:500px;opacity:.4;}
+.preview-empty-icon{font-size:48px;margin-bottom:16px;}
+.preview-empty p{font-size:13px;color:var(--text2);text-align:center;line-height:1.6;}
+
+.pages-nav{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.page-btn{background:var(--dark3);border:.5px solid var(--border);border-radius:6px;padding:5px 11px;font-size:11px;color:var(--text2);cursor:pointer;transition:all .2s;border:none;font-family:'DM Sans',sans-serif;}
+.page-btn:hover{border:.5px solid var(--gold);color:var(--cream);}
+.page-btn.active{background:rgba(200,169,81,.15);border:.5px solid var(--gold);color:var(--gold);}
+
+/* A4 preview */
+.a4-sheet{background:white;border-radius:6px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.6);margin-bottom:20px;width:100%;position:relative;padding-bottom:141.4%;}
+.a4-inner{position:absolute;inset:0;padding:3%;display:flex;flex-direction:column;}
+.preview-grid{display:grid;gap:.8%;flex:1;min-height:0;}
+.art-card{background:#ffffff;border:0.5px solid rgba(200,169,81,.5);border-radius:3px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.art-header{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;flex-shrink:0;border-bottom:1px solid rgba(200,169,81,.6);}
+.art-header>span{padding:3% 4%;font-size:clamp(7px,1.4vw,12px);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.art-hcat{color:#1a1710;font-weight:600;text-align:left;}
+.art-href{color:#1a1710;font-weight:700;text-align:center;border-left:1.5px solid rgba(0,0,0,.25);border-right:1.5px solid rgba(0,0,0,.25);}
+.art-hprice{color:#8b0000;font-weight:700;text-align:right;}
+.art-photo{background:#f0ebe0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+.art-photo img{width:100%;height:100%;object-fit:contain;background:#f0ebe0;padding:2%;}
+.art-photo .no-photo{font-size:clamp(7px,1.2vw,11px);color:#b8a882;text-align:center;}
+.art-table{flex:1;display:flex;flex-direction:column;justify-content:center;padding:3% 5%;gap:2%;overflow:hidden;border-top:1px solid rgba(200,169,81,.4);background:#ffffff;}
+.art-row{display:grid;grid-template-columns:auto 12px 1fr;align-items:baseline;gap:0;}
+.art-lbl{font-size:clamp(9px,1.6vw,14px);color:#6b5c2e;font-weight:500;white-space:nowrap;}
+.art-dot{font-size:clamp(9px,1.6vw,14px);color:#b8a882;text-align:center;}
+.art-val{font-size:clamp(9px,1.6vw,14px);color:#1a1710;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.a4-footer{position:absolute;bottom:2%;left:3.8%;right:3.8%;display:flex;justify-content:center;align-items:center;}
+.a4-footer-line{flex:1;height:0.3px;background:rgba(200,169,81,.5);}
+.a4-footer-text{font-size:clamp(4px,0.7vw,6px);color:#b8a882;padding:0 8px;white-space:nowrap;}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;}
+  .panel-left{max-height:none;position:static;border-right:none;border-bottom:.5px solid var(--border);}
+}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+@media print{
+  @page{size:A4 portrait;margin:8mm;}
+  body{background:white!important;}
+  body::before{display:none;}
+  .layout{display:block;}
+  .panel-left{display:none!important;}
+  .panel-right{padding:0;background:white;overflow:visible;}
+  .preview-header,.pages-nav,.preview-empty{display:none!important;}
+  #prev-pages{display:block!important;}
+  #pages-container{display:block;}
+  .a4-sheet{box-shadow:none!important;border-radius:0!important;margin:0!important;padding-bottom:0!important;width:100%!important;height:277mm!important;position:relative!important;page-break-after:always;break-after:page;overflow:hidden;}
+  .a4-inner{position:absolute;inset:0;padding:2%;}
+  .preview-grid{display:grid!important;height:100%;}
+  .art-card{break-inside:avoid;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+<div class="layout">
+
+<!-- ════════ PANNEAU GAUCHE ════════ -->
+<div class="panel-left">
+  <a href="/accueil" class="back-link">← Retour à l'accueil</a>
+  <div class="header">
+    <div class="badge">✦ Bijouterie TRABELSI</div>
+    <h1>Générateur de<br><em>Catalogue</em></h1>
+    <p>Données automatiques depuis le stock · PDF en un clic</p>
+  </div>
+
+  <!-- Étape 1 : Connexion au stock -->
+  <div class="card active" id="step1">
+    <div class="card-header">
+      <div class="step-num" id="num1">1</div>
+      <div><div class="card-title">Données du stock</div><div class="card-sub">Récupération automatique depuis le site</div></div>
+    </div>
+    <div class="connect-box">
+      <div class="connect-icon">🔗</div>
+      <div class="connect-label">Les articles sont chargés directement<br>depuis votre stock en temps réel.</div>
+      <button class="btn-connect" id="btn-connect" onclick="fetchArticles()">Charger le stock</button>
+    </div>
+    <div id="connect-status"></div>
+  </div>
+
+  <!-- Étape 2 : Photos (optionnel) -->
+  <div class="card" id="step2">
+    <div class="card-header">
+      <div class="step-num" id="num2">2</div>
+      <div><div class="card-title">Photos supplémentaires</div><div class="card-sub">Optionnel — le site les charge automatiquement</div></div>
+    </div>
+    <div class="dropzone" id="dz-photos">
+      <input type="file" id="in-photos" accept="image/*" multiple onchange="handlePhotos(this)">
+      <div class="dz-icon">🖼️</div>
+      <div class="dz-text"><strong>Cliquez ou glissez</strong> des photos pour remplacer<br>celles du serveur</div>
+    </div>
+    <div class="dz-hint">⟶ Nommées par référence : 829.png, 1047.jpg…</div>
+    <div id="photos-status"></div>
+    <div class="photos-mini" id="photos-preview"></div>
+  </div>
+
+  <!-- Étape 3 : Options -->
+  <div class="card" id="step3">
+    <div class="card-header">
+      <div class="step-num" id="num3">3</div>
+      <div><div class="card-title">Options</div><div class="card-sub">Personnalisez le catalogue</div></div>
+    </div>
+
+    <div class="sec-title">Général</div>
+    <div class="opts-2">
+      <div class="opt"><label>Titre</label><input type="text" id="opt-title" value="Inventaire 2025"></div>
+      <div class="opt"><label>Tri</label>
+        <select id="opt-sort">
+          <option value="ref">Référence ↑</option>
+          <option value="ref-desc">Référence ↓</option>
+          <option value="cat">Catégorie A→Z</option>
+          <option value="price">Prix décroissant</option>
+        </select>
+      </div>
+      <div class="opt"><label>Articles / ligne</label>
+        <select id="opt-cols">
+          <option value="3">3 par ligne</option>
+          <option value="4" selected>4 par ligne</option>
+          <option value="5">5 par ligne</option>
+        </select>
+      </div>
+      <div class="opt"><label>Catégorie</label>
+        <select id="opt-cat"><option value="all">Toutes</option></select>
+      </div>
+    </div>
+
+    <div class="sec-title">Taille de la photo</div>
+    <div class="size-row">
+      <label class="sopt"><input type="radio" name="psz" value="small">
+        <div class="scard"><div class="sprv" style="width:26px;height:18px;"></div><div class="sname">Petite</div><div class="sdesc">Plus d'infos</div></div>
+      </label>
+      <label class="sopt"><input type="radio" name="psz" value="medium" checked>
+        <div class="scard"><div class="sprv" style="width:36px;height:28px;"></div><div class="sname">Moyenne</div><div class="sdesc">Équilibre</div></div>
+      </label>
+      <label class="sopt"><input type="radio" name="psz" value="large">
+        <div class="scard"><div class="sprv" style="width:48px;height:38px;"></div><div class="sname">Grande</div><div class="sdesc">Photo en avant</div></div>
+      </label>
+    </div>
+
+    <div class="sec-title">Informations à afficher</div>
+    <div class="cols-wrap" id="cols-wrap"></div>
+
+    <div class="sec-title">Thème couleur</div>
+    <div class="themes-row" id="themes-row"></div>
+  </div>
+
+  <!-- Stats + boutons -->
+  <div class="stats-mini" id="stats-mini" style="display:none;">
+    <div class="smi"><div class="smi-val" id="s-art">0</div><div class="smi-lbl">Articles</div></div>
+    <div class="smi"><div class="smi-val" id="s-photos">—</div><div class="smi-lbl">Avec photo</div></div>
+    <div class="smi"><div class="smi-val" id="s-pages">0</div><div class="smi-lbl">Pages</div></div>
+  </div>
+
+  <div class="btns-row">
+    <button class="btn-preview" id="btn-prev" onclick="renderPreview()" disabled>👁 Prévisualiser</button>
+    <button class="btn-gen" id="btn-gen" onclick="captureAndExport()" disabled>✦ Générer PDF</button>
+  </div>
+  <div class="prog-wrap" id="prog-wrap">
+    <div class="prog-bg"><div class="prog-fill" id="prog-fill"></div></div>
+    <div class="prog-text" id="prog-text"></div>
+  </div>
+</div>
+
+<!-- ════════ PANNEAU DROIT ════════ -->
+<div class="panel-right">
+  <div class="preview-header">
+    <div class="preview-title">Pré<em>visualisation</em></div>
+    <div class="preview-info" id="prev-info">Chargez le stock puis cliquez sur Prévisualiser</div>
+  </div>
+  <div class="preview-empty" id="prev-empty">
+    <div class="preview-empty-icon">📋</div>
+    <p>Chargez le stock (étape 1),<br>configurez les options, puis<br><strong style="color:var(--gold)">Prévisualisez</strong> votre catalogue.</p>
+  </div>
+  <div id="prev-pages" style="display:none;">
+    <div class="pages-nav" id="pages-nav"></div>
+    <div id="pages-container"></div>
+  </div>
+</div>
+
+</div><!-- end layout -->
+
+<script>
+// ── État global ───────────────────────────────────────────────────────────────
+let articlesData = [];   // données du stock
+let photosMap    = {};   // photos uploadées manuellement (ref → dataURL)
+let previewPages = [];
+let currentPage  = 0;
+
+const COLUMNS = [
+  {id:'or',    lbl:'Or (g)',      def:true},
+  {id:'d',     lbl:'Diamants',    def:true},
+  {id:'em',    lbl:'Émeraudes',   def:true},
+  {id:'ec',    lbl:'Em.Clb',      def:true},
+  {id:'r',     lbl:'Rubis',       def:true},
+  {id:'s',     lbl:'Saphirs',     def:true},
+  {id:'perles',lbl:'Perles',      def:true},
+  {id:'pf',    lbl:'P.Fines',     def:false},
+  {id:'ros',   lbl:'Rosaces',     def:false},
+  {id:'date',  lbl:'Date',        def:false},
+];
+
+const THEMES = [
+  {id:'gold',   lbl:'Or',       r:200,g:169,b:81,  dr:26, dg:23,db:16},
+  {id:'silver', lbl:'Argent',   r:180,g:180,b:190, dr:20, dg:20,db:25},
+  {id:'black',  lbl:'Noir',     r:70, g:70, b:75,  dr:12, dg:12,db:12},
+  {id:'rose',   lbl:'Rosé',     r:210,g:140,b:120, dr:30, dg:15,db:15},
+  {id:'navy',   lbl:'Marine',   r:60, g:90, b:150, dr:10, dg:15,db:30},
+  {id:'green',  lbl:'Émeraude', r:60, g:140,b:100, dr:10, dg:25,db:18},
+];
+
+// ── Init UI ───────────────────────────────────────────────────────────────────
+(function init(){
+  const cw = document.getElementById('cols-wrap');
+  COLUMNS.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'ctog' + (c.def ? ' on' : '');
+    d.innerHTML = `<input type="checkbox" id="col-${c.id}" ${c.def?'checked':''}><div class="cdot"></div><span class="clbl">${c.lbl}</span>`;
+    d.onclick = () => { d.classList.toggle('on'); d.querySelector('input').checked = d.classList.contains('on'); };
+    cw.appendChild(d);
+  });
+  const tr = document.getElementById('themes-row');
+  THEMES.forEach((t,i) => {
+    const l = document.createElement('label');
+    l.className = 'topt';
+    l.innerHTML = `<input type="radio" name="theme" value="${t.id}" ${i===0?'checked':''}><div class="tswatch" style="background:rgb(${t.r},${t.g},${t.b})"></div><div class="tlbl">${t.lbl}</div>`;
+    tr.appendChild(l);
+  });
+  setupDrop('dz-photos', f => handlePhotos({files:f}));
+})();
+
+function setupDrop(id, cb){
+  const el = document.getElementById(id);
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag-over'); cb(e.dataTransfer.files); });
+}
+
+// ── Chargement du stock depuis l'API ─────────────────────────────────────────
+async function fetchArticles(){
+  const btn = document.getElementById('btn-connect');
+  btn.disabled = true;
+  btn.textContent = 'Chargement…';
+  setTag('connect-status', 'Connexion en cours…', 'info');
+
+  try {
+    const res = await fetch('/api/articles');
+    if(!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+    const raw = await res.json();
+
+    articlesData = raw.map(a => ({
+      ref:     a.id,
+      article: (a.article || '').trim(),
+      date:    a.date || '',
+      or:      a.or_grs,
+      pa:      a.pa,
+      d:       a.d,
+      em:      a.em,
+      r:       a.r,
+      s:       a.s,
+      pf:      a.p_fines,
+      ros:     a.rosaces,
+      ec:      a.em_clb,
+      perles:  a.perles,
+    })).filter(a => a.ref);
+
+    // Remplir le filtre catégories
+    const cats = [...new Set(articlesData.map(a => a.article || '(Sans catégorie)'))].sort();
+    const sel = document.getElementById('opt-cat');
+    sel.innerHTML = '<option value="all">Toutes</option>';
+    cats.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      sel.appendChild(o);
+    });
+
+    setTag('connect-status', `✓ ${articlesData.length} articles chargés`, 'ok');
+    btn.textContent = '↺ Recharger';
+    btn.disabled = false;
+    markDone(1);
+    updateStats();
+    checkReady();
+  } catch(e) {
+    setTag('connect-status', '✗ ' + e.message, 'err');
+    btn.textContent = 'Réessayer';
+    btn.disabled = false;
+  }
+}
+
+// ── Photos upload manuel (override serveur) ───────────────────────────────────
+async function handlePhotos(input){
+  const files = Array.from(input.files || []).filter(f => f.type.startsWith('image/'));
+  if(!files.length) return;
+  photosMap = {};
+  document.getElementById('photos-preview').innerHTML = '';
+  const total = files.length;
+  setTag('photos-status', `Chargement 0/${total}…`, 'info');
+
+  function readFile(file){
+    return new Promise(resolve => {
+      const r = new FileReader();
+      r.onload = e => resolve(e.target.result);
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(file);
+    });
+  }
+  async function compress(dataUrl, maxW, q){
+    return new Promise(resolve => {
+      const img = new Image();
+      const t = setTimeout(() => resolve(dataUrl), 3000);
+      img.onload = () => {
+        clearTimeout(t);
+        try {
+          let w = img.width, h = img.height;
+          if(w > maxW || h > maxW){ const r = maxW/Math.max(w,h); w=Math.round(w*r); h=Math.round(h*r); }
+          const cv = document.createElement('canvas');
+          cv.width=w; cv.height=h;
+          cv.getContext('2d').drawImage(img,0,0,w,h);
+          resolve(cv.toDataURL('image/jpeg', q));
+        } catch(e){ resolve(dataUrl); }
+      };
+      img.onerror = () => { clearTimeout(t); resolve(dataUrl); };
+      img.src = dataUrl;
+    });
+  }
+
+  const BATCH = 20;
+  for(let i = 0; i < files.length; i += BATCH){
+    const batch = files.slice(i, i+BATCH);
+    await Promise.all(batch.map(async file => {
+      const key = file.name.replace(/\.[^.]+$/, '').trim();
+      const dataUrl = await readFile(file);
+      if(!dataUrl) return;
+      const compressed = await compress(dataUrl, 800, 0.8);
+      photosMap[key] = compressed;
+      if(Object.keys(photosMap).length <= 48){
+        const img = document.createElement('img');
+        img.src = compressed; img.title = key;
+        document.getElementById('photos-preview').appendChild(img);
+      }
+    }));
+    setTag('photos-status', `Chargement ${Math.min(i+BATCH, total)}/${total}…`, 'info');
+    await new Promise(r => setTimeout(r, 10));
+  }
+  setTag('photos-status', `✓ ${Object.keys(photosMap).length} photos chargées (en priorité sur le serveur)`, 'ok');
+  markDone(2);
+  updateStats();
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function setTag(id, msg, t){ document.getElementById(id).innerHTML = `<div class="tag ${t}">${msg}</div>`; }
+function markDone(n){ const s=document.getElementById('step'+n),nm=document.getElementById('num'+n); s.classList.remove('active'); s.classList.add('done'); nm.textContent='✓'; }
+function fmtNum(v){ if(v===''||v==null) return ''; const f=parseFloat(String(v).replace(',','.')); if(isNaN(f)) return ''; return f%1===0?String(Math.round(f)):f.toFixed(2).replace(/\.?0+$/,''); }
+function fmtPrice(v){ if(v===''||v==null) return ''; const f=parseFloat(String(v).replace(/\s/g,'').replace(',','.')); if(isNaN(f)) return ''; return Math.round(f).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' '); }
+function fmtDate(v){ if(!v) return ''; const s=String(v); if(s.includes('-')) return s.slice(0,10).split('-').reverse().join('/'); return s; }
+function getActiveCols(){ const ac={}; COLUMNS.forEach(c => { ac[c.id]=document.getElementById('col-'+c.id)?.checked ?? c.def; }); return ac; }
+function getTheme(){ const id=document.querySelector('input[name="theme"]:checked')?.value||'gold'; return THEMES.find(t=>t.id===id); }
+
+function getData(){
+  let data = [...articlesData];
+  const cat = document.getElementById('opt-cat').value;
+  if(cat !== 'all') data = data.filter(a => a.article === cat);
+  const sort = document.getElementById('opt-sort').value;
+  if(sort==='ref')       data.sort((a,b) => a.ref-b.ref);
+  else if(sort==='ref-desc') data.sort((a,b) => b.ref-a.ref);
+  else if(sort==='cat')  data.sort((a,b) => a.article.localeCompare(b.article,'fr')||a.ref-b.ref);
+  else if(sort==='price') data.sort((a,b) => parseFloat(b.pa||0)-parseFloat(a.pa||0));
+  return data;
+}
+
+// Photo : priorité upload manuel, sinon URL serveur
+function getPhotoSrc(ref){
+  const key = String(ref);
+  if(photosMap[key]) return { type:'dataurl', src: photosMap[key] };
+  return { type:'server', src: `/api/photo/${ref}` };
+}
+
+function updateStats(){
+  if(!articlesData.length) return;
+  const data = getData();
+  const cols = parseInt(document.getElementById('opt-cols').value)||4;
+  const pages = Math.ceil(data.length/(cols*4));
+  document.getElementById('s-art').textContent   = data.length;
+  document.getElementById('s-photos').textContent = Object.keys(photosMap).length > 0
+    ? Object.keys(photosMap).length + '+serveur'
+    : 'Serveur';
+  document.getElementById('s-pages').textContent = pages;
+  document.getElementById('stats-mini').style.display = 'grid';
+}
+
+function checkReady(){
+  const ok = articlesData.length > 0;
+  document.getElementById('btn-prev').disabled = !ok;
+  document.getElementById('btn-gen').disabled  = !ok;
+}
+
+// ── PRÉVISUALISATION ──────────────────────────────────────────────────────────
+function renderPreview(){
+  const data = getData();
+  const cols = parseInt(document.getElementById('opt-cols').value)||4;
+  const ROWS = 4;
+  const perPage = cols*ROWS;
+  const photoSz = document.querySelector('input[name="psz"]:checked').value;
+  const photoRatio = {small:.38, medium:.50, large:.62}[photoSz];
+  const theme = getTheme();
+  const ac = getActiveCols();
+  const title = document.getElementById('opt-title').value || 'Inventaire 2025';
+  const totalPages = Math.ceil(data.length/perPage);
+  const tc  = `rgb(${theme.r},${theme.g},${theme.b})`;
+  const tc2 = `rgba(${theme.r},${theme.g},${theme.b},.15)`;
+  const tc3 = `rgba(${theme.r},${theme.g},${theme.b},.5)`;
+
+  previewPages = [];
+  for(let p = 0; p < totalPages; p++){
+    const items = data.slice(p*perPage, (p+1)*perPage);
+    previewPages.push(buildPageHTML(items, cols, photoRatio, tc, tc2, tc3, ac, title, p+1, totalPages));
+  }
+  document.getElementById('prev-empty').style.display  = 'none';
+  document.getElementById('prev-pages').style.display  = 'block';
+  document.getElementById('prev-info').textContent = `${totalPages} page(s)  •  ${data.length} articles`;
+  currentPage = 0;
+  buildNav(totalPages);
+  showPage(0);
+  updateStats();
+}
+
+function buildNav(total){
+  const nav = document.getElementById('pages-nav');
+  nav.innerHTML = '';
+  for(let i = 0; i < total; i++){
+    const btn = document.createElement('button');
+    btn.className = 'page-btn' + (i===0?' active':'');
+    btn.textContent = `Page ${i+1}`;
+    btn.onclick = (()=>{ const idx=i; return ()=>showPage(idx); })();
+    btn.id = 'pnav-'+i;
+    nav.appendChild(btn);
+  }
+}
+
+function showPage(idx){
+  document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('pnav-'+idx);
+  if(btn){ btn.classList.add('active'); btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}); }
+  document.getElementById('pages-container').innerHTML = previewPages[idx] || '';
+  currentPage = idx;
+}
+
+function buildPageHTML(items, cols, photoRatio, tc, tc2, tc3, ac, title, pageNum, totalPages){
+  const photoPercent = Math.round(photoRatio*100);
+  const infoPercent  = 100 - photoPercent - 10;
+  let cards = '';
+
+  items.forEach(art => {
+    const refStr  = String(art.ref);
+    const photo   = getPhotoSrc(art.ref);
+    const artLabel = art.article || '—';
+    const artShort = artLabel.length > 16 ? artLabel.slice(0,15)+'…' : artLabel;
+
+    const infoRows = [];
+    if(ac.or   && fmtNum(art.or))     infoRows.push({lbl:'Or',        val: fmtNum(art.or)+'g'});
+    if(ac.d    && fmtNum(art.d))      infoRows.push({lbl:'Diamants',   val: fmtNum(art.d)+' cts'});
+    if(ac.em   && fmtNum(art.em))     infoRows.push({lbl:'Émeraudes',  val: fmtNum(art.em)+' cts'});
+    if(ac.ec   && fmtNum(art.ec))     infoRows.push({lbl:'Em.Clb',     val: fmtNum(art.ec)+' cts'});
+    if(ac.r    && fmtNum(art.r))      infoRows.push({lbl:'Rubis',      val: fmtNum(art.r)+' cts'});
+    if(ac.s    && fmtNum(art.s))      infoRows.push({lbl:'Saphirs',    val: fmtNum(art.s)+' cts'});
+    if(ac.perles && fmtNum(art.perles)) infoRows.push({lbl:'Perles',   val: fmtNum(art.perles)});
+    if(ac.pf   && fmtNum(art.pf))     infoRows.push({lbl:'P.Fines',   val: fmtNum(art.pf)+' cts'});
+    if(ac.ros  && fmtNum(art.ros))    infoRows.push({lbl:'Rosaces',    val: fmtNum(art.ros)});
+    if(ac.pa   && fmtNum(art.pa))     infoRows.push({lbl:'Prix',       val: fmtPrice(art.pa)});
+    if(ac.date && fmtDate(art.date))  infoRows.push({lbl:'Date',       val: fmtDate(art.date)});
+
+    const rowsHTML = infoRows.map(r =>
+      `<div class="art-row"><span class="art-lbl">${r.lbl}</span><span class="art-dot">:</span><span class="art-val">${r.val}</span></div>`
+    ).join('');
+
+    const photoHTML = photo.type === 'dataurl'
+      ? `<img src="${photo.src}" alt="${refStr}" loading="lazy">`
+      : `<img src="${photo.src}" alt="${refStr}" loading="lazy" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="no-photo" style="display:none">Photo</span>`;
+
+    cards += `
+    <div class="art-card">
+      <div class="art-header" style="background:${tc};flex-shrink:0;height:10%;">
+        <span class="art-hcat">${artShort}</span>
+        <span class="art-href">${art.ref}</span>
+        <span class="art-hprice">${fmtPrice(art.pa)}</span>
+      </div>
+      <div class="art-photo" style="flex:${photoPercent};min-height:0;">
+        ${photoHTML}
+      </div>
+      <div class="art-table" style="flex:${infoPercent};min-height:0;">
+        ${rowsHTML}
+      </div>
+    </div>`;
+  });
+
+  // Cases vides pour compléter la grille
+  const empty = cols*4 - items.length;
+  for(let i=0;i<empty;i++)
+    cards += `<div style="background:rgba(200,169,81,.03);border-radius:3px;border:.5px dashed rgba(200,169,81,.12);"></div>`;
+
+  return `
+  <div class="a4-sheet">
+    <div class="a4-inner">
+      <div class="preview-grid" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(4,1fr);flex:1;min-height:0;">
+        ${cards}
+      </div>
+    </div>
+    <div class="a4-footer">
+      <div class="a4-footer-line" style="background:${tc3};"></div>
+      <div class="a4-footer-text">${(document.getElementById('opt-title').value||'INVENTAIRE 2025').toUpperCase()} &nbsp;•&nbsp; Page ${pageNum}/${totalPages} &nbsp;•&nbsp; Confidentiel</div>
+      <div class="a4-footer-line" style="background:${tc3};"></div>
+    </div>
+  </div>`;
+}
+
+// ── Charger une image depuis le serveur → dataURL ─────────────────────────────
+function imgToDataURL(src, maxPx, quality){
+  return new Promise(resolve => {
+    const img = new Image();
+    const timer = setTimeout(() => resolve(null), 6000);
+    img.onload = () => {
+      clearTimeout(timer);
+      try {
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if(w === 0 || h === 0){ resolve(null); return; }
+        const ratio = Math.min(maxPx/w, maxPx/h, 1);
+        w = Math.round(w*ratio); h = Math.round(h*ratio);
+        const cv = document.createElement('canvas');
+        cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(cv.toDataURL('image/jpeg', quality));
+      } catch(e){ resolve(null); }
+    };
+    img.onerror = () => { clearTimeout(timer); resolve(null); };
+    img.src = src;
+  });
+}
+
+// ── GÉNÉRATION PDF — jsPDF direct (rapide) ────────────────────────────────────
+async function captureAndExport(){
+  if(!articlesData.length){ alert('Chargez d\'abord le stock'); return; }
+  const btn = document.getElementById('btn-gen');
+  btn.disabled = true;
+  document.getElementById('prog-wrap').style.display = 'block';
+
+  const {jsPDF} = window.jspdf;
+  const title   = document.getElementById('opt-title').value || 'Inventaire 2025';
+  const cols    = parseInt(document.getElementById('opt-cols').value) || 4;
+  const photoSz = document.querySelector('input[name="psz"]:checked').value;
+  const photoRatio = {small:.38, medium:.50, large:.62}[photoSz];
+  const theme   = getTheme();
+  const ac      = getActiveCols();
+  const data    = getData();
+  const {r:TR,g:TG,b:TB,dr:DR,dg:DG,db:DB} = theme;
+
+  const ROWS=4, PW=210, PH=297, MARGIN=10, GAP=3;
+  const usableW = PW-2*MARGIN;
+  const footerH = 12;
+  const usableH = PH-2*MARGIN-footerH;
+  const cellW   = (usableW - GAP*(cols-1)) / cols;
+  const cellH   = (usableH - GAP*(ROWS-1)) / ROWS;
+  const hdrH    = cellH * 0.10;
+  const phoH    = cellH * photoRatio;
+  const infH    = cellH - hdrH - phoH - 0.5;
+
+  try {
+    // ── 1. Pré-charger toutes les photos en parallèle (lots de 30) ────────────
+    setProgress(2, 'Chargement des photos en cours…');
+    const photoCache = {};
+    const BATCH = 30;
+    for(let i=0; i<data.length; i+=BATCH){
+      const batch = data.slice(i, i+BATCH);
+      await Promise.all(batch.map(async art => {
+        const key = String(art.ref);
+        // Priorité : upload manuel → serveur
+        if(photosMap[key]){
+          photoCache[art.ref] = photosMap[key];
+        } else {
+          const url = `/api/photo/${art.ref}`;
+          const dataUrl = await imgToDataURL(url, 400, 0.78);
+          if(dataUrl) photoCache[art.ref] = dataUrl;
+        }
+      }));
+      const pct = 2 + Math.round(((i+BATCH)/data.length)*45);
+      setProgress(Math.min(pct,47), `Photos ${Math.min(i+BATCH,data.length)}/${data.length}…`);
+      await new Promise(r=>setTimeout(r,5));
+    }
+
+    // ── 2. Créer le PDF ───────────────────────────────────────────────────────
+    const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4', compress:true});
+    const totalPages = Math.ceil(data.length/(cols*ROWS));
+
+    // Page de couverture
+    doc.setFillColor(DR,DG,DB); doc.rect(0,0,PW,PH,'F');
+    doc.setDrawColor(TR,TG,TB); doc.setLineWidth(.35);
+    doc.rect(16,55,PW-32,PH-110); doc.rect(18,57,PW-36,PH-114);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(TR,TG,TB);
+    doc.text('✦  BIJOUTERIE TRABELSI  ✦', PW/2, 90, {align:'center'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(28); doc.setTextColor(240,235,220);
+    doc.text(title.toUpperCase(), PW/2, 112, {align:'center'});
+    doc.setFillColor(TR,TG,TB); doc.rect(PW/2-20,118,40,.4,'F');
+    doc.setFontSize(9); doc.setTextColor(TR,TG,TB);
+    doc.text(`${data.length} articles  •  ${new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}`, PW/2, 128, {align:'center'});
+    const sw=40, sx0=PW/2-(sw*3+6*2)/2;
+    [{l:'Articles',v:String(data.length)},{l:'Pages',v:String(totalPages)},{l:'Édition',v:new Date().toLocaleDateString('fr-FR')}].forEach((s,i)=>{
+      const sx=sx0+i*(sw+6);
+      doc.setFillColor(DR+15,DG+13,DB+10); doc.roundedRect(sx,140,sw,22,3,3,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(TR,TG,TB);
+      doc.text(s.v, sx+sw/2, 150, {align:'center'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(150,140,120);
+      doc.text(s.l, sx+sw/2, 158, {align:'center'});
+    });
+
+    // Pages contenu
+    const PER = cols*ROWS;
+    for(let pi=0; pi<totalPages; pi++){
+      doc.addPage();
+      const items = data.slice(pi*PER, (pi+1)*PER);
+
+      // Footer
+      doc.setFillColor(TR,TG,TB); doc.rect(MARGIN, PH-footerH+3, usableW, .25,'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(140,130,110);
+      doc.text(`${title.toUpperCase()}  •  Page ${pi+2}  •  Confidentiel`, PW/2, PH-footerH+7, {align:'center'});
+
+      for(let j=0; j<items.length; j++){
+        const art = items[j];
+        const col = j%cols, row = Math.floor(j/cols);
+        const x = MARGIN + col*(cellW+GAP);
+        const y = MARGIN + row*(cellH+GAP);
+
+        // Fond + bordure carte
+        doc.setFillColor(255,255,255);
+        doc.roundedRect(x,y,cellW,cellH,1.5,1.5,'F');
+        doc.setDrawColor(TR,TG,TB); doc.setLineWidth(.18);
+        doc.roundedRect(x,y,cellW,cellH,1.5,1.5,'S');
+
+        // Header 3 colonnes
+        doc.setFillColor(TR,TG,TB);
+        doc.roundedRect(x,y,cellW,hdrH,1.5,1.5,'F');
+        doc.rect(x,y+hdrH*0.4,cellW,hdrH*0.6,'F');
+        // Séparateurs
+        doc.setDrawColor(Math.max(TR-60,0),Math.max(TG-60,0),Math.max(TB-60,0)); doc.setLineWidth(.2);
+        doc.line(x+cellW/3, y, x+cellW/3, y+hdrH);
+        doc.line(x+cellW*2/3, y, x+cellW*2/3, y+hdrH);
+        // Texte header
+        const hMid = y+hdrH*0.65;
+        const fszH = Math.max(6.5, Math.min(hdrH * 1.8, 10));
+        const hColW = cellW/3; // largeur d'une colonne header
+        doc.setFont('helvetica','bold'); doc.setFontSize(fszH); doc.setTextColor(DR,DG,DB);
+        const artS = fitStr(doc, art.article||'—', hColW-4);
+        doc.text(artS, x+2, hMid);
+        doc.text(String(art.ref), x+cellW/2, hMid, {align:'center'});
+        // Prix en rouge
+        doc.setTextColor(180,0,0);
+        if(fmtNum(art.pa)){
+          const priceS = fitStr(doc, fmtPrice(art.pa), hColW-3);
+          doc.text(priceS, x+cellW-2, hMid, {align:'right'});
+        }
+
+        // Photo
+        const pyStart = y+hdrH;
+        if(photoCache[art.ref]){
+          try{ doc.addImage(photoCache[art.ref],'JPEG',x+0.5,pyStart,cellW-1,phoH,undefined,'FAST'); }
+          catch(e){ _drawPH(doc,x,pyStart,cellW,phoH,TR,TG,TB); }
+        } else { _drawPH(doc,x,pyStart,cellW,phoH,TR,TG,TB); }
+
+        // Ligne séparatrice
+        const infoStart = y+hdrH+phoH;
+        doc.setDrawColor(TR,TG,TB); doc.setLineWidth(.2);
+        doc.line(x+1, infoStart, x+cellW-1, infoStart);
+
+        // Infos
+        const infoRows=[];
+        if(ac.or   && fmtNum(art.or))    infoRows.push(['Or',        fmtNum(art.or)+'g']);
+        if(ac.d    && fmtNum(art.d))     infoRows.push(['Diamants',  fmtNum(art.d)+' cts']);
+        if(ac.em   && fmtNum(art.em))    infoRows.push(['Émeraudes', fmtNum(art.em)+' cts']);
+        if(ac.ec   && fmtNum(art.ec))    infoRows.push(['Em.Clb',    fmtNum(art.ec)+' cts']);
+        if(ac.r    && fmtNum(art.r))     infoRows.push(['Rubis',     fmtNum(art.r)+' cts']);
+        if(ac.s    && fmtNum(art.s))     infoRows.push(['Saphirs',   fmtNum(art.s)+' cts']);
+        if(ac.perles && fmtNum(art.perles)) infoRows.push(['Perles', fmtNum(art.perles)]);
+        if(ac.pf   && fmtNum(art.pf))   infoRows.push(['P.Fines',   fmtNum(art.pf)+' cts']);
+        if(ac.ros  && fmtNum(art.ros))  infoRows.push(['Rosaces',   fmtNum(art.ros)]);
+        // Prix déjà affiché dans le header — pas en double ici
+        if(ac.date && fmtDate(art.date)) infoRows.push(['Date',      fmtDate(art.date)]);
+
+        // Fond blanc zone infos
+        doc.setFillColor(255,255,255);
+        doc.rect(x+0.2, infoStart, cellW-0.4, infH, 'F');
+
+        if(infoRows.length){
+          // rowH en mm → fontSize en points (1mm ≈ 2.835pt)
+          const rowH = Math.min(infH / infoRows.length, 11);
+          const fszI = Math.max(7, Math.min(rowH * 2.2, 11));
+          const colW1 = cellW * 0.50; // 50% pour les libellés (évite l'overflow sur "Émeraudes")
+          const colWval = cellW - colW1 - 1; // espace valeur
+          // Centrer verticalement le bloc de texte
+          const totalTxt = rowH * infoRows.length;
+          let ry = infoStart + (infH - totalTxt) / 2 + rowH * 0.75;
+          infoRows.forEach(([lbl,val])=>{
+            doc.setFont('helvetica','normal'); doc.setFontSize(fszI); doc.setTextColor(107,92,46);
+            const lblS = fitStr(doc, lbl, colW1-4); // tronque si déborde
+            doc.text(lblS, x+2.5, ry);
+            doc.setTextColor(180,160,120); doc.text(':', x+colW1-1.5, ry);
+            doc.setFont('helvetica','bold'); doc.setTextColor(26,23,16);
+            const valS = fitStr(doc, val, colWval-2);
+            doc.text(valS, x+colW1+1.5, ry);
+            ry += rowH;
+          });
+        }
+      }
+
+      const pct = 48 + Math.round(((pi+1)/totalPages)*50);
+      setProgress(pct, `Page ${pi+1}/${totalPages}…`);
+      await new Promise(r=>setTimeout(r,5));
+    }
+
+    setProgress(100,'Finalisation…');
+    await new Promise(r=>setTimeout(r,200));
+    const fname = `${title.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(fname);
+    setProgress(100, `✓ Téléchargé — ${fname}`);
+    btn.disabled = false;
+
+  } catch(err){
+    setProgress(0,'✗ Erreur : '+err.message);
+    btn.disabled = false;
+    console.error(err);
+  }
+}
+
+function _drawPH(doc,x,py,cw,ph,TR,TG,TB){
+  doc.setFillColor(240,235,224); doc.rect(x+.5,py,cw-1,ph-.3,'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(5.5); doc.setTextColor(180,165,140);
+  doc.text('Photo', x+cw/2, py+ph/2-.5, {align:'center'});
+}
+
+// Tronque un texte pour tenir dans maxWmm avec le font courant
+function fitStr(doc, txt, maxWmm){
+  const sf = doc.internal.scaleFactor;
+  const sz = doc.internal.getFontSize();
+  if(!txt) return '';
+  let s = txt;
+  if(doc.getStringUnitWidth(s) * sz / sf <= maxWmm) return s;
+  while(s.length > 1){
+    s = s.slice(0,-1);
+    if(doc.getStringUnitWidth(s+'…') * sz / sf <= maxWmm) return s+'…';
+  }
+  return '…';
+}
+
+function setProgress(pct, msg){
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-text').textContent = msg;
+}
+</script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

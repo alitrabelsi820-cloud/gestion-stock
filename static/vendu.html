@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Trabelsi">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ventes — TRABELSI</title>
+<style>
+:root{--gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;--bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;--txt:#1a1612;--muted:#9a8e7e;--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--purple:#9b59b6;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:22px 28px 0;}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:transform .2s;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.c1::before{background:linear-gradient(90deg,var(--gold),var(--gold-l));}
+.c2::before{background:linear-gradient(90deg,#1a6a3a,var(--green));}
+.c3::before{background:linear-gradient(90deg,#1a4a7a,var(--blue));}
+.c4::before{background:linear-gradient(90deg,#6a1a8a,var(--purple));}
+.card-ico{font-size:24px;margin-bottom:8px;}
+.card-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.card-val{font-size:22px;font-weight:700;margin-top:3px;}
+.c1 .card-val{color:var(--gold-l);}.c2 .card-val{color:var(--green);}.c3 .card-val{color:var(--blue);}.c4 .card-val{color:#c39bd3;}
+
+/* TOOLBAR */
+.toolbar{padding:18px 28px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.search-wrap{flex:1;min-width:180px;position:relative;}
+.search-wrap input{width:100%;padding:9px 14px 9px 38px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;transition:border-color .2s;}
+.search-wrap input:focus{border-color:var(--gold);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+select{padding:9px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;cursor:pointer;}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;}
+.btn-outline{background:transparent;border:1px solid var(--bd);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
+.btn-gold:hover{filter:brightness(1.15);}
+.btn-blue{background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:var(--blue);}
+.btn-blue:hover{background:rgba(52,152,219,.3);}
+.btn-red{background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:var(--red);}
+.btn-red:hover{background:rgba(231,76,60,.3);}
+.count-lbl{font-size:12px;color:var(--muted);white-space:nowrap;}
+.count-lbl span{color:var(--gold);font-weight:700;}
+
+/* TABLE */
+.tbl-wrap{padding:0 28px 40px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:var(--bg3);padding:11px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+thead th:hover{color:var(--gold-l);}
+tbody tr{border-bottom:1px solid var(--bd);cursor:pointer;transition:background .15s;}
+tbody tr:hover{background:rgba(201,168,76,.04);}
+tbody td{padding:10px 13px;vertical-align:middle;white-space:nowrap;}
+td.ref-col{font-family:monospace;font-size:14px;font-weight:700;color:var(--gold-l);}
+td.or-col{color:var(--gold-l);font-weight:600;}
+td.pa-col{color:#7f8c8d;font-weight:500;}
+td.pv-col{color:#1a6fa8;font-weight:600;}
+td.nil{color:var(--bd);text-align:center;}
+td.has{color:#82e0aa;}
+.benef-pos{color:var(--green);font-weight:700;}
+.benef-neg{color:var(--red);font-weight:700;}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-bag{background:rgba(155,89,182,.2);color:#c39bd3;border:1px solid rgba(155,89,182,.3);}
+.b-bra{background:rgba(52,152,219,.2);color:#7fb3d6;border:1px solid rgba(52,152,219,.3);}
+.b-col{background:rgba(201,168,76,.2);color:var(--gold-l);border:1px solid rgba(201,168,76,.3);}
+.b-pen{background:rgba(46,204,113,.2);color:#82e0aa;border:1px solid rgba(46,204,113,.3);}
+.b-bo{background:rgba(231,76,60,.2);color:#f1948a;border:1px solid rgba(231,76,60,.3);}
+.b-oth{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--bd);}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--gold-d);border-radius:16px;padding:28px;width:580px;max-width:94vw;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.12);}
+.modal h2{font-size:18px;color:var(--gold-l);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--bd);}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.article-photo{width:100%;max-height:220px;object-fit:contain;border-radius:10px;border:1px solid var(--bd);background:var(--bg3);margin-bottom:14px;}
+.no-photo{width:100%;height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;background:var(--bg3);border-radius:10px;border:1px solid var(--bd);margin-bottom:14px;}
+.mf{background:var(--bg3);border-radius:8px;padding:11px 13px;}
+.mf.full{grid-column:span 2;}
+.mf label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+.mf .v{font-size:15px;font-weight:600;}
+.mf .v.gold{color:var(--gold-l);}.mf .v.grn{color:var(--green);}.mf .v.red{color:var(--red);}.mf .v.blue{color:var(--blue);}
+.close-btn{position:absolute;top:14px;right:14px;background:var(--bd);border:none;color:var(--txt);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.close-btn:hover{background:var(--red);}
+.modal-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+
+/* EDIT FORM */
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.form-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.form-group input{padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;}
+.form-group input:focus{border-color:var(--gold);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* PAGINATION */
+.pag{display:flex;align-items:center;justify-content:center;gap:6px;padding:16px 28px;}
+.pg-btn{width:34px;height:34px;border-radius:7px;border:1px solid var(--bd);background:var(--bg2);color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.pg-btn:hover,.pg-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.1);}
+.pg-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{background:#1a5c35;border:1px solid var(--green);color:var(--green);}
+.toast.error{background:#5c1a1a;border:1px solid var(--red);color:var(--red);}
+@media(max-width:768px){.cards{grid-template-columns:1fr 1fr;}.nav-links a{padding:6px 10px;font-size:12px;}}
+
+/* ── ANALYSES FINANCIÈRES ───────────────────────────── */
+.panel-full{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:22px;margin:0 28px 40px;}
+.panel-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--bd);}
+.tabs{display:flex;gap:4px;margin-bottom:16px;}
+.tab{padding:8px 18px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;}
+.tab:hover{border-color:var(--gold);color:var(--gold);}
+.tab.active{background:rgba(201,168,76,.15);border-color:rgba(201,168,76,.4);color:var(--gold-l);}
+.period-filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:14px 18px;background:var(--bg3);border-radius:10px;}
+.period-filter label{font-size:12px;color:var(--muted);}
+.period-filter input[type=date]{padding:7px 10px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;}
+.period-filter input[type=date]:focus{border-color:var(--gold);}
+.btn-quick{padding:5px 12px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;transition:all .2s;}
+.btn-quick:hover,.btn-quick.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08);}
+.period-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.period-card{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:14px;}
+.period-card label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;}
+.period-card .val{font-size:18px;font-weight:700;}
+.pc-nb .val{color:var(--gold-l);}
+.pc-ca .val{color:var(--blue);}
+.pc-b .val{color:var(--green);}
+.pc-or .val{color:var(--gold);}
+.monthly-table{width:100%;border-collapse:collapse;font-size:13px;}
+.monthly-table th{padding:9px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd);}
+.monthly-table td{padding:9px 12px;border-bottom:1px solid var(--bd);}
+.monthly-table tr:hover{background:rgba(201,168,76,.03);}
+.monthly-table tr:last-child td{border-bottom:none;}
+.bar-cell{min-width:120px;}
+.bar-wrap{background:var(--bd);border-radius:3px;height:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold-d),var(--gold));}
+#v-period-label{font-size:13px;color:var(--gold);font-weight:600;margin-bottom:12px;padding:8px 12px;background:rgba(201,168,76,.07);border-radius:8px;display:none;}
+
+
+/* ── MOBILE NAV / HAMBURGER ── */
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;border-radius:8px;line-height:1;transition:background .2s;}
+.hamburger:hover{background:var(--bg3);}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:97;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);max-height:calc(100vh - 69px);overflow-y:auto;}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px !important;border-radius:10px;white-space:nowrap;}
+  .nav-overlay.nav-open{display:block;}
+  nav > a[href="/logout"]{display:none;}
+  .mob-logout{display:block !important;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand" style="text-decoration:none;color:inherit">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links">
+    <a href="/accueil">Accueil</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/stock">Stock</a>
+    <a href="/vendu" class="active">Ventes</a>
+    <a href="/credit">Crédits Clients</a>
+    <a href="/cheques">Chèques</a>
+    <a href="/facture">Facture</a>
+    <a href="/fournisseurs">Fournisseurs</a>
+    <a href="/fiche">Fiche</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
+
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="cards">
+  <div class="card c1"><div class="card-ico">📋</div><div class="card-lbl">Ventes du Mois</div><div class="card-val" id="s-nb">—</div><div class="card-sub" id="s-mois-lbl" style="font-size:10px;color:var(--muted);margin-top:3px">—</div></div>
+  <div class="card c2"><div class="card-ico">💰</div><div class="card-lbl" id="ca-lbl">CA du Mois</div><div class="card-val" id="s-ca">—</div></div>
+  <div class="card c3"><div class="card-ico">📈</div><div class="card-lbl" id="benef-lbl">Bénéfice du Mois</div><div class="card-val" id="s-benef">—</div></div>
+  <div class="card c4" style="cursor:default">
+    <div class="card-ico">💰</div>
+    <div class="card-lbl">Nouvelle Vente Rapide</div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <input type="number" id="nv-ref-input" placeholder="Réf. article…"
+        style="flex:1;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:6px;color:var(--txt);font-size:13px;outline:none;min-width:0"
+        onkeydown="if(event.key==='Enter')searchNV()" onclick="event.stopPropagation()">
+      <button onclick="event.stopPropagation();searchNV()" style="padding:7px 12px;border-radius:6px;border:none;background:linear-gradient(135deg,#1a5c8a,var(--blue));color:#fff;cursor:pointer;font-size:13px;font-weight:700">🔍</button>
+    </div>
+    <div id="nv-status" style="font-size:11px;color:var(--muted);margin-top:7px;min-height:18px"></div>
+    <button id="nv-sell-btn" onclick="event.stopPropagation();openNVModal()" style="display:none;margin-top:8px;width:100%;padding:7px;border-radius:6px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;cursor:pointer;font-size:12px;font-weight:700">✅ Enregistrer la vente →</button>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="q" placeholder="Référence, article, client…" oninput="filter()">
+  </div>
+  <select id="ft" onchange="filter()"><option value="">Tous les types</option></select>
+  <select id="fm" onchange="filter()"><option value="">Tous les mois</option></select>
+  <select id="sb" onchange="filter()">
+    <option value="date_vente">Trier par Date vente</option>
+    <option value="ref">Trier par Réf</option>
+    <option value="article">Trier par Article</option>
+    <option value="pv">Trier par P.V</option>
+    <option value="benef">Trier par Bénéfice</option>
+    <option value="or_grs">Trier par OR</option>
+  </select>
+  <select id="sd" onchange="filter()">
+    <option value="desc">Décroissant</option>
+    <option value="asc">Croissant</option>
+  </select>
+  <button class="btn btn-outline" onclick="reset()">Réinitialiser</button>
+  <span class="count-lbl"><span id="cnt">0</span> vente(s)</span>
+</div>
+
+<div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sort('ref')">Réf</th>
+        <th onclick="sort('date_achat')">Date Achat</th>
+        <th onclick="sort('date_vente')">Date Vente</th>
+        <th onclick="sort('article')">Article</th>
+        <th onclick="sort('or_grs')">OR (grs)</th>
+        <th onclick="sort('pa')">P.R</th>
+        <th onclick="sort('pv')">P.V</th>
+        <th onclick="sort('benef')">Bénéfice</th>
+        <th>D</th><th>Em</th><th>R</th><th>S</th><th>Em.Clb</th>
+        <th>Client</th>
+        <th>Facture</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div id="empty" class="empty" style="display:none"><p>Aucune vente trouvée.</p></div>
+</div>
+<div class="pag" id="pag"></div>
+
+<!-- MODAL DETAIL -->
+<div class="overlay" id="ov" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h2 id="m-title">Vente</h2>
+    <div id="m-photo-wrap"></div>
+    <div class="modal-grid" id="m-grid"></div>
+    <div class="modal-actions" id="m-actions"></div>
+  </div>
+</div>
+
+<!-- MODAL ÉDITION VENTE -->
+<div class="overlay" id="ov-edit" onclick="closeEditModal(event)">
+  <div class="modal" style="width:500px">
+    <button class="close-btn" onclick="closeEditModal()">✕</button>
+    <h2>✏️ Modifier la Vente <span id="edit-vente-title" style="color:var(--gold)"></span></h2>
+    <form onsubmit="submitEditVente(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date de vente</label>
+          <input type="date" id="ev-date">
+        </div>
+        <div class="form-group">
+          <label>Prix de Vente (MAD)</label>
+          <input type="number" id="ev-pv" step="1" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Client</label>
+        <input type="text" id="ev-client" placeholder="Nom du client">
+      </div>
+      <div class="form-group">
+        <label>Commentaire</label>
+        <input type="text" id="ev-comment" placeholder="Note…">
+      </div>
+      <div class="modal-actions" style="margin-top:8px">
+        <button type="submit" class="btn btn-gold">💾 Enregistrer</button>
+        <button type="button" class="btn btn-outline" onclick="closeEditModal()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL NOUVELLE VENTE RAPIDE -->
+<div class="overlay" id="ov-nv" onclick="closeNVModal(event)">
+  <div class="modal" style="width:600px">
+    <button class="close-btn" onclick="closeNVModal()">✕</button>
+    <h2>💰 Enregistrer une Vente — <span id="nv-modal-ref" style="color:var(--gold)"></span></h2>
+    <!-- Info article -->
+    <div id="nv-art-info" style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px"></div>
+    <!-- Formulaire -->
+    <!-- BLOC POIDS (articles or pur, sans pierres) -->
+    <div id="nv-poids-bloc" style="display:none;background:rgba(184,146,60,.06);border:1px solid rgba(184,146,60,.25);border-radius:10px;padding:14px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--gold-l);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">⚖️ Vente au poids</div>
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group">
+          <label>Poids à vendre (grs) *</label>
+          <input type="number" id="nv-poids" placeholder="ex: 5.5" min="0.001" step="0.001" oninput="calcNVPoidsValues()" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
+        </div>
+        <div class="form-group">
+          <label>Stock disponible</label>
+          <div id="nv-stock-dispo" style="padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;font-size:14px;font-weight:700;color:var(--gold-l)">—</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px">
+        <div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Prix achat / gr</div>
+          <div id="nv-prix-achat-gr" style="font-size:15px;font-weight:700;color:var(--muted)">—</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">P.Revient calculé</div>
+          <div id="nv-poids-pa" style="font-size:15px;font-weight:700;color:var(--muted)">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-bottom:12px">
+      <div class="form-group" id="nv-pv-bloc">
+        <label>Prix de Vente (MAD) *</label>
+        <input type="number" id="nv-pv" placeholder="ex: 35000" min="0" oninput="calcNVBenef()" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
+      </div>
+      <div class="form-group">
+        <label>Nom du Client</label>
+        <input type="text" id="nv-client" placeholder="ex: Mohamed Alami" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
+      </div>
+    </div>
+
+    <!-- STATUT PAIEMENT -->
+    <div class="form-group" style="margin-bottom:14px">
+      <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:8px">Statut du paiement *</label>
+      <div style="display:flex;gap:8px">
+        <label id="nv-st-total-lbl" style="flex:1;cursor:pointer">
+          <input type="radio" name="nv-statut" id="nv-st-total" value="totalite" checked onchange="onNVStatutChange()" style="display:none">
+          <div class="nv-st-btn nv-st-active" id="nv-st-total-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--green);background:rgba(46,204,113,.12);color:var(--green);transition:all .2s">✅ Totalité</div>
+        </label>
+        <label id="nv-st-avance-lbl" style="flex:1;cursor:pointer">
+          <input type="radio" name="nv-statut" id="nv-st-avance" value="avance" onchange="onNVStatutChange()" style="display:none">
+          <div id="nv-st-avance-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);transition:all .2s">💰 Avance</div>
+        </label>
+        <label id="nv-st-rien-lbl" style="flex:1;cursor:pointer">
+          <input type="radio" name="nv-statut" id="nv-st-rien" value="rien" onchange="onNVStatutChange()" style="display:none">
+          <div id="nv-st-rien-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);transition:all .2s">❌ Rien</div>
+        </label>
+      </div>
+    </div>
+
+    <!-- BLOC AVANCE (conditionnel) -->
+    <div id="nv-avance-bloc" style="display:none;background:rgba(230,126,34,.06);border:1px solid rgba(230,126,34,.25);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--orange);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:12px">💰 Détails de l'avance</div>
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group">
+          <label>Montant avance (MAD) *</label>
+          <input type="number" id="nv-avance" placeholder="ex: 5000" min="0" oninput="calcNVReste()" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+        </div>
+        <div class="form-group">
+          <label>Mode de paiement</label>
+          <select id="nv-mode" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+            <option value="">—</option>
+            <option>cash</option>
+            <option>chèque</option>
+            <option>TPE</option>
+            <option>virement</option>
+            <option>TPE et cash</option>
+            <option>cash et chèque</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--muted)">Reste dû : <strong id="nv-reste-display" style="color:var(--orange)">—</strong></div>
+    </div>
+
+    <!-- CONTACT (conditionnel — Avance ou Rien) -->
+    <div id="nv-contact-bloc" style="display:none;margin-bottom:14px">
+      <div class="form-group">
+        <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Contact client (pour le crédit)</label>
+        <input type="text" id="nv-contact" placeholder="0661…" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Mode de paiement</label>
+      <select id="nv-mode-global" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+        <option value="">—</option>
+        <option>cash</option>
+        <option>chèque</option>
+        <option>TPE</option>
+        <option>virement</option>
+        <option>TPE et cash</option>
+        <option>cash et chèque</option>
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Note / Remarque</label>
+      <input type="text" id="nv-note" placeholder="Informations complémentaires…" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+    </div>
+    <!-- Calcul bénéfice -->
+    <div style="background:var(--bg3);border-radius:10px;padding:14px;display:flex;gap:24px;margin-bottom:16px">
+      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Prix de Revient</div><div style="font-size:18px;font-weight:700;color:var(--muted)" id="nv-b-pa">—</div></div>
+      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Prix de Vente</div><div style="font-size:18px;font-weight:700" id="nv-b-pv">—</div></div>
+      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Bénéfice</div><div style="font-size:20px;font-weight:700" id="nv-b-benef">—</div></div>
+    </div>
+    <!-- ALERTE crédit auto -->
+    <div id="nv-credit-alert" style="display:none;background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--orange)">
+      ⚠️ Cette vente sera automatiquement ajoutée dans <strong>Crédits Clients</strong> avec le montant restant dû.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" id="nv-confirm-btn" onclick="submitNV()">✅ Confirmer la vente</button>
+      <button class="btn btn-outline" onclick="closeNVModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYSES FINANCIÈRES -->
+<div class="panel-full">
+  <div class="panel-title">📈 Analyses Financières</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTabV('periode')">Période personnalisée</button>
+    <button class="tab" onclick="switchTabV('mensuel')">Résumé Mensuel</button>
+    <button class="tab" onclick="switchTabV('annuel')">Résumé Annuel</button>
+  </div>
+
+  <!-- TAB PERIODE -->
+  <div id="v-tab-periode">
+    <div class="period-filter">
+      <label>Du :</label>
+      <input type="date" id="v-p-from">
+      <label>Au :</label>
+      <input type="date" id="v-p-to">
+      <button class="btn btn-gold" onclick="loadPeriodV()">Analyser</button>
+      <button class="btn-quick" onclick="setQuickV('today',event)">Aujourd'hui</button>
+      <button class="btn-quick" onclick="setQuickV('week',event)">Cette semaine</button>
+      <button class="btn-quick" onclick="setQuickV('month',event)">Ce mois</button>
+      <button class="btn-quick" onclick="setQuickV('year',event)">Cette année</button>
+      <button class="btn-quick" onclick="setQuickV('all',event)">Tout (depuis 2025)</button>
+    </div>
+    <div id="v-period-label"></div>
+    <div class="period-stats">
+      <div class="period-card pc-nb"><label>Nombre de Ventes</label><div class="val" id="v-p-nb">—</div></div>
+      <div class="period-card pc-ca"><label>Chiffre d'Affaires</label><div class="val" id="v-p-ca">—</div></div>
+      <div class="period-card pc-b"><label>Bénéfice Net</label><div class="val" id="v-p-benef">—</div></div>
+      <div class="period-card pc-or"><label>OR Vendu</label><div class="val" id="v-p-or">—</div></div>
+    </div>
+  </div>
+
+  <!-- TAB MENSUEL -->
+  <div id="v-tab-mensuel" style="display:none">
+    <div style="overflow-x:auto">
+      <table class="monthly-table">
+        <thead><tr><th>Mois</th><th>Ventes</th><th>Chiffre d'Affaires</th><th>Bénéfice</th><th>Progression CA</th></tr></thead>
+        <tbody id="v-monthly-body"></tbody>
+      </table>
+      <div id="v-no-monthly" style="display:none;text-align:center;padding:30px;color:var(--muted)">Aucune donnée mensuelle.</div>
+    </div>
+  </div>
+
+  <!-- TAB ANNUEL -->
+  <div id="v-tab-annuel" style="display:none">
+    <div style="overflow-x:auto">
+      <table class="monthly-table">
+        <thead><tr><th>Année</th><th>Ventes</th><th>Chiffre d'Affaires</th><th>Bénéfice</th><th>Marge</th></tr></thead>
+        <tbody id="v-annual-body"></tbody>
+      </table>
+      <div id="v-no-annual" style="display:none;text-align:center;padding:30px;color:var(--muted)">Aucune donnée annuelle.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ALERTE ISMAIL -->
+<div id="ov-ismail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center" onclick="closeIsmailAlert(event)">
+  <div style="background:var(--bg2,#1e1a10);border:2px solid #f39c12;border-radius:16px;padding:32px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.5)">
+    <div style="font-size:42px;margin-bottom:12px">💎</div>
+    <h2 style="color:#f39c12;margin:0 0 10px;font-size:20px">Rappel — Ismail</h2>
+    <p style="color:var(--txt,#e8d5a3);margin:0 0 8px;font-size:15px">
+      Cet article contient des pierres d'<strong>Ismail</strong>.
+    </p>
+    <p style="color:var(--muted,#a08060);font-size:13px;margin:0 0 24px">
+      N'oublie pas de lui donner son bénéfice !
+    </p>
+    <button onclick="closeIsmailAlert()" style="padding:10px 28px;background:#f39c12;color:#1a1200;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">
+      ✓ Compris
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PG = 50;
+let ALL = [], filtered = [], page = 1, sortCol = 'date_vente', sortDir = 'desc';
+let currentVente = null;
+let advancedDataV = null;
+
+function fmt(v,d=2){return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d});}
+function fmtN(v){return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});}
+function fmtD(d){if(!d)return '—';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+
+function badge(a){
+  const t=(a||'').toLowerCase();
+  if(t.includes('bague')||t.includes('solitaire')||t.includes('chevalière'))return 'b-bag';
+  if(t.includes('bracelet')||t.includes('gourmette'))return 'b-bra';
+  if(t.includes('collier')||t.includes('perles'))return 'b-col';
+  if(t.includes('pendentif')||t.includes('chaine')||t.includes('chaîne'))return 'b-pen';
+  if(t.includes('b.o'))return 'b-bo';
+  return 'b-oth';
+}
+
+async function load(){
+  try{
+    const [ventesData, advanced, creditsData, facturesData] = await Promise.all([
+      fetch('/api/ventes').then(r=>r.json()),
+      fetch('/api/stats/advanced').then(r=>r.json()),
+      fetch('/api/credits').then(r=>r.json()),
+      fetch('/api/factures').then(r=>r.json())
+    ]);
+    ALL = ventesData;
+    // Map ref → Set de clients avec crédit ouvert (paiement en cours)
+    window.CREDIT_MAP = new Map();
+    creditsData.filter(c=>c.statut==='rien'||c.statut==='avance').forEach(c=>{
+      const clientKey=(c.client||'').toLowerCase().trim();
+      String(c.refs||'').match(/\d+/g)?.forEach(r=>{
+        const ref=parseInt(r);
+        if(!window.CREDIT_MAP.has(ref)) window.CREDIT_MAP.set(ref,new Set());
+        window.CREDIT_MAP.get(ref).add(clientKey);
+      });
+    });
+    // Map ref → dernière facture associée
+    window.FACTURE_MAP = new Map();
+    facturesData.forEach(f=>{
+      (f.articles||[]).forEach(a=>{
+        const ref=parseInt(a.ref);
+        if(!window.FACTURE_MAP.has(ref)) window.FACTURE_MAP.set(ref, f);
+      });
+    });
+    advancedDataV = advanced;
+
+    const types=[...new Set(ALL.map(v=>v.article).filter(Boolean))].sort();
+    const selT=document.getElementById('ft');
+    selT.innerHTML='<option value="">Tous les types</option>';
+    types.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;selT.appendChild(o);});
+
+    const mois=[...new Set(ALL.map(v=>v.date_vente?v.date_vente.substring(0,7):null).filter(Boolean))].sort().reverse();
+    const selM=document.getElementById('fm');
+    selM.innerHTML='<option value="">Tous les mois</option>';
+    mois.forEach(m=>{
+      const o=document.createElement('option');o.value=m;
+      const [y,mo]=m.split('-');
+      const noms=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+      o.textContent=noms[parseInt(mo)-1]+' '+y;
+      selM.appendChild(o);
+    });
+
+    // MOIS EN COURS uniquement pour les 3 cartes du haut
+    const now=new Date();
+    const moisKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const nomsM=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    const nomMois=nomsM[now.getMonth()]+' '+now.getFullYear();
+    const moisData=advanced.monthly.find(m=>m.mois===moisKey)||{nb:0,ca:0,benef:0};
+
+    document.getElementById('s-nb').textContent=moisData.nb;
+    document.getElementById('s-mois-lbl').textContent=nomMois;
+    document.getElementById('s-ca').textContent=fmtN(moisData.ca)+' MAD';
+    document.getElementById('s-benef').textContent=fmtN(moisData.benef)+' MAD';
+
+    // Analyses financières — initialiser sur mois courant
+    renderMonthlyV(advanced.monthly);
+    renderAnnualV(advanced.annual);
+    renderPeriodStatsV({nb:moisData.nb,ca:moisData.ca,benef:moisData.benef,or_vendu:0}, nomMois);
+
+    filter();
+  }catch(e){
+    document.getElementById('empty').style.display='block';
+    document.getElementById('empty').innerHTML='<p>Erreur de connexion au serveur.</p>';
+  }
+}
+
+function filter(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const ft=document.getElementById('ft').value;
+  const fm=document.getElementById('fm').value;
+  sortCol=document.getElementById('sb').value;
+  sortDir=document.getElementById('sd').value;
+
+  filtered=ALL.filter(v=>
+    (!q||String(v.ref).includes(q)||(v.article||'').toLowerCase().includes(q)||(v.client||'').toLowerCase().includes(q))&&
+    (!ft||v.article===ft)&&
+    (!fm||((v.date_vente||'').startsWith(fm)))
+  );
+
+  filtered.sort((a,b)=>{
+    let va=a[sortCol],vb=b[sortCol];
+    if(['ref','pa','pv','benef','or_grs'].includes(sortCol)){va=parseFloat(va)||0;vb=parseFloat(vb)||0;}
+    else{va=String(va||'').toLowerCase();vb=String(vb||'').toLowerCase();}
+    return(va<vb?-1:va>vb?1:0)*(sortDir==='asc'?1:-1);
+  });
+
+  // Stats filtrées
+  const caF=filtered.reduce((s,v)=>s+(v.pv||0),0);
+  const benefF=filtered.reduce((s,v)=>s+(v.benef||0),0);
+  document.getElementById('cnt').textContent=filtered.length;
+  page=1;
+  render();
+  renderPag();
+}
+
+function render(){
+  const body=document.getElementById('tbody');
+  const empty=document.getElementById('empty');
+  const start=(page-1)*PG;
+  const rows=filtered.slice(start,start+PG);
+  if(!rows.length){body.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  body.innerHTML=rows.map((v,i)=>{
+    const b=v.benef||0;
+    const clientKey=(v.client||'').toLowerCase().trim();
+    const inCredit=window.CREDIT_MAP?.has(v.ref)&&window.CREDIT_MAP.get(v.ref).has(clientKey);
+    return`<tr onclick="showDetail(${start+i})"${inCredit?' style="background:rgba(230,126,34,.07);border-left:3px solid rgba(230,126,34,.4);"':''}>
+      <td class="ref-col">#${v.ref}${inCredit?'<span title="Paiement en cours" style="margin-left:5px;font-size:13px">💳</span>':''}</td>
+      <td>${fmtD(v.date_achat)}</td>
+      <td>${fmtD(v.date_vente)}</td>
+      <td><span class="badge ${badge(v.article)}">${v.article||'—'}</span></td>
+      <td class="or-col">${v.or_grs!=null?fmt(v.or_grs)+' grs':'—'}</td>
+      <td class="pa-col">${v.pa!=null?fmtN(v.pa)+' MAD':'—'}</td>
+      <td class="pv-col">${v.pv!=null?fmtN(v.pv)+' MAD':'—'}</td>
+      <td class="${b>=0?'benef-pos':'benef-neg'}">${fmtN(b)} MAD</td>
+      <td class="${v.d?'has':'nil'}">${v.d?fmt(v.d):'—'}</td>
+      <td class="${v.em?'has':'nil'}">${v.em?fmt(v.em):'—'}</td>
+      <td class="${v.r?'has':'nil'}">${v.r?fmt(v.r):'—'}</td>
+      <td class="${v.s?'has':'nil'}">${v.s?fmt(v.s):'—'}</td>
+      <td class="${v.em_clb?'has':'nil'}">${v.em_clb?fmt(v.em_clb):'—'}</td>
+      <td>${v.client||'—'}</td>
+      <td>${(()=>{const f=window.FACTURE_MAP?.get(v.ref);return f?`<a href="/historique-factures" onclick="event.stopPropagation()" title="Facture #${f.numero} — ${f.client}" style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(184,146,60,.15);color:var(--gold-l);border:1px solid rgba(184,146,60,.3);text-decoration:none">🧾 ${f.numero}</a>`:'<span style="color:var(--bd);font-size:12px">—</span>';})()}</td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();showDetail(${start+i})">Voir</button>
+        <button class="btn btn-blue" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();openEditVente(${start+i})">✏️</button>
+        <button class="btn btn-red" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();cancelVente(${start+i})">↩️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPag(){
+  const total=Math.ceil(filtered.length/PG);
+  const p=document.getElementById('pag');
+  if(total<=1){p.innerHTML='';return;}
+  let h=`<button class="pg-btn" ${page===1?'disabled':''} onclick="goP(${page-1})">‹</button>`;
+  let pages=[];
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||(i>=page-2&&i<=page+2))pages.push(i);
+    else if(pages[pages.length-1]!=='…')pages.push('…');
+  }
+  pages.forEach(pp=>{
+    if(pp==='…')h+=`<span style="color:var(--muted);padding:0 3px">…</span>`;
+    else h+=`<button class="pg-btn ${pp===page?'active':''}" onclick="goP(${pp})">${pp}</button>`;
+  });
+  h+=`<button class="pg-btn" ${page===total?'disabled':''} onclick="goP(${page+1})">›</button>`;
+  p.innerHTML=h;
+}
+
+function goP(n){page=n;render();renderPag();window.scrollTo({top:200,behavior:'smooth'});}
+function sort(c){if(sortCol===c)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=c;sortDir='desc';}filter();}
+function reset(){document.getElementById('q').value='';document.getElementById('ft').value='';document.getElementById('fm').value='';document.getElementById('sb').value='date_vente';document.getElementById('sd').value='desc';filter();}
+
+function showDetail(idx){
+  const v=filtered[idx];
+  currentVente=v;
+  const b=v.benef||0;
+  document.getElementById('m-title').textContent=`Vente #${v.ref} — ${v.article}`;
+  document.getElementById('m-grid').innerHTML=[
+    ['Référence','#'+v.ref,'gold',false],
+    ['Type d\'article',v.article||'—','',false],
+    ['Date d\'achat',fmtD(v.date_achat),'',false],
+    ['Date de vente',fmtD(v.date_vente),'blue',false],
+    ['OR (grammes)',v.or_grs!=null?fmt(v.or_grs)+' grs':'—','gold',false],
+    ['Prix d\'Achat (P.R)',v.pa!=null?fmtN(v.pa)+' MAD':'—','',false],
+    ['Prix de Vente (P.V)',v.pv!=null?fmtN(v.pv)+' MAD':'—','blue',false],
+    ['Bénéfice',fmtN(b)+' MAD',b>=0?'grn':'red',false],
+    ['Diamants (cts)',v.d?fmt(v.d):'—','',false],
+    ['Émeraudes (cts)',v.em?fmt(v.em):'—','',false],
+    ['Rubis (cts)',v.r?fmt(v.r):'—','',false],
+    ['Saphirs (cts)',v.s?fmt(v.s):'—','',false],
+    ['Ém. Colombie',v.em_clb?fmt(v.em_clb):'—','',false],
+    ['Perles (grs)',v.perles?fmt(v.perles)+' grs':'—','',false],
+    ['Client',v.client||'—','',false],
+    ['Commentaire',v.commentaire||'—','',true],
+  ].map(([l,val,cls,full])=>`<div class="mf${full?' full':''}"><label>${l}</label><div class="v ${cls}">${val}</div></div>`).join('');
+
+  document.getElementById('m-actions').innerHTML=`
+    <button class="btn btn-blue" onclick="closeModal();openEditVente(${idx})">✏️ Modifier</button>
+    <button class="btn btn-red" onclick="closeModal();cancelVente(${idx})">↩️ Annuler la vente</button>
+  `;
+
+  // Photo
+  const photoWrap = document.getElementById('m-photo-wrap');
+  photoWrap.innerHTML = '';
+  const imgUrl = `/api/photo/${v.ref}`;
+  const img = new Image();
+  img.onload  = () => { photoWrap.innerHTML = `<img src="${imgUrl}" class="article-photo" alt="Photo #${v.ref}">`; };
+  img.onerror = () => { photoWrap.innerHTML = `<div class="no-photo">📷 Pas de photo disponible</div>`; };
+  img.src = imgUrl;
+
+  document.getElementById('ov').classList.add('open');
+}
+
+function closeModal(e){if(!e||e.target===document.getElementById('ov'))document.getElementById('ov').classList.remove('open');}
+
+function openEditVente(idx){
+  const v=filtered[idx];
+  currentVente=v;
+  document.getElementById('edit-vente-title').textContent='#'+v.ref;
+  document.getElementById('ev-date').value=v.date_vente||'';
+  document.getElementById('ev-pv').value=v.pv!=null?v.pv:'';
+  document.getElementById('ev-client').value=v.client||'';
+  document.getElementById('ev-comment').value=v.commentaire||'';
+  document.getElementById('ov-edit').classList.add('open');
+}
+
+function closeEditModal(e){if(!e||e.target===document.getElementById('ov-edit'))document.getElementById('ov-edit').classList.remove('open');}
+
+async function submitEditVente(e){
+  e.preventDefault();
+  if(!currentVente) return;
+  const payload={
+    date_vente: document.getElementById('ev-date').value,
+    pv: document.getElementById('ev-pv').value,
+    client: document.getElementById('ev-client').value,
+    commentaire: document.getElementById('ev-comment').value,
+  };
+  try{
+    const res=await fetch(`/api/ventes/${currentVente.id_vente}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data=await res.json();
+    if(data.success){
+      toast('Vente modifiée !','success');
+      closeEditModal();
+      await load();
+    } else {
+      toast(data.error||'Erreur','error');
+    }
+  }catch(err){toast('Erreur connexion','error');}
+}
+
+async function cancelVente(idx){
+  const v=filtered[idx];
+  if(!confirm(`Annuler la vente de l'article #${v.ref} (${v.article}) ?\nL'article sera remis en stock.`)) return;
+  try{
+    const res=await fetch(`/api/ventes/${v.id_vente}`,{method:'DELETE'});
+    const data=await res.json();
+    if(data.success){
+      toast(`Vente annulée — Article #${v.ref} remis en stock !`,'success');
+      await load();
+    } else {
+      toast(data.error||'Erreur','error');
+    }
+  }catch(err){toast('Erreur connexion','error');}
+}
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type+' show';
+  setTimeout(()=>t.className='toast',3500);
+}
+
+// ── VENTE RAPIDE ────────────────────────────────────────
+let nvArticle = null;
+let nvConfig = {prix_or_achat: 1000, prix_or_vente: 1100};
+let nvEstPoids = false;
+
+async function loadNVConfig(){
+  try{ nvConfig = await fetch('/api/config').then(r=>r.json()); }catch(e){}
+}
+loadNVConfig();
+
+function isPoidsArticle(a){
+  const pierres=['d','em','r','s','p_fines','rosaces','em_clb','perles'];
+  return !pierres.some(p=>a[p]);
+}
+
+function calcNVPoidsValues(){
+  const poids = parseFloat(document.getElementById('nv-poids').value)||0;
+  const pa = poids * nvConfig.prix_or_achat;
+  document.getElementById('nv-poids-pa').textContent = poids>0 ? Math.round(pa).toLocaleString('fr-FR')+' MAD' : '—';
+  document.getElementById('nv-b-pa').textContent = poids>0 ? Math.round(pa).toLocaleString('fr-FR')+' MAD' : '—';
+  // Recalculer le bénéfice avec le PV saisi manuellement
+  calcNVBenef();
+}
+
+async function searchNV(){
+  const ref = document.getElementById('nv-ref-input').value.trim();
+  if(!ref){document.getElementById('nv-status').textContent='⚠️ Entrez une référence';return;}
+  document.getElementById('nv-status').textContent='Recherche…';
+  document.getElementById('nv-sell-btn').style.display='none';
+  try{
+    const res = await fetch('/api/article/'+ref);
+    if(!res.ok){
+      nvArticle=null;
+      document.getElementById('nv-status').style.color='var(--red)';
+      document.getElementById('nv-status').textContent='❌ Article #'+ref+' introuvable';
+      return;
+    }
+    nvArticle = await res.json();
+    document.getElementById('nv-status').style.color='var(--green)';
+    document.getElementById('nv-status').textContent='✓ '+nvArticle.article+' — '+( nvArticle.pa?Number(nvArticle.pa).toLocaleString('fr-FR')+'MAD PA':'');
+    document.getElementById('nv-sell-btn').style.display='block';
+  }catch(e){document.getElementById('nv-status').textContent='Erreur connexion';}
+}
+
+function openNVModal(){
+  if(!nvArticle) return;
+  const a=nvArticle;
+  const fmtA=v=>v!=null?Number(v).toLocaleString('fr-FR',{maximumFractionDigits:2}):null;
+  document.getElementById('nv-modal-ref').textContent='#'+a.id+' — '+a.article;
+  // Info article
+  const fields=[
+    ['Date entrée', a.date?a.date.substring(0,10):'—'],
+    ['OR (grs)', a.or_grs?fmtA(a.or_grs)+' grs':'—'],
+    ['Prix de Revient', a.pa?fmtA(a.pa)+' MAD':'—'],
+    ['Diamants', a.d?fmtA(a.d)+' cts':'—'],
+  ];
+  document.getElementById('nv-art-info').innerHTML=fields.map(([l,v])=>
+    `<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">${l}</div><div style="font-size:14px;font-weight:600;color:var(--gold-l)">${v}</div></div>`
+  ).join('');
+  document.getElementById('nv-client').value='';
+  document.getElementById('nv-contact').value='';
+  document.getElementById('nv-avance').value='';
+  document.getElementById('nv-mode').value='';
+  document.getElementById('nv-mode-global').value='';
+  document.getElementById('nv-note').value='';
+  document.getElementById('nv-b-benef').style.color='var(--muted)';
+  document.getElementById('nv-reste-display').textContent='—';
+
+  // Détecter article au poids
+  nvEstPoids = isPoidsArticle(a);
+  document.getElementById('nv-pv-bloc').style.display='block';
+  document.getElementById('nv-pv').value='';
+  if(nvEstPoids){
+    document.getElementById('nv-poids-bloc').style.display='block';
+    document.getElementById('nv-poids').value='';
+    document.getElementById('nv-stock-dispo').textContent=(a.or_grs||0)+' grs';
+    document.getElementById('nv-prix-achat-gr').textContent=nvConfig.prix_or_achat.toLocaleString('fr-FR')+' MAD/gr';
+    document.getElementById('nv-poids-pa').textContent='—';
+    document.getElementById('nv-b-pa').textContent='—';
+  } else {
+    document.getElementById('nv-poids-bloc').style.display='none';
+    document.getElementById('nv-b-pa').textContent=a.pa?fmtA(a.pa)+' MAD':'—';
+  }
+  document.getElementById('nv-b-pv').textContent='—';
+  document.getElementById('nv-b-benef').textContent='—';
+  // Reset statut to Totalité
+  document.getElementById('nv-st-total').checked=true;
+  onNVStatutChange();
+  document.getElementById('ov-nv').classList.add('open');
+}
+
+function closeNVModal(e){
+  if(!e||e.target===document.getElementById('ov-nv')){
+    document.getElementById('ov-nv').classList.remove('open');
+    // Reset statut to Totalité
+    document.getElementById('nv-st-total').checked=true;
+    onNVStatutChange();
+  }
+}
+
+function closeIsmailAlert(e){
+  const ov=document.getElementById('ov-ismail');
+  if(!e||e.target===ov) ov.style.display='none';
+}
+
+function onNVStatutChange(){
+  const val = document.querySelector('input[name="nv-statut"]:checked').value;
+  // Style des boutons
+  const styles = {
+    totalite: {btn:'nv-st-total-btn', border:'var(--green)', bg:'rgba(46,204,113,.12)', color:'var(--green)'},
+    avance:   {btn:'nv-st-avance-btn', border:'var(--orange)', bg:'rgba(230,126,34,.12)', color:'var(--orange)'},
+    rien:     {btn:'nv-st-rien-btn', border:'var(--red)', bg:'rgba(231,76,60,.12)', color:'var(--red)'},
+  };
+  ['totalite','avance','rien'].forEach(k=>{
+    const s=styles[k];
+    const el=document.getElementById(s.btn);
+    if(k===val){
+      el.style.border='2px solid '+s.border;
+      el.style.background=s.bg;
+      el.style.color=s.color;
+    } else {
+      el.style.border='2px solid var(--bd)';
+      el.style.background='var(--bg3)';
+      el.style.color='var(--muted)';
+    }
+  });
+  document.getElementById('nv-avance-bloc').style.display  = val==='avance'?'block':'none';
+  document.getElementById('nv-contact-bloc').style.display = val!=='totalite'?'block':'none';
+  document.getElementById('nv-credit-alert').style.display = val!=='totalite'?'block':'none';
+  if(val!=='avance'){document.getElementById('nv-avance').value='';document.getElementById('nv-reste-display').textContent='—';}
+}
+
+function calcNVBenef(){
+  const pv=parseFloat(document.getElementById('nv-pv').value)||0;
+  // Pour articles au poids : PA = poids × prix_achat, sinon PA de la fiche
+  let pa;
+  if(nvEstPoids){
+    const poids=parseFloat(document.getElementById('nv-poids').value)||0;
+    pa=Math.round(poids*nvConfig.prix_or_achat);
+  } else {
+    pa=nvArticle?nvArticle.pa||0:0;
+  }
+  const benef=pv-pa;
+  const fmtA=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+  document.getElementById('nv-b-pv').textContent=pv?fmtA(pv)+' MAD':'—';
+  const el=document.getElementById('nv-b-benef');
+  if(!pv){el.textContent='—';el.style.color='var(--muted)';}
+  else{el.textContent=fmtA(benef)+' MAD';el.style.color=benef>=0?'var(--green)':'var(--red)';}
+  calcNVReste();
+}
+
+function calcNVReste(){
+  const pv=parseFloat(document.getElementById('nv-pv').value)||0;
+  const avance=parseFloat(document.getElementById('nv-avance').value)||0;
+  const reste=pv-avance;
+  const fmtA=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+  document.getElementById('nv-reste-display').textContent=pv&&reste>=0?fmtA(reste)+' MAD':'—';
+}
+
+async function submitNV(){
+  if(!nvArticle) return;
+  const statut=document.querySelector('input[name="nv-statut"]:checked').value;
+  const btn=document.getElementById('nv-confirm-btn');
+  btn.disabled=true;btn.textContent='⏳ Traitement…';
+
+  let pv, ventePayload;
+  if(nvEstPoids){
+    const poids=parseFloat(document.getElementById('nv-poids').value)||0;
+    if(poids<=0){toast('Entrez le poids à vendre','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
+    pv=parseFloat(document.getElementById('nv-pv').value)||0;
+    if(pv<=0){toast('Entrez le prix de vente','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
+    ventePayload={ref:nvArticle.id, poids_vendu:poids, pv,
+      client:document.getElementById('nv-client').value.trim(),
+      note:document.getElementById('nv-note').value.trim(),
+      mode_paiement:document.getElementById('nv-mode-global').value};
+  } else {
+    pv=parseFloat(document.getElementById('nv-pv').value);
+    if(!pv&&pv!==0){toast('Entrez le prix de vente','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
+    ventePayload={ref:nvArticle.id, pv,
+      client:document.getElementById('nv-client').value.trim(),
+      note:document.getElementById('nv-note').value.trim(),
+      mode_paiement:document.getElementById('nv-mode-global').value};
+  }
+
+  const avance=parseFloat(document.getElementById('nv-avance').value)||0;
+  if(statut==='avance'&&!avance){toast('Entrez le montant de l\'avance','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
+  try{
+    // 1. Enregistrer la vente
+    const res=await fetch('/api/ventes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ventePayload)});
+    const data=await res.json();
+    if(!res.ok){toast(data.error||'Erreur','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
+
+    // 2. Si Avance ou Rien → créer un crédit client automatiquement
+    if(statut!=='totalite'){
+      const today=new Date().toISOString().split('T')[0];
+      const creditPayload={
+        client:     document.getElementById('nv-client').value.trim()||'Client inconnu',
+        contact:    document.getElementById('nv-contact').value.trim(),
+        date_achat: today,
+        refs:       String(nvArticle.id),
+        article:    nvArticle.article||'',
+        montant_total: pv,
+        avance:     statut==='avance'?avance:0,
+        mode_paiement: statut==='avance'?document.getElementById('nv-mode').value:document.getElementById('nv-mode-global').value,
+        date_avance: today,
+        note:       document.getElementById('nv-note').value.trim(),
+      };
+      await fetch('/api/credits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(creditPayload)});
+    }
+
+    const hadIsmail = nvArticle && nvArticle.ismail_pierres;
+    const msg = nvEstPoids
+      ? `✅ Vente au poids enregistrée — Stock restant : ${data.stock_restant||0} grs`
+      : statut==='totalite'
+        ? '✅ Vente enregistrée ! Article #'+nvArticle.id+' retiré du stock.'
+        : '✅ Vente enregistrée et ajoutée aux Crédits Clients.';
+    toast(msg,'success');
+    closeNVModal();
+    nvArticle=null;
+    if(hadIsmail) setTimeout(()=>{ document.getElementById('ov-ismail').style.display='flex'; }, 600);
+    document.getElementById('nv-ref-input').value='';
+    document.getElementById('nv-status').textContent='';
+    document.getElementById('nv-sell-btn').style.display='none';
+    await load();
+  }catch(e){toast('Erreur connexion','error');}
+  btn.disabled=false;btn.textContent='✅ Confirmer la vente';
+}
+
+// ── ANALYSES FINANCIÈRES ────────────────────────────────
+function switchTabV(tab){
+  ['periode','mensuel','annuel'].forEach(t=>{
+    document.getElementById('v-tab-'+t).style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['periode','mensuel','annuel'][i]===tab);
+  });
+}
+
+function renderPeriodStatsV(p, label){
+  document.getElementById('v-p-nb').textContent=p.nb;
+  document.getElementById('v-p-ca').textContent=fmtN(p.ca)+' MAD';
+  document.getElementById('v-p-benef').textContent=fmtN(p.benef)+' MAD';
+  document.getElementById('v-p-or').textContent=fmt(p.or_vendu)+' grs';
+  const lbl=document.getElementById('v-period-label');
+  if(label){lbl.textContent='📊 '+label;lbl.style.display='block';}
+  else{lbl.style.display='none';}
+}
+
+async function loadPeriodV(){
+  const from=document.getElementById('v-p-from').value;
+  const to=document.getElementById('v-p-to').value;
+  let url='/api/stats/advanced';
+  const params=[];
+  if(from) params.push('from='+from);
+  if(to) params.push('to='+to);
+  if(params.length) url+='?'+params.join('&');
+  try{
+    const data=await fetch(url).then(r=>r.json());
+    renderPeriodStatsV(data.period);
+  }catch(e){console.error(e);}
+}
+
+function setQuickV(type,e){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const today=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  let from='',to=today;
+  if(type==='today'){from=today;}
+  else if(type==='week'){const d=new Date(now);d.setDate(d.getDate()-d.getDay());from=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+  else if(type==='month'){from=`${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;}
+  else if(type==='year'){from=`${now.getFullYear()}-01-01`;}
+  else if(type==='all'){from='';to='';}
+  document.getElementById('v-p-from').value=from;
+  document.getElementById('v-p-to').value=to;
+  document.querySelectorAll('.btn-quick').forEach(b=>b.classList.remove('active'));
+  if(e&&e.target) e.target.classList.add('active');
+  loadPeriodV();
+}
+
+function renderMonthlyV(monthly){
+  const body=document.getElementById('v-monthly-body');
+  const noM=document.getElementById('v-no-monthly');
+  if(!monthly||!monthly.length){body.innerHTML='';noM.style.display='block';return;}
+  noM.style.display='none';
+  const maxCA=Math.max(...monthly.map(m=>m.ca),1);
+  const noms=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  body.innerHTML=monthly.map(m=>{
+    const [y,mo]=m.mois.split('-');
+    const nomMois=noms[parseInt(mo)-1]+' '+y;
+    const pct=Math.round((m.ca/maxCA)*100);
+    return`<tr>
+      <td style="font-weight:600;color:var(--gold)">${nomMois}</td>
+      <td>${m.nb}</td>
+      <td style="color:var(--blue);font-weight:600">${fmtN(m.ca)} MAD</td>
+      <td style="color:var(--green);font-weight:600">${fmtN(m.benef)} MAD</td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--muted)">${pct}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAnnualV(annual){
+  const body=document.getElementById('v-annual-body');
+  const noA=document.getElementById('v-no-annual');
+  if(!annual||!annual.length){body.innerHTML='';noA.style.display='block';return;}
+  noA.style.display='none';
+  body.innerHTML=annual.map(a=>{
+    const marge=a.ca>0?Math.round((a.benef/a.ca)*100):0;
+    return`<tr>
+      <td style="font-size:18px;font-weight:900;color:var(--gold-l)">${a.annee}</td>
+      <td style="font-weight:600">${a.nb}</td>
+      <td style="color:var(--blue);font-weight:700;font-size:15px">${fmtN(a.ca)} MAD</td>
+      <td style="color:var(--green);font-weight:700;font-size:15px">${fmtN(a.benef)} MAD</td>
+      <td><span style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:var(--green);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">${marge}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+load();
+
+// Auto-ouvrir le modal vente si on arrive depuis stock.html avec #vente-{ref}
+window.addEventListener('DOMContentLoaded', ()=>{
+  const m = window.location.hash.match(/#vente-(\d+)/);
+  if(m){
+    const ref = m[1];
+    document.getElementById('nv-ref-input').value = ref;
+    // Attendre que la page soit chargée puis lancer la recherche et ouvrir le modal
+    setTimeout(async ()=>{
+      await searchNV();
+      if(nvArticle) setTimeout(openNVModal, 200);
+    }, 400);
+  }
+});
+</script>
+<script>
+
+});
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+<script src="/static/notifications.js?v=3"></script>
+<script>
+/* ── HAMBURGER NAV ── */
+function toggleNav(){
+  const nl=document.querySelector('.nav-links');
+  const ov=document.querySelector('.nav-overlay');
+  const btn=document.getElementById('hamburger-btn');
+  if(!nl)return;
+  const open=nl.classList.toggle('nav-open');
+  if(ov)ov.classList.toggle('nav-open',open);
+  if(btn)btn.textContent=open?'✕':'☰';
+}
+(function(){
+  const ov=document.createElement('div');
+  ov.className='nav-overlay';
+  ov.onclick=function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  };
+  document.body.appendChild(ov);
+  // Close nav when a link is clicked
+  document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  }));
+})();
+</script>
+<script src="/chatbot.js"></script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

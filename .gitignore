@@ -1,0 +1,23 @@
+# Base de données locale (ne jamais pousser sur GitHub)
+data/gestionstock.db
+data/*.json
+
+# Photos (trop lourdes pour GitHub)
+photos_compressed/
+
+# Backups
+backups/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Mac
+.DS_Store
+
+# PyInstaller
+build/
+dist/
+*.spec

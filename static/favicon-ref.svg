@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1abc9c"/>
+      <stop offset="50%"  stop-color="#48d1b5"/>
+      <stop offset="100%" stop-color="#0f6b54"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#16a085"/>
+      <stop offset="100%" stop-color="#0a4a3a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond carré teal -->
+  <rect x="8" y="8" width="48" height="48" rx="10" fill="url(#g1)"/>
+
+  <!-- Bordure intérieure subtile -->
+  <rect x="11" y="11" width="42" height="42" rx="8" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+
+  <!-- Lettre R -->
+  <text x="32" y="46"
+    font-family="Georgia, serif"
+    font-size="34"
+    font-weight="700"
+    text-anchor="middle"
+    fill="#02241c"
+    opacity="0.85">R</text>
+
+  <!-- Petit losange déco en haut à droite -->
+  <rect x="44" y="6" width="8" height="8" rx="1"
+    transform="rotate(45 48 10)"
+    fill="url(#g2)" opacity="0.9"/>
+</svg>

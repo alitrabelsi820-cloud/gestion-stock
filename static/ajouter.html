@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Trabelsi">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ajouter Article — TRABELSI</title>
+<style>
+:root{--gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;--bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;--txt:#1a1612;--muted:#9a8e7e;--green:#2ecc71;--red:#e74c3c;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;}
+.nav-links{display:flex;gap:4px;}
+.nav-links a{padding:8px 16px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+
+.page{max-width:780px;margin:36px auto;padding:0 20px 60px;}
+.page-header{margin-bottom:28px;}
+.page-header h1{font-size:24px;color:var(--gold-l);}
+.page-header p{color:var(--muted);margin-top:6px;font-size:14px;}
+
+.form-card{background:var(--bg2);border:1px solid var(--bd);border-radius:14px;padding:28px;}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--bd);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:24px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+.field input,.field select{width:100%;padding:10px 13px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;}
+.field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1);}
+.field input.required-field{border-color:rgba(201,168,76,.4);}
+.field .hint{font-size:11px;color:var(--muted);margin-top:4px;}
+
+.ref-check{display:flex;align-items:center;gap:10px;}
+.ref-check input{flex:1;}
+.ref-status{font-size:12px;padding:4px 10px;border-radius:6px;white-space:nowrap;}
+.ref-status.ok{background:rgba(46,204,113,.15);color:var(--green);}
+.ref-status.err{background:rgba(231,76,60,.15);color:var(--red);}
+
+.actions{display:flex;gap:12px;margin-top:28px;}
+.btn{padding:12px 24px;border-radius:9px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
+.btn-gold:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none;}
+.btn-outline{background:transparent;border:1px solid var(--bd);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+
+.toast{position:fixed;bottom:24px;right:24px;padding:14px 22px;border-radius:10px;font-size:14px;font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:340px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{background:#1a5c35;border:1px solid var(--green);color:var(--green);}
+.toast.error{background:#5c1a1a;border:1px solid var(--red);color:var(--red);}
+
+@media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr 1fr;}.nav-links a{padding:6px 10px;font-size:12px;}}
+
+
+/* ── MOBILE NAV / HAMBURGER ── */
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;border-radius:8px;line-height:1;transition:background .2s;}
+.hamburger:hover{background:var(--bg3);}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:97;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);max-height:calc(100vh - 69px);overflow-y:auto;}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px !important;border-radius:10px;white-space:nowrap;}
+  .nav-overlay.nav-open{display:block;}
+  nav > a[href="/logout"]{display:none;}
+  .mob-logout{display:block !important;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </div>
+  <div class="nav-links" style="flex-wrap:wrap">
+    <a href="/accueil">Accueil</a>
+    <a href="/stock" class="active">Stock</a>
+    <a href="/vendu">Ventes</a>
+    <a href="/credit">Crédits Clients</a>
+    <a href="/fournisseurs">Fournisseurs</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/fiche">Fiche</a>
+    <a href="/facture">Facture</a>
+    <a href="/cheques">Chèques</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
+
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>➕ Ajouter un Article au Stock</h1>
+    <p>Remplis les informations de l'article. Les champs marqués * sont obligatoires.</p>
+  </div>
+
+  <div class="form-card">
+    <!-- Section 1: Identification -->
+    <div class="section-title">Identification *</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Référence *</label>
+        <div class="ref-check">
+          <input type="number" id="f-id" placeholder="ex: 4500" class="required-field" oninput="checkRef()" min="1">
+          <span id="ref-status" class="ref-status" style="display:none"></span>
+        </div>
+        <div class="hint">Numéro unique de l'article</div>
+      </div>
+      <div class="field">
+        <label>Type d'article *</label>
+        <select id="f-article" class="required-field">
+          <option value="">— Sélectionner —</option>
+          <option>Anneaux - homme</option>
+          <option>B.O</option>
+          <option>Bague</option>
+          <option>Bracelet</option>
+          <option>Ceinture</option>
+          <option>Chaîne</option>
+          <option>Chapelet</option>
+          <option>chaine +pendentif</option>
+          <option>cheval Baccarat</option>
+          <option>chevalière</option>
+          <option>Collier</option>
+          <option>Collier de perles</option>
+          <option>collier / pendentif</option>
+          <option>Coran</option>
+          <option>Dague</option>
+          <option>Gourmette</option>
+          <option>Margueritte</option>
+          <option>Mdejja</option>
+          <option>Pendentif</option>
+          <option>Pièce de golf</option>
+          <option>Piéce Dauphin</option>
+          <option>Pince à cravatte</option>
+          <option>Solitaire</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Date d'entrée *</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>Prix de Revient — P.R (MAD) *</label>
+        <input type="number" id="f-pa" placeholder="ex: 25000" min="0" class="required-field">
+      </div>
+    </div>
+
+    <!-- Section 2: Composition OR -->
+    <div class="section-title">Composition — OR & Carats</div>
+    <div class="grid2">
+      <div class="field">
+        <label>OR (grammes) *</label>
+        <input type="number" id="f-or" placeholder="ex: 12.5" step="0.01" min="0" class="required-field">
+      </div>
+      <div class="field">
+        <label>Carats (Cts)</label>
+        <input type="number" id="f-cts" placeholder="ex: 18" step="0.01" min="0">
+      </div>
+    </div>
+
+    <!-- Section 3: Pierres précieuses -->
+    <div class="section-title">Pierres Précieuses (cts) — Optionnel</div>
+    <div class="grid4">
+      <div class="field">
+        <label>Diamants (D)</label>
+        <input type="number" id="f-d" placeholder="0" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Émeraudes (Em)</label>
+        <input type="number" id="f-em" placeholder="0" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Rubis (R)</label>
+        <input type="number" id="f-r" placeholder="0" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Saphirs (S)</label>
+        <input type="number" id="f-s" placeholder="0" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Pierres Fines</label>
+        <input type="number" id="f-pf" placeholder="0" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Rosaces</label>
+        <input type="number" id="f-ros" placeholder="0" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Ém. Colombie</label>
+        <input type="number" id="f-ec" placeholder="0" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Perles (grs)</label>
+        <input type="number" id="f-per" placeholder="0" step="0.01" min="0">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-gold" id="submit-btn" onclick="submit()">✅ Ajouter au stock</button>
+      <button class="btn btn-outline" onclick="resetForm()">🔄 Réinitialiser</button>
+      <button class="btn btn-outline" onclick="window.location.href='/stock'">← Retour au stock</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let refOk = false;
+let existingIds = new Set();
+
+async function loadIds() {
+  try {
+    const arts = await fetch('/api/articles').then(r=>r.json());
+    existingIds = new Set(arts.map(a=>a.id));
+  } catch(e){}
+}
+
+function checkRef() {
+  const v = parseInt(document.getElementById('f-id').value);
+  const s = document.getElementById('ref-status');
+  if(!v){s.style.display='none';refOk=false;return;}
+  if(existingIds.has(v)){
+    s.textContent='⚠️ Réf. déjà utilisée';s.className='ref-status err';s.style.display='inline';refOk=false;
+  } else {
+    s.textContent='✅ Disponible';s.className='ref-status ok';s.style.display='inline';refOk=true;
+  }
+}
+
+function g(id){const v=document.getElementById(id).value;return v===''?null:v;}
+function gf(id){const v=document.getElementById(id).value;return v===''?null:parseFloat(v);}
+
+async function submit() {
+  const id = parseInt(g('f-id'));
+  const article = g('f-article');
+  const or_grs = gf('f-or');
+  const pa = gf('f-pa');
+
+  if(!id||!refOk){toast('Réf. invalide ou déjà utilisée','error');return;}
+  if(!article){toast('Sélectionnez un type d\'article','error');return;}
+  if(!or_grs&&or_grs!==0){toast('Poids OR obligatoire','error');return;}
+  if(!pa&&pa!==0){toast('Prix d\'achat obligatoire','error');return;}
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='⏳ Enregistrement…';
+
+  const payload = {
+    id,
+    date: g('f-date') || new Date().toISOString().split('T')[0],
+    article,
+    or_grs,
+    pa,
+    d: gf('f-d'),
+    em: gf('f-em'),
+    r: gf('f-r'),
+    s: gf('f-s'),
+    p_fines: gf('f-pf'),
+    rosaces: gf('f-ros'),
+    em_clb: gf('f-ec'),
+    perles: gf('f-per'),
+  };
+
+  try {
+    const res = await fetch('/api/articles', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(res.ok){
+      toast(`✅ Article #${id} ajouté au stock avec succès !`,'success');
+      existingIds.add(id);
+      setTimeout(()=>resetForm(),1800);
+    } else {
+      toast(data.error||'Erreur lors de l\'ajout','error');
+    }
+  } catch(e){toast('Erreur de connexion au serveur','error');}
+
+  btn.disabled=false;btn.textContent='✅ Ajouter au stock';
+}
+
+function resetForm(){
+  ['f-id','f-article','f-date','f-pa','f-or','f-cts','f-d','f-em','f-r','f-s','f-pf','f-ros','f-ec','f-per']
+    .forEach(id=>{const el=document.getElementById(id);if(el.tagName==='SELECT')el.value='';else el.value='';});
+  document.getElementById('ref-status').style.display='none';
+  refOk=false;
+  // Date du jour
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+}
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type+' show';
+  setTimeout(()=>t.className='toast',3500);
+}
+
+// Init
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+loadIds();
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+<script>
+
+});
+</script>
+<script src="/static/notifications.js?v=3"></script>
+<script>
+/* ── HAMBURGER NAV ── */
+function toggleNav(){
+  const nl=document.querySelector('.nav-links');
+  const ov=document.querySelector('.nav-overlay');
+  const btn=document.getElementById('hamburger-btn');
+  if(!nl)return;
+  const open=nl.classList.toggle('nav-open');
+  if(ov)ov.classList.toggle('nav-open',open);
+  if(btn)btn.textContent=open?'✕':'☰';
+}
+(function(){
+  const ov=document.createElement('div');
+  ov.className='nav-overlay';
+  ov.onclick=function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  };
+  document.body.appendChild(ov);
+  // Close nav when a link is clicked
+  document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  }));
+})();
+</script>
+<script src="/chatbot.js"></script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

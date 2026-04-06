@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — Trabelsi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0d0d0d;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  /* Motif géométrique en fond */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30,5 L55,30 L30,55 L5,30 Z' fill='none' stroke='%23c9a84c' stroke-width='0.4' opacity='0.08'/%3E%3C/svg%3E");
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .card {
+    background: #161616;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 380px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  /* Ligne dorée en haut */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .logo-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, #c9a84c, #9a7530);
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 900;
+    color: #1a1200;
+    font-family: Georgia, serif;
+    margin-bottom: 14px;
+  }
+
+  .logo-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f0d070;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: #555;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  input[type="password"] {
+    width: 100%;
+    background: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 18px;
+    color: #f0f0f0;
+    letter-spacing: 4px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  input[type="password"]:focus {
+    border-color: #c9a84c;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+
+  input[type="password"]::placeholder {
+    letter-spacing: 2px;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #c9a84c, #9a7530);
+    color: #1a1200;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    margin-top: 8px;
+  }
+
+  .btn:hover { opacity: 0.9; }
+  .btn:active { transform: scale(0.98); }
+
+  .error {
+    background: rgba(231,76,60,0.1);
+    border: 1px solid rgba(231,76,60,0.3);
+    color: #e74c3c;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    margin-bottom: 18px;
+    display: none;
+    text-align: center;
+  }
+
+  .error.show { display: block; }
+
+  .footer-txt {
+    text-align: center;
+    font-size: 10px;
+    color: #333;
+    margin-top: 24px;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="logo">
+    <div class="logo-icon">T</div>
+    <div class="logo-name">Trabelsi</div>
+    <div class="logo-sub">Gestion de Stock</div>
+  </div>
+
+  <div class="error" id="err">Mot de passe incorrect</div>
+
+  <form id="loginForm">
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="pwd" placeholder="••••••••" autocomplete="current-password" autofocus>
+    </div>
+    <button type="submit" class="btn">Accéder</button>
+  </form>
+
+  <div class="footer-txt">Mega Mall · Rabat</div>
+
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const pwd = document.getElementById('pwd').value;
+  const err = document.getElementById('err');
+  err.classList.remove('show');
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password: pwd})
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.location.href = '/accueil';
+    } else {
+      err.classList.add('show');
+      document.getElementById('pwd').value = '';
+      document.getElementById('pwd').focus();
+    }
+  } catch(e) {
+    err.textContent = 'Erreur de connexion au serveur';
+    err.classList.add('show');
+  }
+});
+</script>
+
+</body>
+</html>

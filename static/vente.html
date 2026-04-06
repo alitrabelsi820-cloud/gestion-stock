@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Trabelsi">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nouvelle Vente — TRABELSI</title>
+<style>
+:root{--gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;--bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;--txt:#1a1612;--muted:#9a8e7e;--green:#2ecc71;--red:#e74c3c;--blue:#3498db;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;}
+.nav-links{display:flex;gap:4px;}
+.nav-links a{padding:8px 16px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+
+.page{max-width:800px;margin:36px auto;padding:0 20px 60px;}
+.page-header{margin-bottom:28px;}
+.page-header h1{font-size:24px;color:var(--gold-l);}
+.page-header p{color:var(--muted);margin-top:6px;font-size:14px;}
+
+.form-card{background:var(--bg2);border:1px solid var(--bd);border-radius:14px;padding:28px;margin-bottom:20px;}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--bd);}
+
+.search-row{display:flex;gap:12px;align-items:flex-end;}
+.field{flex:1;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:10px 13px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1);}
+.field textarea{resize:vertical;min-height:70px;}
+
+.btn{padding:10px 22px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;}
+.btn-blue{background:linear-gradient(135deg,#1a5c8a,var(--blue));color:#fff;}
+.btn-blue:hover{filter:brightness(1.15);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
+.btn-gold:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none;}
+.btn-outline{background:transparent;border:1px solid var(--bd);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-red{background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:var(--red);}
+
+/* Article trouvé */
+.article-card{background:var(--bg3);border:1px solid var(--gold-d);border-radius:12px;padding:20px;margin-top:16px;display:none;}
+.article-card.visible{display:block;}
+.art-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px;}
+.art-field label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.art-field .v{font-size:15px;font-weight:600;margin-top:2px;}
+.art-field .v.gold{color:var(--gold-l);}
+.art-field .v.grn{color:var(--green);}
+.art-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(201,168,76,.2);color:var(--gold-l);border:1px solid rgba(201,168,76,.3);}
+
+/* Calcul bénéfice */
+.benef-box{background:var(--bg3);border-radius:10px;padding:16px;margin-top:14px;display:flex;gap:20px;flex-wrap:wrap;}
+.benef-item{flex:1;min-width:120px;}
+.benef-item label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:4px;}
+.benef-item .bv{font-size:20px;font-weight:700;}
+.bv.pos{color:var(--green);}
+.bv.neg{color:var(--red);}
+.bv.neu{color:var(--muted);}
+
+/* Panier */
+.panier-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;}
+.panier-table th{background:var(--bg3);padding:9px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd);}
+.panier-table td{padding:9px 12px;border-bottom:1px solid var(--bd);vertical-align:middle;}
+.panier-table tr:hover{background:rgba(201,168,76,.03);}
+.pv-inline{width:110px;padding:6px 9px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;transition:border-color .2s;}
+.pv-inline:focus{border-color:var(--gold);}
+.btn-remove{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);color:var(--red);padding:4px 9px;border-radius:7px;cursor:pointer;font-size:12px;transition:all .2s;}
+.btn-remove:hover{background:rgba(231,76,60,.2);}
+.totaux-box{display:flex;gap:20px;flex-wrap:wrap;background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px;}
+.tot-item{flex:1;min-width:110px;}
+.tot-item label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:3px;}
+.tot-item .tv{font-size:19px;font-weight:700;}
+
+/* Historique ventes */
+.hist-table{width:100%;border-collapse:collapse;font-size:13px;}
+.hist-table th{background:var(--bg3);padding:10px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd);}
+.hist-table td{padding:10px 12px;border-bottom:1px solid var(--bd);color:var(--txt);}
+.hist-table tr:hover{background:rgba(201,168,76,.03);}
+.pos{color:var(--green);}
+.neg{color:var(--red);}
+
+.toast{position:fixed;bottom:24px;right:24px;padding:14px 22px;border-radius:10px;font-size:14px;font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:360px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{background:#1a5c35;border:1px solid var(--green);color:var(--green);}
+.toast.error{background:#5c1a1a;border:1px solid var(--red);color:var(--red);}
+
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center;}
+.confirm-overlay.open{display:flex;}
+.confirm-box{background:var(--bg2);border:1px solid var(--red);border-radius:14px;padding:28px;width:420px;max-width:90vw;text-align:center;}
+.confirm-box h3{font-size:18px;color:var(--red);margin-bottom:12px;}
+.confirm-box p{color:var(--muted);margin-bottom:20px;font-size:14px;line-height:1.6;}
+.confirm-box .art-info{background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:20px;color:var(--gold-l);font-weight:600;}
+.confirm-actions{display:flex;gap:12px;justify-content:center;}
+
+@media(max-width:600px){.art-grid{grid-template-columns:1fr 1fr;}.nav-links a{padding:6px 10px;font-size:12px;}}
+
+
+/* ── MOBILE NAV / HAMBURGER ── */
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;border-radius:8px;line-height:1;transition:background .2s;}
+.hamburger:hover{background:var(--bg3);}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:97;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);max-height:calc(100vh - 69px);overflow-y:auto;}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px !important;border-radius:10px;white-space:nowrap;}
+  .nav-overlay.nav-open{display:block;}
+  nav > a[href="/logout"]{display:none;}
+  .mob-logout{display:block !important;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand" style="text-decoration:none;color:inherit">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links" style="flex-wrap:wrap">
+    <a href="/accueil">Accueil</a>
+    <a href="/stock">Stock</a>
+    <a href="/vendu" class="active">Ventes</a>
+    <a href="/credit">Crédits Clients</a>
+    <a href="/fournisseurs">Fournisseurs</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/fiche">Fiche</a>
+    <a href="/facture">Facture</a>
+    <a href="/cheques">Chèques</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
+
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>💰 Enregistrer une Vente</h1>
+    <p>Recherche l'article par référence. Il sera retiré du stock automatiquement.</p>
+  </div>
+
+  <!-- ÉTAPE 1: Recherche -->
+  <div class="form-card">
+    <div class="section-title">Étape 1 — Trouver l'Article</div>
+    <div class="search-row">
+      <div class="field" style="max-width:250px">
+        <label>Référence de l'article *</label>
+        <input type="number" id="search-ref" placeholder="ex: 1029" min="1" oninput="onRefInput()">
+      </div>
+      <button class="btn btn-blue" onclick="searchArticle()">🔍 Rechercher</button>
+    </div>
+
+    <!-- Article trouvé -->
+    <div class="article-card" id="art-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <span class="art-badge" id="art-type"></span>
+        <span style="font-size:18px;font-weight:700;color:var(--gold-l)" id="art-ref"></span>
+      </div>
+      <div class="art-grid">
+        <div class="art-field"><label>Date entrée</label><div class="v" id="art-date"></div></div>
+        <div class="art-field"><label>OR (grs)</label><div class="v gold" id="art-or"></div></div>
+        <div class="art-field"><label>Prix de Revient (PA)</label><div class="v" id="art-pa"></div></div>
+        <div class="art-field"><label>Diamants</label><div class="v" id="art-d"></div></div>
+        <div class="art-field"><label>Émeraudes</label><div class="v" id="art-em"></div></div>
+        <div class="art-field"><label>Rubis</label><div class="v" id="art-r"></div></div>
+        <div class="art-field"><label>Saphirs</label><div class="v" id="art-s"></div></div>
+        <div class="art-field"><label>Perles (grs)</label><div class="v" id="art-per"></div></div>
+      </div>
+      <!-- BLOC POIDS (articles or pur) -->
+      <div id="f-poids-bloc" style="display:none;margin-top:14px;background:rgba(184,146,60,.06);border:1px solid rgba(184,146,60,.25);border-radius:10px;padding:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold-l);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">⚖️ Vente au poids — Stock disponible : <span id="f-stock-dispo" style="color:var(--gold-l)">—</span></div>
+        <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap">
+          <div class="field" style="max-width:180px">
+            <label>Poids à vendre (grs) *</label>
+            <input type="number" id="f-poids" placeholder="ex: 5.5" min="0.001" step="0.001" oninput="calcBenefPoids()">
+          </div>
+          <div style="display:flex;gap:10px;font-size:13px">
+            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">PA / gr</div><div id="f-pa-gr" style="font-weight:700;color:var(--muted)">—</div></div>
+            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">P.Revient total</div><div id="f-pa-total" style="font-weight:700;color:var(--muted)">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PV + bénéfice preview + bouton panier -->
+      <div style="margin-top:14px;display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap">
+        <div class="field" style="max-width:200px" id="f-pv-bloc">
+          <label>Prix de Vente (MAD) *</label>
+          <input type="number" id="f-pv" placeholder="ex: 35000" min="0" oninput="currentArticle&&isPoidsArticle(currentArticle)?calcBenefPoids():calcBenef()">
+        </div>
+        <div class="benef-box" style="flex:1;margin-top:0">
+          <div class="benef-item">
+            <label>Prix de Revient</label>
+            <div class="bv neu" id="b-pa">—</div>
+          </div>
+          <div class="benef-item">
+            <label>Prix de Vente</label>
+            <div class="bv neu" id="b-pv">—</div>
+          </div>
+          <div class="benef-item">
+            <label>Bénéfice</label>
+            <div class="bv neu" id="b-benef">—</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn btn-gold" onclick="addToPanier()">🛒 Ajouter au panier</button>
+        <button class="btn btn-outline" onclick="cancelSearch()">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANIER (visible quand au moins 1 article) -->
+  <div class="form-card" id="panier-card" style="display:none">
+    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>🛒 Panier</span>
+      <span id="panier-count" style="font-size:11px;color:var(--muted)"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="panier-table" id="panier-table">
+        <thead>
+          <tr>
+            <th>Réf</th>
+            <th>Article</th>
+            <th>OR (grs)</th>
+            <th>P.R</th>
+            <th>P.V</th>
+            <th>Bénéfice</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="panier-body"></tbody>
+      </table>
+    </div>
+    <div class="totaux-box" id="totaux-box">
+      <div class="tot-item"><label>Total P.R</label><div class="tv" id="tot-pa" style="color:var(--muted)">—</div></div>
+      <div class="tot-item"><label>Total P.V</label><div class="tv" id="tot-pv" style="color:var(--blue)">—</div></div>
+      <div class="tot-item"><label>Bénéfice Total</label><div class="tv" id="tot-benef">—</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="field">
+        <label>Nom du Client</label>
+        <input type="text" id="f-client" placeholder="ex: Mohamed Alami">
+      </div>
+      <div class="field">
+        <label>Note / Remarque</label>
+        <input type="text" id="f-note" placeholder="Informations complémentaires…">
+      </div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-gold" id="confirm-btn" onclick="openConfirm()">✅ Confirmer la vente</button>
+      <button class="btn btn-outline" onclick="viderPanier()">🗑️ Vider le panier</button>
+    </div>
+  </div>
+
+  <!-- Historique des ventes -->
+  <div class="form-card">
+    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Historique des Ventes</span>
+      <span id="ventes-count" style="font-size:11px;color:var(--muted)"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="hist-table" id="hist-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Réf</th>
+            <th>Article</th>
+            <th>OR (grs)</th>
+            <th>P.R</th>
+            <th>P.V</th>
+            <th>Bénéfice</th>
+            <th>Client</th>
+          </tr>
+        </thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+      <div id="hist-empty" style="text-align:center;padding:30px;color:var(--muted);display:none">Aucune vente enregistrée.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation modale -->
+<div class="confirm-overlay" id="conf-ov" onclick="closeConfirm(event)">
+  <div class="confirm-box">
+    <h3>⚠️ Confirmer la Vente</h3>
+    <p>Cette action va retirer définitivement l'article du stock.</p>
+    <div class="art-info" id="conf-info"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-gold" onclick="submitVente()">✅ Oui, confirmer</button>
+      <button class="btn btn-outline" onclick="closeConfirm()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ALERTE ISMAIL -->
+<div id="ov-ismail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center" onclick="closeIsmailAlert(event)">
+  <div style="background:var(--bg2,#1e1a10);border:2px solid #f39c12;border-radius:16px;padding:32px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.5)">
+    <div style="font-size:42px;margin-bottom:12px">💎</div>
+    <h2 style="color:#f39c12;margin:0 0 10px;font-size:20px">Rappel — Ismail</h2>
+    <p style="color:var(--txt,#e8d5a3);margin:0 0 8px;font-size:15px">
+      Cet article contient des pierres d'<strong>Ismail</strong>.
+    </p>
+    <p style="color:var(--muted,#a08060);font-size:13px;margin:0 0 24px">
+      N'oublie pas de lui donner son bénéfice !
+    </p>
+    <button onclick="closeIsmailAlert()" style="padding:10px 28px;background:#f39c12;color:#1a1200;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">
+      ✓ Compris
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentArticle = null;
+let panier = [];
+let ventePrixOrConfig = {prix_or_achat: 1000, prix_or_vente: 1100};
+
+(async()=>{ try{ventePrixOrConfig=await fetch('/api/config').then(r=>r.json());}catch(e){} })();
+
+function isPoidsArticle(a){
+  const pierres=['d','em','r','s','p_fines','rosaces','em_clb','perles'];
+  return !pierres.some(p=>a[p]);
+}
+
+function fmt(v){return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:2});}
+function fmtD(d){if(!d)return '—';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+
+function onRefInput(){
+  document.getElementById('art-card').classList.remove('visible');
+  currentArticle=null;
+}
+
+async function searchArticle(){
+  const ref=document.getElementById('search-ref').value;
+  if(!ref){toast('Entrez une référence','error');return;}
+  try{
+    const res=await fetch('/api/article/'+ref);
+    if(!res.ok){toast('Article #'+ref+' introuvable dans le stock','error');return;}
+    const a=await res.json();
+    currentArticle=a;
+    displayArticle(a);
+  }catch(e){toast('Erreur de connexion','error');}
+}
+
+function displayArticle(a){
+  document.getElementById('art-type').textContent=a.article||'Article';
+  document.getElementById('art-ref').textContent='Référence #'+a.id;
+  document.getElementById('art-date').textContent=fmtD(a.date);
+  document.getElementById('art-or').textContent=a.or_grs?fmt(a.or_grs)+' grs':'—';
+  document.getElementById('art-pa').textContent=a.pa?fmt(a.pa)+' MAD':'—';
+  document.getElementById('art-d').textContent=a.d?fmt(a.d)+' cts':'—';
+  document.getElementById('art-em').textContent=a.em?fmt(a.em)+' cts':'—';
+  document.getElementById('art-r').textContent=a.r?fmt(a.r)+' cts':'—';
+  document.getElementById('art-s').textContent=a.s?fmt(a.s)+' cts':'—';
+  document.getElementById('art-per').textContent=a.perles?fmt(a.perles)+' grs':'—';
+  // Détecter article au poids
+  if(isPoidsArticle(a)){
+    document.getElementById('f-poids-bloc').style.display='block';
+    document.getElementById('f-pv-bloc').style.display='block';
+    document.getElementById('f-poids').value='';
+    document.getElementById('f-pv').value='';
+    document.getElementById('f-stock-dispo').textContent=fmt(a.or_grs||0)+' grs';
+    document.getElementById('f-pa-gr').textContent=ventePrixOrConfig.prix_or_achat.toLocaleString('fr-FR')+' MAD';
+    document.getElementById('f-pa-total').textContent='—';
+    document.getElementById('b-pa').textContent='—';
+    document.getElementById('b-pv').textContent='—';
+    document.getElementById('b-benef').textContent='—';
+    document.getElementById('b-benef').className='bv neu';
+  } else {
+    document.getElementById('f-poids-bloc').style.display='none';
+    document.getElementById('f-pv-bloc').style.display='block';
+    document.getElementById('f-pv').value='';
+    document.getElementById('b-pa').textContent=a.pa?fmt(a.pa)+' MAD':'—';
+    calcBenef();
+  }
+  document.getElementById('art-card').classList.add('visible');
+}
+
+function calcBenefPoids(){
+  const poids=parseFloat(document.getElementById('f-poids').value)||0;
+  const pa=poids*(ventePrixOrConfig.prix_or_achat||0);
+  const pv=parseFloat(document.getElementById('f-pv').value)||0;
+  const benef=pv-pa;
+  document.getElementById('b-pa').textContent=poids?fmt(pa)+' MAD':'—';
+  document.getElementById('f-pa-total').textContent=poids?fmt(pa)+' MAD':'—';
+  document.getElementById('b-pv').textContent=pv?fmt(pv)+' MAD':'—';
+  const el=document.getElementById('b-benef');
+  if(!poids&&!pv){el.textContent='—';el.className='bv neu';}
+  else{el.textContent=fmt(benef)+' MAD';el.className='bv '+(benef>=0?'pos':'neg');}
+}
+
+function addToPanier(){
+  if(!currentArticle){toast('Aucun article sélectionné','error');return;}
+  if(isPoidsArticle(currentArticle)){
+    const poids=parseFloat(document.getElementById('f-poids').value);
+    if(isNaN(poids)||poids<=0){toast('Entrez le poids à vendre','error');return;}
+    const stock=parseFloat(currentArticle.or_grs)||0;
+    if(poids>stock+0.001){toast(`Stock insuffisant : ${stock} grs disponibles`,'error');return;}
+    const pa=Math.round(poids*ventePrixOrConfig.prix_or_achat);
+    const pv=Math.round(poids*ventePrixOrConfig.prix_or_vente);
+    panier.push({article:currentArticle, pv, poids_vendu:poids, pa_calc:pa, au_poids:true});
+  } else {
+    const pv=parseFloat(document.getElementById('f-pv').value);
+    if(isNaN(pv)||pv<0){toast('Entrez le prix de vente','error');return;}
+    panier.push({article:currentArticle, pv});
+  }
+  toast(`Article #${currentArticle.id} ajouté au panier ✓`,'success');
+  cancelSearch();
+  renderPanier();
+}
+
+function renderPanier(){
+  const card=document.getElementById('panier-card');
+  const body=document.getElementById('panier-body');
+  if(!panier.length){card.style.display='none';return;}
+  card.style.display='block';
+  document.getElementById('panier-count').textContent=panier.length+' article(s)';
+  let totPA=0,totPV=0;
+  body.innerHTML=panier.map((item,i)=>{
+    const pa=item.au_poids ? (item.pa_calc||0) : (item.article.pa||0);
+    const b=item.pv-pa;
+    totPA+=pa; totPV+=item.pv;
+    const poidsLabel=item.au_poids?`<span style="font-size:11px;background:rgba(184,146,60,.15);color:var(--gold-l);padding:1px 6px;border-radius:8px;margin-left:4px">⚖️ ${item.poids_vendu} grs</span>`:'';
+    return`<tr>
+      <td style="font-family:monospace;color:var(--gold-l);font-weight:700">#${item.article.id}${poidsLabel}</td>
+      <td>${item.article.article||'—'}</td>
+      <td style="color:var(--gold-l)">${item.au_poids?item.poids_vendu+' grs':(item.article.or_grs?fmt(item.article.or_grs)+' grs':'—')}</td>
+      <td style="color:var(--muted)">${pa?fmt(pa)+' MAD':'—'}</td>
+      <td>${item.au_poids?fmt(item.pv)+' MAD':`<input class="pv-inline" type="number" value="${item.pv}" min="0" onchange="updatePV(${i},this.value)">`}</td>
+      <td class="${b>=0?'pos':'neg'}">${fmt(b)} MAD</td>
+      <td><button class="btn-remove" onclick="removeFromPanier(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+  const totBenef=totPV-totPA;
+  document.getElementById('tot-pa').textContent=fmt(totPA)+' MAD';
+  document.getElementById('tot-pv').textContent=fmt(totPV)+' MAD';
+  const elB=document.getElementById('tot-benef');
+  elB.textContent=fmt(totBenef)+' MAD';
+  elB.style.color=totBenef>=0?'var(--green)':'var(--red)';
+}
+
+function updatePV(idx,val){
+  panier[idx].pv=parseFloat(val)||0;
+  renderPanier();
+}
+
+function removeFromPanier(idx){
+  panier.splice(idx,1);
+  renderPanier();
+}
+
+function viderPanier(){
+  if(!confirm('Vider le panier ?')) return;
+  panier=[];
+  renderPanier();
+}
+
+function calcBenef(){
+  const pv=parseFloat(document.getElementById('f-pv').value)||0;
+  const pa=currentArticle?currentArticle.pa||0:0;
+  const benef=pv-pa;
+  document.getElementById('b-pv').textContent=pv?fmt(pv)+' MAD':'—';
+  const el=document.getElementById('b-benef');
+  if(!pv){el.textContent='—';el.className='bv neu';}
+  else{el.textContent=fmt(benef)+' MAD';el.className='bv '+(benef>=0?'pos':'neg');}
+}
+
+function cancelSearch(){
+  currentArticle=null;
+  document.getElementById('search-ref').value='';
+  document.getElementById('art-card').classList.remove('visible');
+}
+
+function openConfirm(){
+  if(!panier.length){toast('Le panier est vide','error');return;}
+  const totPV=panier.reduce((s,i)=>s+i.pv,0);
+  const totPA=panier.reduce((s,i)=>s+(i.article.pa||0),0);
+  const totB=totPV-totPA;
+  document.getElementById('conf-info').innerHTML=
+    `<b>${panier.length} article(s)</b> — Total P.V : ${fmt(totPV)} MAD<br>
+     Bénéfice total : <span style="color:${totB>=0?'#2ecc71':'#e74c3c'}">${fmt(totB)} MAD</span>`;
+  document.getElementById('conf-ov').classList.add('open');
+}
+
+function closeConfirm(e){if(!e||e.target===document.getElementById('conf-ov'))document.getElementById('conf-ov').classList.remove('open');}
+
+function closeIsmailAlert(e){
+  const ov=document.getElementById('ov-ismail');
+  if(!e||e.target===ov) ov.style.display='none';
+}
+
+async function submitVente(){
+  closeConfirm();
+  if(!panier.length){toast('Panier vide','error');return;}
+  const btn=document.getElementById('confirm-btn');
+  btn.disabled=true;btn.textContent='⏳ Traitement…';
+  const client=document.getElementById('f-client').value.trim();
+  const note=document.getElementById('f-note').value.trim();
+  const panierCopy=[...panier];
+  let ok=0;const errors=[];
+  for(const item of panier){
+    try{
+      const payload = item.au_poids
+        ? {ref:item.article.id, poids_vendu:item.poids_vendu, client, note}
+        : {ref:item.article.id, pv:item.pv, client, note};
+      const res=await fetch('/api/ventes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      const data=await res.json();
+      if(res.ok) ok++;
+      else errors.push(`#${item.article.id}: ${data.error||'Erreur'}`);
+    }catch(e){errors.push(`#${item.article.id}: Erreur réseau`);}
+  }
+  if(errors.length){
+    toast(`${ok} vente(s) ok. Erreurs: ${errors.join(', ')}`,'error');
+  }else{
+    const hadIsmail = panierCopy.some(item=>item.article&&item.article.ismail_pierres);
+    toast(`✅ ${ok} vente(s) enregistrée(s) !`,'success');
+    panier=[];
+    renderPanier();
+    document.getElementById('f-client').value='';
+    document.getElementById('f-note').value='';
+    loadHist();
+    if(hadIsmail) setTimeout(()=>{ document.getElementById('ov-ismail').style.display='flex'; }, 600);
+  }
+  btn.disabled=false;btn.textContent='✅ Confirmer la vente';
+}
+
+async function loadHist(){
+  try{
+    const ventes=await fetch('/api/ventes').then(r=>r.json());
+    const body=document.getElementById('hist-body');
+    const empty=document.getElementById('hist-empty');
+    document.getElementById('ventes-count').textContent=ventes.length+' vente(s)';
+    if(!ventes.length){body.innerHTML='';empty.style.display='block';return;}
+    empty.style.display='none';
+    const rev=[...ventes].reverse();
+    body.innerHTML=rev.map(v=>{
+      const b=v.benef||0;
+      return `<tr>
+        <td>${v.date_vente?v.date_vente.split(' ')[0]:'—'}</td>
+        <td style="font-family:monospace;color:var(--gold-l)">#${v.ref}</td>
+        <td>${v.article||'—'}</td>
+        <td style="color:var(--gold-l)">${v.or_grs?fmt(v.or_grs)+' grs':'—'}</td>
+        <td>${v.pa?fmt(v.pa)+' MAD':'—'}</td>
+        <td>${v.pv?fmt(v.pv)+' MAD':'—'}</td>
+        <td class="${b>=0?'pos':'neg'}">${fmt(b)} MAD</td>
+        <td>${v.client||'—'}</td>
+      </tr>`;
+    }).join('');
+  }catch(e){}
+}
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type+' show';
+  setTimeout(()=>t.className='toast',3500);
+}
+
+// Pré-remplir ref depuis URL
+const params=new URLSearchParams(window.location.search);
+const refParam=params.get('ref');
+if(refParam){document.getElementById('search-ref').value=refParam;searchArticle();}
+
+loadHist();
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+<script>
+
+});
+</script>
+<script src="/static/notifications.js?v=3"></script>
+<script>
+/* ── HAMBURGER NAV ── */
+function toggleNav(){
+  const nl=document.querySelector('.nav-links');
+  const ov=document.querySelector('.nav-overlay');
+  const btn=document.getElementById('hamburger-btn');
+  if(!nl)return;
+  const open=nl.classList.toggle('nav-open');
+  if(ov)ov.classList.toggle('nav-open',open);
+  if(btn)btn.textContent=open?'✕':'☰';
+}
+(function(){
+  const ov=document.createElement('div');
+  ov.className='nav-overlay';
+  ov.onclick=function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  };
+  document.body.appendChild(ov);
+  // Close nav when a link is clicked
+  document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  }));
+})();
+</script>
+<script src="/chatbot.js"></script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

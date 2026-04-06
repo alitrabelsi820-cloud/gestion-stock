@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Historique des Factures — TRABELSI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;
+  --txt:#1a1612;--muted:#9a8e7e;--gold:#b8923c;--gold-l:#7a5c20;
+  --gold-bg:rgba(184,146,60,.08);--radius:12px;
+  --green:#27ae60;--red:#e74c3c;--orange:#e67e22;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Segoe UI',Arial,sans-serif;color:var(--txt);min-height:100vh;}
+
+/* NAV */
+nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),#9a7530);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:24px 28px 0;}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:18px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.c1::before{background:linear-gradient(90deg,var(--gold),var(--gold-l));}
+.c2::before{background:linear-gradient(90deg,#1a6a3a,var(--green));}
+.c3::before{background:linear-gradient(90deg,#1a4a7a,#3498db);}
+.card-ico{font-size:24px;margin-bottom:8px;}
+.card-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.card-val{font-size:22px;font-weight:700;margin-top:3px;}
+.c1 .card-val{color:var(--gold-l);}
+.c2 .card-val{color:var(--green);}
+.c3 .card-val{color:#3498db;}
+
+/* TOOLBAR */
+.toolbar{padding:18px 28px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.search-wrap{flex:1;min-width:180px;position:relative;}
+.search-wrap input{width:100%;padding:9px 14px 9px 38px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;transition:border-color .2s;}
+.search-wrap input:focus{border-color:var(--gold);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;font-family:inherit;}
+.btn-outline{background:transparent;border:1px solid var(--bd);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.count-lbl{font-size:12px;color:var(--muted);white-space:nowrap;}
+.count-lbl span{color:var(--gold);font-weight:700;}
+
+/* TABLE */
+.tbl-wrap{padding:0 28px 40px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:var(--bg3);padding:11px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--bd);transition:background .15s;cursor:pointer;}
+tbody tr:hover{background:rgba(201,168,76,.04);}
+tbody td{padding:10px 13px;vertical-align:middle;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:28px;width:640px;max-width:94vw;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.12);}
+.modal h2{font-size:18px;color:var(--gold-l);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--bd);}
+.close-btn{position:absolute;top:14px;right:14px;background:var(--bd);border:none;color:var(--txt);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.close-btn:hover{background:var(--red);color:#fff;}
+.mf{background:var(--bg3);border-radius:8px;padding:11px 13px;margin-bottom:10px;}
+.mf label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+.mf .v{font-size:15px;font-weight:600;}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-grid .full{grid-column:span 2;}
+.modal-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.inv-art-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg3);border-radius:8px;margin-bottom:6px;font-size:13px;}
+.inv-art-ref{font-family:monospace;font-weight:700;color:var(--gold-l);margin-right:8px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{background:#1a5c35;border:1px solid var(--green);color:var(--green);}
+.toast.error{background:#5c1a1a;border:1px solid var(--red);color:var(--red);}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+
+/* ── MOBILE NAV / HAMBURGER ── */
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;border-radius:8px;line-height:1;transition:background .2s;}
+.hamburger:hover{background:var(--bg3);}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:97;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);max-height:calc(100vh - 69px);overflow-y:auto;}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px !important;border-radius:10px;white-space:nowrap;}
+  .nav-overlay.nav-open{display:block;}
+  nav > a[href="/logout"]{display:none;}
+  .mob-logout{display:block !important;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand" style="text-decoration:none;color:inherit">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links">
+    <a href="/accueil">Accueil</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/stock">Stock</a>
+    <a href="/vendu">Ventes</a>
+    <a href="/credit">Crédits Clients</a>
+    <a href="/cheques">Chèques</a>
+    <a href="/facture">Facture</a>
+    <a href="/historique-factures" class="active">Historique</a>
+    <a href="/fournisseurs">Fournisseurs</a>
+    <a href="/fiche">Fiche</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
+
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<!-- CARTES -->
+<div class="cards">
+  <div class="card c1"><div class="card-ico">🧾</div><div class="card-lbl">Total Factures</div><div class="card-val" id="s-nb">—</div></div>
+  <div class="card c2"><div class="card-ico">💰</div><div class="card-lbl">CA Facturé (MAD)</div><div class="card-val" id="s-ca">—</div></div>
+  <div class="card c3"><div class="card-ico">🔢</div><div class="card-lbl">Articles Facturés</div><div class="card-val" id="s-art">—</div></div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="q" placeholder="Numéro, client, référence…" oninput="filter()">
+  </div>
+  <button class="btn btn-outline" onclick="reset()">Réinitialiser</button>
+  <span class="count-lbl"><span id="cnt">0</span> facture(s)</span>
+</div>
+
+<!-- TABLEAU -->
+<div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>N° Facture</th>
+        <th>Date</th>
+        <th>Client</th>
+        <th>Articles (réfs)</th>
+        <th>Total (MAD)</th>
+        <th>Avance (MAD)</th>
+        <th>Reste (MAD)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div id="empty" class="empty" style="display:none">
+    <p style="font-size:32px;margin-bottom:12px">🧾</p>
+    <p>Aucune facture générée pour l'instant.</p>
+    <p style="margin-top:8px;font-size:12px">Les factures apparaissent ici automatiquement quand vous les imprimez ou partagez depuis la page <a href="/facture" style="color:var(--gold-l)">Facture</a>.</p>
+  </div>
+</div>
+
+<!-- MODAL DÉTAIL FACTURE -->
+<div class="overlay" id="ov" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h2 id="m-title">Facture</h2>
+    <div class="modal-grid" id="m-grid"></div>
+    <div id="m-arts" style="margin-top:16px"></div>
+    <div class="modal-actions" id="m-actions"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let ALL = [], filtered = [];
+
+function fmtN(v){ return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
+function fmtD(d){ if(!d)return '—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+async function load(){
+  try{
+    ALL = await fetch('/api/factures').then(r=>r.json());
+    // Tri du plus récent au plus ancien
+    ALL.sort((a,b)=>(b.id||0)-(a.id||0));
+    updateCards();
+    filter();
+  }catch(e){
+    document.getElementById('empty').style.display='block';
+    document.getElementById('empty').innerHTML='<p>Erreur de connexion au serveur.</p>';
+  }
+}
+
+function updateCards(){
+  const ca = ALL.reduce((s,f)=>s+(f.total||0),0);
+  const arts = ALL.reduce((s,f)=>s+(f.articles||[]).length,0);
+  document.getElementById('s-nb').textContent=ALL.length;
+  document.getElementById('s-ca').textContent=fmtN(ca)+' MAD';
+  document.getElementById('s-art').textContent=arts;
+}
+
+function filter(){
+  const q=document.getElementById('q').value.toLowerCase();
+  filtered=ALL.filter(f=>
+    !q ||
+    (f.numero||'').toLowerCase().includes(q)||
+    (f.client||'').toLowerCase().includes(q)||
+    (f.articles||[]).some(a=>String(a.ref).includes(q)||(a.article||'').toLowerCase().includes(q))
+  );
+  document.getElementById('cnt').textContent=filtered.length;
+  render();
+}
+
+function render(){
+  const body=document.getElementById('tbody');
+  const empty=document.getElementById('empty');
+  if(!filtered.length){body.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  body.innerHTML=filtered.map(f=>{
+    const reste=Math.max(0,(f.total||0)-(f.avance||0));
+    const refs=(f.articles||[]).map(a=>`<span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--gold-l)">#${a.ref}</span>`).join(' ');
+    return`<tr onclick="showDetail(${f.id})">
+      <td style="font-family:monospace;font-weight:700;color:var(--gold-l)">${f.numero||'—'}</td>
+      <td>${fmtD(f.date)}</td>
+      <td><strong>${f.client||'—'}</strong>${f.ville?`<br><span style="font-size:11px;color:var(--muted)">${f.ville}</span>`:''}</td>
+      <td style="max-width:200px;white-space:normal">${refs||'—'}</td>
+      <td style="font-weight:700">${fmtN(f.total)} MAD</td>
+      <td style="color:var(--green)">${f.avance>0?fmtN(f.avance)+' MAD':'—'}</td>
+      <td style="color:${reste>0?'var(--orange)':'var(--green)'};font-weight:${reste>0?'700':'600'}">${reste>0?fmtN(reste)+' MAD':'✓ Soldé'}</td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="showDetail(${f.id})">👁 Voir</button>
+        <button class="btn" style="padding:4px 10px;font-size:11px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red);margin-left:4px" onclick="deleteFacture(${f.id})">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showDetail(id){
+  const f=ALL.find(x=>x.id===id);
+  if(!f) return;
+  document.getElementById('m-title').textContent=`🧾 Facture ${f.numero}`;
+  const reste=Math.max(0,(f.total||0)-(f.avance||0));
+  document.getElementById('m-grid').innerHTML=`
+    <div class="mf"><label>N° Facture</label><div class="v" style="color:var(--gold-l)">${f.numero||'—'}</div></div>
+    <div class="mf"><label>Date</label><div class="v">${fmtD(f.date)}</div></div>
+    <div class="mf"><label>Client</label><div class="v">${f.client||'—'}</div></div>
+    <div class="mf"><label>Ville</label><div class="v">${f.ville||'—'}</div></div>
+    <div class="mf"><label>Téléphone</label><div class="v">${f.telephone||'—'}</div></div>
+    <div class="mf"><label>Email</label><div class="v">${f.email||'—'}</div></div>
+    <div class="mf"><label>Total (MAD)</label><div class="v">${fmtN(f.total)} MAD</div></div>
+    <div class="mf"><label>Avance</label><div class="v" style="color:var(--green)">${f.avance>0?fmtN(f.avance)+' MAD':'—'}</div></div>
+    <div class="mf"><label>Reste dû</label><div class="v" style="color:${reste>0?'var(--orange)':'var(--green)'}">${reste>0?fmtN(reste)+' MAD':'Soldé ✓'}</div></div>
+    <div class="mf"><label>Mode paiement</label><div class="v">${f.mode_paiement||'—'}</div></div>
+    ${f.note?`<div class="mf full"><label>Note</label><div class="v" style="font-weight:400">${f.note}</div></div>`:''}
+  `;
+  // Articles
+  const artsEl=document.getElementById('m-arts');
+  if(f.articles&&f.articles.length){
+    artsEl.innerHTML=`
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px">Articles facturés</div>
+      ${f.articles.map(a=>`
+        <div class="inv-art-row">
+          <div><span class="inv-art-ref">#${a.ref}</span>${a.article||'—'}</div>
+          <div style="font-weight:700">${fmtN(a.pv)} MAD</div>
+        </div>
+      `).join('')}
+    `;
+  }else{
+    artsEl.innerHTML='';
+  }
+  document.getElementById('m-actions').innerHTML=`
+    <button class="btn btn-outline" onclick="closeModal()">Fermer</button>
+    <button class="btn" style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red)" onclick="deleteFacture(${f.id})">🗑️ Supprimer</button>
+  `;
+  document.getElementById('ov').classList.add('open');
+}
+
+async function deleteFacture(id){
+  if(!confirm('Supprimer cette facture de l\'historique ?')) return;
+  try{
+    const r=await fetch(`/api/factures/${id}`,{method:'DELETE'});
+    const j=await r.json();
+    if(j.success){
+      document.getElementById('ov').classList.remove('open');
+      showToast('Facture supprimée','success');
+      await load();
+    }else showToast(j.error||'Erreur','error');
+  }catch(e){showToast('Erreur réseau','error');}
+}
+
+function reset(){ document.getElementById('q').value=''; filter(); }
+function closeModal(e){ if(e&&e.target!==document.getElementById('ov'))return; document.getElementById('ov').classList.remove('open'); }
+
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+type;
+  setTimeout(()=>t.className='toast',2800);
+}
+
+load();
+</script>
+<script src="/static/notifications.js?v=3"></script>
+<script>
+/* ── HAMBURGER NAV ── */
+function toggleNav(){
+  const nl=document.querySelector('.nav-links');
+  const ov=document.querySelector('.nav-overlay');
+  const btn=document.getElementById('hamburger-btn');
+  if(!nl)return;
+  const open=nl.classList.toggle('nav-open');
+  if(ov)ov.classList.toggle('nav-open',open);
+  if(btn)btn.textContent=open?'✕':'☰';
+}
+(function(){
+  const ov=document.createElement('div');
+  ov.className='nav-overlay';
+  ov.onclick=function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  };
+  document.body.appendChild(ov);
+  // Close nav when a link is clicked
+  document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  }));
+})();
+</script>
+<script src="/chatbot.js"></script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#c9a84c"/>
+      <stop offset="50%"  stop-color="#e8d080"/>
+      <stop offset="100%" stop-color="#7a5c20"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#b8923c"/>
+      <stop offset="100%" stop-color="#5a3e10"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond losange or -->
+  <rect x="8" y="8" width="48" height="48" rx="10" fill="url(#g1)"/>
+
+  <!-- Bordure intérieure subtile -->
+  <rect x="11" y="11" width="42" height="42" rx="8" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+
+  <!-- Lettre T -->
+  <text x="32" y="46"
+    font-family="Georgia, serif"
+    font-size="34"
+    font-weight="700"
+    text-anchor="middle"
+    fill="#3a2800"
+    opacity="0.85">T</text>
+
+  <!-- Petit diamant déco en haut à droite -->
+  <rect x="44" y="6" width="8" height="8" rx="1"
+    transform="rotate(45 48 10)"
+    fill="url(#g2)" opacity="0.9"/>
+</svg>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon-ref.svg">
+    <link rel="manifest" href="/static/manifest-ref.json">
+    <meta name="theme-color" content="#1abc9c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Références">
+    <link rel="apple-touch-icon" href="/static/icons/icon-ref-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trabelsi — Fiche Référence — Gestion Inventaire</title>
+<style>
+:root{--gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;--bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;--txt:#1a1612;--muted:#9a8e7e;--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--purple:#9b59b6;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+
+.page{padding:40px 28px 60px;max-width:900px;margin:0 auto;}
+.page-title{font-size:24px;font-weight:700;color:var(--gold-l);margin-bottom:8px;}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:32px;}
+
+/* SEARCH BOX */
+.search-box{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:28px;margin-bottom:32px;}
+.search-row{display:flex;gap:12px;align-items:flex-end;}
+.search-field{flex:1;}
+.search-field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:7px;}
+.search-field input{width:100%;padding:12px 16px;background:var(--bg3);border:2px solid var(--bd);border-radius:10px;color:var(--txt);font-size:18px;font-weight:700;outline:none;letter-spacing:2px;transition:border-color .2s;}
+.search-field input:focus{border-color:var(--gold);}
+.btn{padding:12px 24px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
+.btn-gold:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.btn-outline{background:transparent;border:1px solid var(--bd);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+
+/* RESULT CARD */
+.result{display:none;}
+.result.show{display:block;}
+
+.fiche-card{background:var(--bg2);border:1px solid var(--gold-d);border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+.fiche-header{background:linear-gradient(135deg,#1a1200,#2d1f00);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;}
+.fiche-ref{font-size:28px;font-weight:900;color:var(--gold-l);font-family:monospace;}
+.fiche-status{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;}
+.status-stock{background:rgba(46,204,113,.2);border:1px solid var(--green);color:var(--green);}
+.status-vendu{background:rgba(231,76,60,.2);border:1px solid var(--red);color:var(--red);}
+
+.fiche-body{display:grid;grid-template-columns:300px 1fr;gap:0;}
+.fiche-photo-col{background:var(--bg3);display:flex;align-items:center;justify-content:center;padding:24px;border-right:1px solid var(--bd);}
+.fiche-photo{width:100%;max-height:300px;object-fit:contain;border-radius:10px;}
+.no-photo-big{width:100%;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-size:14px;}
+.no-photo-big .ico{font-size:48px;opacity:.3;}
+
+.fiche-info{padding:24px;}
+.fiche-article-name{font-size:20px;font-weight:700;color:var(--txt);margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--bd);}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.info-item{background:var(--bg3);border-radius:8px;padding:11px 13px;}
+.info-item.full{grid-column:span 2;}
+.info-item label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+.info-item .val{font-size:15px;font-weight:600;}
+.val.gold{color:var(--gold-l);}
+.val.grn{color:var(--green);}
+.val.blue{color:var(--blue);}
+.val.red{color:var(--red);}
+.val.has{color:#82e0aa;}
+
+/* SECTION VENTE */
+.vente-section{background:rgba(231,76,60,.05);border:1px solid rgba(231,76,60,.2);border-radius:12px;padding:18px;margin-top:16px;}
+.vente-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--red);margin-bottom:12px;}
+
+.fiche-actions{padding:20px 28px;border-top:1px solid var(--bd);display:flex;gap:10px;flex-wrap:wrap;background:var(--bg3);}
+
+/* ERROR */
+.not-found{background:var(--bg2);border:1px solid rgba(231,76,60,.3);border-radius:16px;padding:40px;text-align:center;color:var(--red);}
+.not-found .ico{font-size:48px;margin-bottom:14px;}
+.not-found p{font-size:15px;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .ico{font-size:60px;margin-bottom:16px;opacity:.3;}
+.empty-state p{font-size:15px;}
+
+@media(max-width:700px){.fiche-body{grid-template-columns:1fr;}.fiche-photo-col{border-right:none;border-bottom:1px solid var(--bd);}.info-grid{grid-template-columns:1fr;}.search-row{flex-direction:column;}}
+
+/* ── HISTORIQUE NAV DROPDOWN ── */
+.basket-item{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:11px 12px;margin-bottom:9px;position:relative;}
+.basket-remove{position:absolute;top:7px;right:7px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:4px;transition:all .15s;}
+.basket-remove:hover{color:var(--red);background:rgba(231,76,60,.1);}
+.basket-ref{font-size:15px;font-weight:800;font-family:monospace;color:var(--gold-l);}
+.basket-name{font-size:11px;color:var(--muted);margin-bottom:6px;}
+#basket-nav-btn{background:none;border:none;cursor:pointer;padding:6px 8px;border-radius:10px;display:flex;align-items:center;gap:7px;transition:background .2s;position:relative;}
+#basket-nav-btn:hover{background:rgba(201,168,76,.1);}
+#basket-nav-btn .bico{font-size:22px;line-height:1;}
+#basket-nav-count{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;border-radius:20px;padding:2px 9px;font-size:13px;font-weight:900;min-width:22px;text-align:center;display:none;box-shadow:0 1px 6px rgba(184,146,60,.4);}
+.basket-dropdown{display:none;position:fixed;top:70px;right:10px;width:320px;max-height:calc(100vh - 88px);background:#fff;border:1px solid var(--bd);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:200;flex-direction:column;overflow:hidden;}
+.basket-dropdown.open{display:flex;}
+.basket-dropdown-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid var(--bd);flex-shrink:0;}
+.basket-dropdown-body{overflow-y:auto;padding:10px 11px 12px;flex:1;}
+.basket-overlay{display:none;position:fixed;inset:0;z-index:199;}
+.basket-overlay.open{display:block;}
+
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </div>
+  <button id="basket-nav-btn" onclick="toggleBasketDropdown()" title="Historique de session">
+    <span class="bico">🗂️</span>
+    <span id="basket-nav-count">0</span>
+  </button>
+</nav>
+
+<!-- ── OVERLAY + DROPDOWN HISTORIQUE ── -->
+<div class="basket-overlay" id="basket-overlay" onclick="closeBasketDropdown()"></div>
+<div class="basket-dropdown" id="basket-dropdown">
+  <div class="basket-dropdown-head">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold)">🗂️ Session (<span id="basket-count">0</span>)</div>
+    <div style="display:flex;gap:6px">
+      <button onclick="copyBasket(this)" title="Copier" style="padding:4px 9px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--muted);cursor:pointer;font-size:13px">📋</button>
+      <button onclick="clearBasket()" title="Vider" style="padding:4px 9px;border-radius:6px;border:1px solid rgba(231,76,60,.3);background:transparent;color:var(--red);cursor:pointer;font-size:13px">🗑️</button>
+    </div>
+  </div>
+  <div class="basket-dropdown-body" id="basket-list"></div>
+</div>
+
+<div class="page">
+  <div class="page-title">🔍 Fiche Référence</div>
+  <div class="page-sub">Saisissez le numéro de référence pour voir la fiche complète de l'article avec sa photo.</div>
+
+  <div class="search-box">
+    <div class="search-row">
+      <div class="search-field">
+        <label>Numéro de référence</label>
+        <input type="text" id="ref-input" placeholder="⌨️  Appuyer pour saisir" readonly
+          style="cursor:pointer;caret-color:transparent;transition:transform .12s,border-color .12s,background .12s,box-shadow .12s"
+          ontouchstart="this.style.transform='scale(0.97)';this.style.borderColor='#1abc9c';this.style.background='#e6faf6';this.style.boxShadow='0 0 0 4px rgba(26,188,156,0.25)';openNumpad()"
+          ontouchend="this.style.transform='';this.style.borderColor='';this.style.background='';this.style.boxShadow=''"
+          ontouchcancel="this.style.transform='';this.style.borderColor='';this.style.background='';this.style.boxShadow=''"
+          onclick="openNumpad()">
+      </div>
+      <button class="btn btn-gold" onclick="search()">🔍 Rechercher</button>
+      <button class="btn btn-garder" id="btn-garder" onclick="garder()" disabled>📌 Garder</button>
+      <button class="btn btn-outline" onclick="clearResult()">✕ Effacer</button>
+    </div>
+  </div>
+
+  <div id="result" class="result">
+    <div id="result-inner"></div>
+  </div>
+
+  <div id="empty-state" class="empty-state">
+    <div class="ico">💎</div>
+    <p>Entrez une référence pour afficher la fiche article</p>
+  </div>
+</div><!-- /.page -->
+
+<script>
+function fmt(v,d=2){return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d});}
+function fmtN(v){return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});}
+function fmtD(d){if(!d)return '—';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+
+async function search(){
+  const inp=document.getElementById('ref-input');
+  const ref=inp.value.trim();
+  if(!ref){return;}
+  // Reset immédiatement le champ pour saisie suivante
+  inp.value='';
+  inp.focus();
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('result-inner').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Chargement…</div>';
+  document.getElementById('result').classList.add('show');
+
+  try{
+    const [stockRes, ventes, credits] = await Promise.all([
+      fetch(`/api/articles/${ref}`).then(r=>r.json()),
+      fetch('/api/ventes').then(r=>r.json()),
+      fetch('/api/credits').then(r=>r.json())
+    ]);
+    // Map ref → Set de clients avec crédit ouvert
+    const creditMap = new Map();
+    credits.filter(c=>c.statut==='rien'||c.statut==='avance').forEach(c=>{
+      const clientKey=(c.client||'').toLowerCase().trim();
+      String(c.refs||'').match(/\d+/g)?.forEach(r=>{
+        const rInt=parseInt(r);
+        if(!creditMap.has(rInt)) creditMap.set(rInt,new Set());
+        creditMap.get(rInt).add(clientKey);
+      });
+    });
+    const refInt=parseInt(ref);
+    if(!stockRes.error){
+      const enCredit=creditMap.has(refInt)&&creditMap.get(refInt).size>0;
+      renderStock(stockRes, enCredit);
+      return;
+    }
+    // Chercher dans les vendus
+    const found=ventes.filter(v=>v.ref==refInt);
+    if(found.length>0){
+      const lastVente=found[found.length-1];
+      const clientKey=(lastVente.client||'').toLowerCase().trim();
+      const enCredit=creditMap.has(refInt)&&creditMap.get(refInt).has(clientKey);
+      renderVendu(lastVente, found.length, enCredit);
+      return;
+    }
+    renderNotFound(ref);
+  }catch(e){
+    renderNotFound(ref);
+  }
+}
+
+function renderStock(a, enCredit){
+  currentArticle={ref:a.id,article:a.article,or_grs:a.or_grs,pa:a.pa,statut:'stock',d:a.d,em:a.em,r:a.r,s:a.s,em_clb:a.em_clb,rosaces:a.rosaces,p_fines:a.p_fines,perles:a.perles};
+  const btnG=document.getElementById('btn-garder');
+  if(btnG){btnG.disabled=basket.some(b=>b.ref===a.id);btnG.textContent='📌 Garder';}
+  const imgUrl=`/api/photo/${a.id}`;
+  const photoHtml=`<img src="${imgUrl}" class="fiche-photo" alt="Photo" onerror="this.parentElement.innerHTML='<div class=\\'no-photo-big\\'><div class=\\'ico\\'>📷</div><span>Pas de photo disponible</span></div>'">`;
+
+  document.getElementById('result-inner').innerHTML=`
+  <div class="fiche-card">
+    <div class="fiche-header">
+      <div>
+        <div class="fiche-ref">#${a.id}</div>
+        <div style="color:var(--gold);font-size:13px;margin-top:4px">${a.article||'—'}</div>
+      </div>
+      <span class="fiche-status status-stock">✅ En Stock</span>
+    </div>
+    <div class="fiche-body">
+      <div class="fiche-photo-col">${photoHtml}</div>
+      <div class="fiche-info">
+        <div class="fiche-article-name">${a.article||'—'}</div>
+        <div class="info-grid">
+          <div class="info-item"><label>Date d'entrée</label><div class="val">${fmtD(a.date)}</div></div>
+          <div class="info-item"><label>Prix de Revient (P.R)</label><div class="val grn">${a.pa!=null?fmtN(a.pa)+' MAD':'—'}</div></div>
+          <div class="info-item"><label>OR (grammes)</label><div class="val gold">${a.or_grs!=null?fmt(a.or_grs)+' grs':'—'}</div></div>
+          <div class="info-item"><label>Diamants</label><div class="val ${a.d?'has':''}">${a.d?fmt(a.d)+' cts':'—'}</div></div>
+          <div class="info-item"><label>Émeraudes</label><div class="val ${a.em?'has':''}">${a.em?fmt(a.em)+' cts':'—'}</div></div>
+          <div class="info-item"><label>Rubis</label><div class="val ${a.r?'has':''}">${a.r?fmt(a.r)+' cts':'—'}</div></div>
+          <div class="info-item"><label>Saphirs</label><div class="val ${a.s?'has':''}">${a.s?fmt(a.s)+' cts':'—'}</div></div>
+          <div class="info-item"><label>Pierres Fines</label><div class="val ${a.p_fines?'has':''}">${a.p_fines?fmt(a.p_fines):'—'}</div></div>
+          <div class="info-item"><label>Rosaces</label><div class="val ${a.rosaces?'has':''}">${a.rosaces?fmt(a.rosaces):'—'}</div></div>
+          <div class="info-item"><label>Ém. Colombie</label><div class="val ${a.em_clb?'has':''}">${a.em_clb?fmt(a.em_clb)+' cts':'—'}</div></div>
+          <div class="info-item"><label>Perles</label><div class="val ${a.perles?'has':''}">${a.perles?fmt(a.perles)+' grs':'—'}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="fiche-actions">
+      <button class="btn btn-gold" onclick="window.location.href='/vente?ref=${a.id}'">💰 Enregistrer une vente</button>
+      <button class="btn btn-outline" onclick="window.location.href='/'">📦 Voir le stock</button>
+    </div>
+  </div>`;
+}
+
+function renderVendu(v, nb, enCredit){
+  currentArticle={ref:v.ref,article:v.article,or_grs:v.or_grs,pa:v.pa,statut:'vendu',d:v.d,em:v.em,r:v.r,s:v.s,em_clb:v.em_clb,rosaces:v.rosaces,p_fines:v.p_fines,perles:v.perles};
+  const btnG=document.getElementById('btn-garder');
+  if(btnG){btnG.disabled=basket.some(b=>b.ref===v.ref);btnG.textContent='📌 Garder';}
+  const imgUrl=`/api/photo/${v.ref}`;
+  const photoHtml=`<img src="${imgUrl}" class="fiche-photo" alt="Photo" onerror="this.parentElement.innerHTML='<div class=\\'no-photo-big\\'><div class=\\'ico\\'>📷</div><span>Pas de photo disponible</span></div>'">`;
+  const b=v.benef||0;
+
+  document.getElementById('result-inner').innerHTML=`
+  <div class="fiche-card">
+    <div class="fiche-header">
+      <div>
+        <div class="fiche-ref">#${v.ref}</div>
+        <div style="color:var(--gold);font-size:13px;margin-top:4px">${v.article||'—'}</div>
+      </div>
+      ${enCredit
+        ? '<span class="fiche-status" style="background:rgba(230,126,34,.15);border:1px solid rgba(230,126,34,.5);color:#b85c00">💳 Vendu — Paiement en cours</span>'
+        : '<span class="fiche-status status-vendu">🔴 Vendu'+(nb>1?' ('+nb+' fois)':'')+'</span>'
+      }
+    </div>
+    <div class="fiche-body">
+      <div class="fiche-photo-col">${photoHtml}</div>
+      <div class="fiche-info">
+        <div class="fiche-article-name">${v.article||'—'}</div>
+        <div class="info-grid">
+          <div class="info-item"><label>Date d'achat</label><div class="val">${fmtD(v.date_achat)}</div></div>
+          <div class="info-item"><label>Prix de Revient (P.R)</label><div class="val">${v.pa!=null?fmtN(v.pa)+' MAD':'—'}</div></div>
+          <div class="info-item"><label>OR (grammes)</label><div class="val gold">${v.or_grs!=null?fmt(v.or_grs)+' grs':'—'}</div></div>
+          <div class="info-item"><label>Diamants</label><div class="val ${v.d?'has':''}">${v.d?fmt(v.d)+' cts':'—'}</div></div>
+          <div class="info-item"><label>Émeraudes</label><div class="val ${v.em?'has':''}">${v.em?fmt(v.em)+' cts':'—'}</div></div>
+          <div class="info-item"><label>Rubis</label><div class="val ${v.r?'has':''}">${v.r?fmt(v.r)+' cts':'—'}</div></div>
+          <div class="info-item"><label>Saphirs</label><div class="val ${v.s?'has':''}">${v.s?fmt(v.s)+' cts':'—'}</div></div>
+          <div class="info-item"><label>Perles</label><div class="val ${v.perles?'has':''}">${v.perles?fmt(v.perles)+' grs':'—'}</div></div>
+        </div>
+        <div class="vente-section">
+          <div class="vente-section-title">📦 Informations de Vente</div>
+          <div class="info-grid">
+            <div class="info-item"><label>Date de vente</label><div class="val blue">${fmtD(v.date_vente)}</div></div>
+            <div class="info-item"><label>Prix de Vente (P.V)</label><div class="val blue">${v.pv!=null?fmtN(v.pv)+' MAD':'—'}</div></div>
+            <div class="info-item"><label>Bénéfice</label><div class="val ${b>=0?'grn':'red'}">${fmtN(b)} MAD</div></div>
+            <div class="info-item"><label>Client</label><div class="val">${v.client||'—'}</div></div>
+            ${v.commentaire?`<div class="info-item full"><label>Commentaire</label><div class="val">${v.commentaire}</div></div>`:''}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fiche-actions">
+      <button class="btn btn-outline" onclick="window.location.href='/vendu'">📋 Voir les ventes</button>
+    </div>
+  </div>`;
+}
+
+function renderNotFound(ref){
+  currentArticle=null;
+  const btnG=document.getElementById('btn-garder');
+  if(btnG){btnG.disabled=true;btnG.textContent='📌 Garder';}
+  document.getElementById('result-inner').innerHTML=`
+  <div class="not-found">
+    <div class="ico">🔍</div>
+    <p>Aucun article trouvé pour la référence <strong>#${ref}</strong></p>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">Cette référence n'existe ni dans le stock ni dans les ventes.</p>
+  </div>`;
+}
+
+function clearResult(){
+  document.getElementById('ref-input').value='';
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('result-inner').innerHTML='';
+  document.getElementById('empty-state').style.display='block';
+  currentArticle=null;
+  const btnG=document.getElementById('btn-garder');
+  if(btnG){btnG.disabled=true;btnG.textContent='📌 Garder';}
+}
+
+// Auto-search si ref dans l'URL
+const urlRef=new URLSearchParams(window.location.search).get('ref');
+if(urlRef){
+  document.getElementById('ref-input').value=urlRef;
+  search();
+}
+
+/* ────────────────────────────────────────────────────────
+   HISTORIQUE SESSION — DROPDOWN NAV
+   ──────────────────────────────────────────────────────── */
+let basket=[];
+let currentArticle=null;
+
+function garder(){
+  if(!currentArticle)return;
+  if(basket.some(b=>b.ref===currentArticle.ref)){
+    const btn=document.getElementById('btn-garder');
+    if(btn){const t=btn.textContent;btn.textContent='⚠️ Déjà gardé';setTimeout(()=>{btn.textContent=t;},1200);}
+    return;
+  }
+  basket.unshift(Object.assign({},currentArticle,{pv_oral:''})); // plus récent en haut
+  const btn=document.getElementById('btn-garder');
+  if(btn){btn.disabled=true;btn.textContent='✅ Gardé';}
+  renderBasket();
+}
+
+function renderBasket(){
+  // Badge nav
+  const badge=document.getElementById('basket-nav-count');
+  const countEl=document.getElementById('basket-count');
+  if(badge){badge.style.display=basket.length?'block':'none';badge.textContent=basket.length;}
+  if(countEl)countEl.textContent=basket.length;
+  // Contenu dropdown
+  document.getElementById('basket-list').innerHTML=basket.length===0
+    ?'<div style="text-align:center;padding:28px 0;color:var(--muted);font-size:13px">Aucun article gardé</div>'
+    :basket.map((item,idx)=>`
+    <div class="basket-item">
+      <button class="basket-remove" onclick="removeBasket(${idx})">✕</button>
+      <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:8px;padding-right:22px">
+        <img src="/api/photo/${item.ref}" style="width:48px;height:48px;object-fit:contain;border-radius:6px;background:var(--bg2);border:1px solid var(--bd);flex-shrink:0" onerror="this.style.display='none'">
+        <div style="min-width:0">
+          <div class="basket-ref">#${item.ref}</div>
+          <div class="basket-name">${item.article||'—'}</div>
+          <div style="font-size:10px;font-weight:600;color:${item.statut==='stock'?'var(--green)':'var(--red)'}">${item.statut==='stock'?'✅ En Stock':'🔴 Vendu'}</div>
+        </div>
+      </div>
+      ${(()=>{
+        const rows=[];
+        if(item.or_grs) rows.push({ico:'🥇',lbl:'OR',val:fmt(item.or_grs),unit:'grs'});
+        if(item.d)      rows.push({ico:'💎',lbl:'Diamants',val:fmt(item.d),unit:'cts'});
+        if(item.em)     rows.push({ico:'🟢',lbl:'Émeraudes',val:fmt(item.em),unit:'cts'});
+        if(item.r)      rows.push({ico:'🔴',lbl:'Rubis',val:fmt(item.r),unit:'cts'});
+        if(item.s)      rows.push({ico:'🔵',lbl:'Saphirs',val:fmt(item.s),unit:'cts'});
+        if(item.em_clb) rows.push({ico:'💚',lbl:'Ém. Colombie',val:fmt(item.em_clb),unit:'cts'});
+        if(item.rosaces)rows.push({ico:'🌸',lbl:'Rosaces',val:fmt(item.rosaces),unit:''});
+        if(item.p_fines)rows.push({ico:'🪨',lbl:'P. Fines',val:fmt(item.p_fines),unit:''});
+        if(item.perles) rows.push({ico:'⚪',lbl:'Perles',val:fmt(item.perles),unit:'grs'});
+        if(!rows.length)return '';
+        return '<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;padding:7px 9px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px">'+
+          rows.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px"><span style="color:var(--muted)">${p.ico} ${p.lbl}</span><span style="font-weight:700;color:var(--txt)">${p.val}${p.unit?' '+p.unit:''}</span></div>`).join('')+
+          '</div>';
+      })()}
+      <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
+        <button onclick="togglePA(${idx})" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--bd);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center;letter-spacing:1px;line-height:1" title="">···</button>
+      </div>
+      <div id="bpa-${idx}" style="display:none;padding:6px 10px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;font-size:14px;font-weight:700;color:var(--gold-l);text-align:center;margin-bottom:8px">${item.pa!=null?fmtN(item.pa)+' MAD':'—'}</div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">P.V donné oralement</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" placeholder="0" min="0" value="${item.pv_oral||''}"
+          oninput="basket[${idx}].pv_oral=this.value"
+          style="flex:1;padding:7px 10px;background:var(--bg2);border:1.5px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;font-weight:700;outline:none;min-width:0;transition:border-color .15s"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--bd)'">
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap;font-weight:600">MAD</span>
+      </div>
+    </div>`).join('');
+}
+
+function toggleBasketDropdown(){
+  const dd=document.getElementById('basket-dropdown');
+  const ov=document.getElementById('basket-overlay');
+  const open=dd.classList.toggle('open');
+  ov.classList.toggle('open',open);
+}
+function closeBasketDropdown(){
+  document.getElementById('basket-dropdown').classList.remove('open');
+  document.getElementById('basket-overlay').classList.remove('open');
+}
+
+function removeBasket(idx){
+  const ref=basket[idx]?.ref;
+  basket.splice(idx,1);
+  renderBasket();
+  if(currentArticle&&currentArticle.ref===ref){
+    const btn=document.getElementById('btn-garder');
+    if(btn){btn.disabled=false;btn.textContent='📌 Garder';}
+  }
+}
+
+function clearBasket(){
+  basket=[];
+  renderBasket();
+  closeBasketDropdown();
+  const btn=document.getElementById('btn-garder');
+  if(btn){btn.disabled=currentArticle===null;btn.textContent='📌 Garder';}
+}
+
+function togglePA(idx){
+  const el=document.getElementById('bpa-'+idx);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function copyBasket(el){
+  if(!basket.length)return;
+  const lines=basket.map(item=>{
+    const pv=item.pv_oral?fmtN(parseFloat(item.pv_oral))+' MAD':'non renseigné';
+    return `#${item.ref} – ${item.article||'?'}${item.or_grs?' ('+fmt(item.or_grs)+'g OR)':''} → P.V: ${pv}`;
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>{
+    const orig=el.textContent;el.textContent='✅';
+    setTimeout(()=>{el.textContent=orig;},1500);
+  });
+}
+
+// Ajouter le CSS du btn-garder qui manque maintenant
+(function(){const s=document.createElement('style');s.textContent='.btn-garder{background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;}.btn-garder:hover{filter:brightness(1.1);}.btn-garder:disabled{opacity:.4;cursor:not-allowed;}';document.head.appendChild(s);})();
+
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+<script src="/static/notifications.js?v=3"></script>
+
+<!-- ── PAVÉ NUMÉRIQUE CUSTOM ── -->
+<style>
+#numpad-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;
+  align-items:flex-end;justify-content:center;
+}
+#numpad-overlay.open{display:flex;}
+#numpad-box{
+  width:100%;max-width:480px;
+  background:#1c1612;
+  border-radius:20px 20px 0 0;
+  padding:0 0 env(safe-area-inset-bottom,12px);
+  box-shadow:0 -8px 40px rgba(0,0,0,.5);
+  animation:slideUp .22s cubic-bezier(.4,0,.2,1);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#numpad-display{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,.08);
+}
+#numpad-val{
+  font-size:32px;font-weight:900;color:#c9a84c;
+  letter-spacing:4px;font-family:monospace;min-width:140px;
+}
+#numpad-val:empty::after{content:'_ _ _ _';opacity:.3;font-size:22px;}
+#numpad-lbl{font-size:12px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;}
+#numpad-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:6px;padding:10px 12px;
+}
+.nk{
+  background:rgba(255,255,255,.08);border:none;border-radius:12px;
+  color:#fff;font-size:24px;font-weight:700;padding:18px 0;
+  cursor:pointer;transition:background .12s, transform .08s;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+}
+.nk:active,.nk.pressed{background:rgba(201,168,76,.45);transform:scale(.88);box-shadow:0 0 0 3px rgba(201,168,76,.3);}
+.nk.back{background:rgba(231,76,60,.15);color:#e74c3c;font-size:20px;}
+.nk.back:active,.nk.back.pressed{background:rgba(231,76,60,.5);transform:scale(.88);}
+.nk.ok{
+  background:linear-gradient(135deg,#c9a84c,#9a7530);color:#1a1200;
+  font-size:16px;font-weight:800;letter-spacing:.5px;
+}
+.nk.ok:active,.nk.ok.pressed{filter:brightness(1.3);transform:scale(.94);box-shadow:0 0 0 4px rgba(201,168,76,.4);}
+.nk.cancel{background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);font-size:14px;}
+.nk.cancel:active,.nk.cancel.pressed{background:rgba(255,255,255,.15);}
+</style>
+
+<div id="numpad-overlay" onclick="if(event.target===this)closeNumpad()">
+  <div id="numpad-box">
+    <div id="numpad-display">
+      <div>
+        <div id="numpad-lbl">Référence article</div>
+        <div id="numpad-val"></div>
+      </div>
+    </div>
+    <div id="numpad-grid">
+      <button class="nk" onclick="npKey('1')">1</button>
+      <button class="nk" onclick="npKey('2')">2</button>
+      <button class="nk" onclick="npKey('3')">3</button>
+      <button class="nk" onclick="npKey('4')">4</button>
+      <button class="nk" onclick="npKey('5')">5</button>
+      <button class="nk" onclick="npKey('6')">6</button>
+      <button class="nk" onclick="npKey('7')">7</button>
+      <button class="nk" onclick="npKey('8')">8</button>
+      <button class="nk" onclick="npKey('9')">9</button>
+      <button class="nk cancel" onclick="closeNumpad()">Annuler</button>
+      <button class="nk zero" onclick="npKey('0')">0</button>
+      <button class="nk back" onclick="npBack()">⌫</button>
+    </div>
+    <div style="padding:0 12px 10px;display:grid;grid-template-columns:1fr">
+      <button class="nk ok" onclick="npConfirm()">🔍 Rechercher</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let _npVal = '';
+
+function openNumpad(){
+  if(window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  _npVal = document.getElementById('ref-input').value || '';
+  document.getElementById('numpad-val').textContent = _npVal;
+  document.getElementById('numpad-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNumpad(){
+  document.getElementById('numpad-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function npKey(d){
+  if(_npVal.length >= 6) return;
+  _npVal += d;
+  document.getElementById('numpad-val').textContent = _npVal;
+  document.getElementById('ref-input').value = _npVal;
+}
+
+function npBack(){
+  _npVal = _npVal.slice(0,-1);
+  document.getElementById('numpad-val').textContent = _npVal;
+  document.getElementById('ref-input').value = _npVal;
+}
+
+function npConfirm(){
+  if(!_npVal) return;
+  document.getElementById('ref-input').value = _npVal;
+  closeNumpad();
+  search();
+}
+
+// ── Feedback tactile sur iOS (active state) ──
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.nk').forEach(btn => {
+    btn.addEventListener('touchstart', function(e){
+      this.classList.add('pressed');
+      // Vibration légère si supportée (Android)
+      if(navigator.vibrate) navigator.vibrate(8);
+    }, {passive:true});
+    btn.addEventListener('touchend',   function(){ this.classList.remove('pressed'); }, {passive:true});
+    btn.addEventListener('touchcancel',function(){ this.classList.remove('pressed'); }, {passive:true});
+  });
+});
+</script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

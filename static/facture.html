@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Générer une Facture — TRABELSI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;
+  --txt:#1a1612;--muted:#9a8e7e;--gold:#b8923c;--gold-l:#7a5c20;
+  --gold-bg:rgba(184,146,60,.08);--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--txt);min-height:100vh;}
+
+/* ── NAV ── */
+nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-l));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+
+/* ── LAYOUT ── */
+.page{display:grid;grid-template-columns:420px 1fr;gap:24px;padding:28px 28px;max-width:1300px;margin:0 auto;}
+
+/* ── FORM PANEL ── */
+.form-panel{background:#fff;border:1px solid var(--bd);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:20px;height:fit-content;position:sticky;top:72px;}
+.panel-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:2px;color:var(--gold-l);text-transform:uppercase;padding-bottom:12px;border-bottom:1px solid var(--bd);}
+.section-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12px;color:var(--muted);letter-spacing:.5px;}
+.field input,.field select{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;font-size:14px;color:var(--txt);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s;}
+.field input:focus,.field select:focus{border-color:var(--gold);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ref input row */
+.ref-row{display:flex;gap:8px;}
+.ref-row input{flex:1;}
+.btn-add{background:var(--gold-l);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:opacity .15s;}
+.btn-add:hover{opacity:.85;}
+
+/* articles list */
+.articles-list{display:flex;flex-direction:column;gap:8px;}
+.art-item{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
+.art-item-info{flex:1;}
+.art-item-ref{font-size:12px;font-weight:600;color:var(--gold-l);}
+.art-item-name{font-size:13px;color:var(--txt);margin-top:2px;}
+.art-item-price{font-size:12px;color:var(--muted);margin-top:4px;}
+.art-item-pr{font-size:11px;margin-top:4px;padding:3px 8px;background:rgba(184,146,60,.1);border-radius:4px;color:var(--gold-l);display:inline-block;}
+.art-item-pr span{font-weight:600;}
+.art-item-pv{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.art-item-pv label{font-size:11px;color:var(--muted);white-space:nowrap;}
+.art-item-pv input{background:#fff;border:1px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:600;color:var(--gold-l);width:110px;font-family:'Inter',sans-serif;outline:none;}
+.art-item-pv input:focus{border-color:var(--gold-l);}
+.art-item-pv span{font-size:12px;color:var(--muted);}
+.art-item-remove{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;border-radius:4px;line-height:1;align-self:flex-start;}
+.art-item-remove:hover{color:#c0392b;background:rgba(192,57,43,.08);}
+.art-empty{font-size:13px;color:var(--muted);text-align:center;padding:16px;background:var(--bg);border-radius:8px;border:1px dashed var(--bd);}
+
+/* payment fields */
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* action buttons */
+.actions{display:flex;flex-direction:column;gap:8px;padding-top:4px;}
+.btn-print{background:var(--gold-l);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-print:hover{opacity:.85;}
+.btn-wa{background:#25d366;color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-wa:hover{opacity:.85;}
+.btn-email{background:#fff;color:var(--txt);border:1px solid var(--bd);border-radius:8px;padding:11px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-email:hover{border-color:var(--gold);color:var(--gold-l);}
+.btn-save{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-save:hover{background:#1d4ed8;}
+.btn-save.saved{background:#16a34a;cursor:default;}
+.btn-save.saved:hover{background:#16a34a;}
+
+/* ── INVOICE PREVIEW ── */
+.preview-wrap{display:flex;flex-direction:column;gap:12px;}
+.preview-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);text-align:center;}
+
+.invoice{background:#fff;width:100%;box-shadow:0 4px 30px rgba(0,0,0,.08);border:1px solid #e8dfc8;position:relative;overflow:hidden;}
+
+/* arabesque watermark */
+.invoice::before{content:'';position:absolute;top:0;right:0;width:220px;height:220px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Ccircle cx='110' cy='110' r='85' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.12'/%3E%3Ccircle cx='110' cy='110' r='60' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.09'/%3E%3Ccircle cx='110' cy='110' r='35' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.06'/%3E%3Cpath d='M110,25 L195,110 L110,195 L25,110 Z' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.1'/%3E%3Cpath d='M110,55 L165,110 L110,165 L55,110 Z' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.08'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+
+.inv-header{background:#f9f4e8;border-bottom:2px solid #c9a84c;position:relative;z-index:1;}
+.inv-header-inner{padding:28px 40px 22px;display:flex;justify-content:space-between;align-items:flex-start;}
+.inv-brand-name{font-family:'Playfair Display',serif;font-size:26px;color:#2a1f0a;letter-spacing:4px;text-transform:uppercase;}
+.inv-brand-sub{font-size:7px;color:#c9a84c;letter-spacing:3px;text-transform:uppercase;margin-top:4px;}
+.inv-brand-addr{font-size:10px;color:#9a8060;margin-top:12px;line-height:1.9;}
+.inv-meta{text-align:right;}
+.inv-meta-word{font-family:'Playfair Display',serif;font-size:22px;color:#2a1f0a;font-style:italic;}
+.inv-meta-num{font-size:14px;color:#c9a84c;letter-spacing:2px;margin-top:4px;}
+.inv-meta-date{font-size:11px;color:#9a8060;margin-top:4px;}
+
+.zellige{height:14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='14'%3E%3Cpolygon points='18,1 35,7 18,13 1,7' fill='none' stroke='%23c9a84c' stroke-width='0.8'/%3E%3Cpolygon points='18,4 29,7 18,10 7,7' fill='none' stroke='%23c9a84c' stroke-width='0.4' opacity='0.5'/%3E%3C/svg%3E");background-repeat:repeat-x;background-size:36px 14px;}
+
+.inv-body{padding:28px 40px;position:relative;z-index:1;}
+.inv-client-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #f0e8d8;}
+.inv-lbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#c9a84c;margin-bottom:6px;}
+.inv-client-name{font-size:18px;font-family:'Playfair Display',serif;color:#1a1208;}
+.inv-client-sub{font-size:11px;color:#9a8060;margin-top:4px;line-height:1.6;}
+.inv-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:600;border:1px solid #c9a84c;color:#7a5c20;background:#fdf6e3;}
+.inv-badge-sub{font-size:10px;color:#9a8060;margin-top:6px;}
+
+/* table */
+.inv-table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+.inv-table th{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#c9a84c;padding:0 10px 8px;text-align:left;border-bottom:1px solid #e8dfc8;}
+.inv-table th:last-child{text-align:right;}
+.inv-table td{padding:10px;vertical-align:top;border-bottom:1px solid #f5f0e8;font-size:12px;}
+.inv-table tr:last-child td{border-bottom:none;}
+.inv-ref{font-size:11px;font-weight:600;color:#c9a84c;margin-right:8px;}
+.inv-art{font-size:13px;color:#1a1208;}
+.inv-art-sub{font-size:10px;color:#9a8060;margin-top:2px;}
+.inv-pierre{font-size:10px;color:#6b5c4a;background:#f9f4e8;border-radius:3px;padding:1px 6px;display:inline-block;margin:1px 2px;}
+.inv-price{text-align:right;font-size:13px;font-weight:600;color:#1a1208;white-space:nowrap;}
+
+/* totaux */
+.inv-totaux{display:flex;justify-content:flex-end;margin-top:8px;}
+.inv-totaux-box{min-width:260px;border:1px solid #e8dfc8;border-radius:8px;overflow:hidden;}
+.inv-t-row{display:flex;justify-content:space-between;padding:7px 14px;font-size:12px;color:#6b5c4a;border-bottom:1px solid #f0e8d8;}
+.inv-t-row:last-child{border-bottom:none;}
+.inv-t-total{display:flex;justify-content:space-between;padding:10px 14px;font-size:14px;font-weight:700;color:#1a1208;background:#f9f4e8;border-bottom:1px solid #e8dfc8;}
+.inv-t-reste{display:flex;justify-content:space-between;padding:8px 14px;font-size:13px;font-weight:600;color:#b85c00;background:rgba(230,126,34,.06);border-bottom:1px solid rgba(230,126,34,.15);}
+
+.inv-footer{border-top:2px solid #c9a84c;padding:14px 40px;background:#f9f4e8;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}
+.inv-footer-brand{font-family:'Playfair Display',serif;font-size:12px;color:#9a8060;font-style:italic;}
+.inv-footer-note{font-size:9px;color:#b8a898;letter-spacing:1px;text-transform:uppercase;}
+
+/* empty state */
+.inv-empty{padding:60px 40px;text-align:center;color:#c9a84c;opacity:.5;font-family:'Playfair Display',serif;font-style:italic;font-size:16px;}
+
+/* ── PRINT ── */
+@media print{
+  nav,.form-panel,.preview-label{display:none!important;}
+  .page{display:block;padding:0;}
+  .preview-wrap{gap:0;}
+  .invoice{box-shadow:none;border:none;width:100%;}
+}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1612;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:9999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── MOBILE NAV / HAMBURGER ── */
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;border-radius:8px;line-height:1;transition:background .2s;}
+.hamburger:hover{background:var(--bg3);}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:97;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);max-height:calc(100vh - 69px);overflow-y:auto;}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px !important;border-radius:10px;white-space:nowrap;}
+  .nav-overlay.nav-open{display:block;}
+  nav > a[href="/logout"]{display:none;}
+  .mob-logout{display:block !important;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand" style="text-decoration:none;color:inherit">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links">
+    <a href="/accueil">Accueil</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/stock">Stock</a>
+    <a href="/vendu">Ventes</a>
+    <a href="/credit">Crédits Clients</a>
+    <a href="/cheques">Chèques</a>
+    <a href="/facture" class="active">Facture</a>
+    <a href="/fournisseurs">Fournisseurs</a>
+    <a href="/fiche">Fiche</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
+
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+
+  <!-- ═══ FORMULAIRE ═══ -->
+  <div class="form-panel">
+
+    <div class="panel-title">✦ Nouvelle Facture</div>
+
+    <!-- Numéro auto -->
+    <div class="field">
+      <label>Numéro de facture</label>
+      <input type="text" id="inv-num" placeholder="ex: 2026-0045" />
+    </div>
+
+    <!-- Client -->
+    <div>
+      <div class="section-label">Informations client</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="field"><label>Nom du client *</label><input type="text" id="client-name" placeholder="ex: Mr Nizar" /></div>
+        <div class="row2">
+          <div class="field"><label>Téléphone</label><input type="tel" id="client-phone" placeholder="+212 6XX XXX XXX" /></div>
+          <div class="field"><label>Email</label><input type="email" id="client-email" placeholder="client@email.com" /></div>
+        </div>
+        <div class="field"><label>Ville</label><input type="text" id="client-city" placeholder="Rabat, Maroc" /></div>
+      </div>
+    </div>
+
+    <!-- Articles -->
+    <div>
+      <div class="section-label">Articles</div>
+      <div class="ref-row" style="margin-bottom:10px;">
+        <input type="text" id="ref-input" placeholder="Référence article (ex: 4240)" onkeydown="if(event.key==='Enter')addArticle()" />
+        <button class="btn-add" onclick="addArticle()">+ Ajouter</button>
+      </div>
+      <div class="articles-list" id="articles-list">
+        <div class="art-empty" id="art-empty">Aucun article ajouté</div>
+      </div>
+    </div>
+
+    <!-- Paiement -->
+    <div>
+      <div class="section-label">Paiement</div>
+      <div class="pay-grid">
+        <div class="field"><label>Avance reçue (MAD)</label><input type="number" id="pay-avance" placeholder="0" oninput="updatePreview()" /></div>
+        <div class="field"><label>Mode de paiement</label>
+          <select id="pay-mode" onchange="updatePreview()">
+            <option value="">—</option>
+            <option value="Cash">Cash</option>
+            <option value="TPE">TPE</option>
+            <option value="Virement">Virement</option>
+            <option value="Chèque">Chèque</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div class="field">
+      <label>Note (optionnel)</label>
+      <input type="text" id="inv-note" placeholder="ex: Livraison prévue le..." oninput="updatePreview()" />
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button id="btn-save-facture" class="btn-save" onclick="saveFactureExplicite()">💾 Enregistrer dans l'historique</button>
+      <button class="btn-print" onclick="printInvoice()">🖨️ Imprimer / Enregistrer PDF</button>
+      <button class="btn-wa" onclick="shareWhatsApp()">💬 Envoyer par WhatsApp</button>
+      <button class="btn-email" onclick="shareEmail()">✉️ Envoyer par Email</button>
+      <a href="/historique-factures" class="btn-email" style="text-decoration:none">📋 Voir l'historique des factures</a>
+    </div>
+
+  </div>
+
+  <!-- ═══ APERÇU ═══ -->
+  <div class="preview-wrap">
+    <div class="preview-label">Aperçu de la facture</div>
+    <div class="invoice" id="invoice-preview">
+      <div class="inv-empty">Remplissez le formulaire pour voir l'aperçu</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── données ── */
+let ARTICLES = []; // articles ajoutés à la facture
+let STOCK_CACHE = {};
+let VENTES_CACHE = [];
+let invoiceCounter = 0;
+
+/* ── init ── */
+async function init(){
+  // Charger ventes pour lookup
+  try{
+    VENTES_CACHE = await fetch('/api/ventes').then(r=>r.json());
+  }catch(e){}
+  // Générer numéro de facture automatique
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const stored = parseInt(localStorage.getItem('trabelsi_inv_counter')||'0');
+  invoiceCounter = stored + 1;
+  localStorage.setItem('trabelsi_inv_counter', invoiceCounter);
+  const num = String(invoiceCounter).padStart(4,'0');
+  document.getElementById('inv-num').value = `${yyyy}-${num}`;
+  updatePreview();
+}
+
+/* ── ajouter article ── */
+async function addArticle(){
+  const input = document.getElementById('ref-input');
+  const ref = parseInt(input.value.trim());
+  if(!ref){ showToast('Entrez une référence valide'); return; }
+  if(ARTICLES.find(a=>a.ref===ref)){ showToast('Référence déjà ajoutée'); input.value=''; return; }
+
+  // Chercher dans le stock
+  let data = null;
+  try{
+    const r = await fetch(`/api/articles/${ref}`);
+    const j = await r.json();
+    if(!j.error) data = { ref: j.id, article: j.article||'—', pv: 0, pa: j.pa||0, or_grs: j.or_grs||0, d:j.d, em:j.em, r:j.r, s:j.s, em_clb:j.em_clb, perles:j.perles, source:'stock' };
+  }catch(e){}
+
+  // Sinon chercher dans les ventes
+  if(!data){
+    const vente = VENTES_CACHE.filter(v=>v.ref===ref).pop();
+    if(vente) data = { ref: vente.ref, article: vente.article||'—', pv: 0, pa: vente.pa||0, or_grs: vente.or_grs||0, d:vente.d, em:vente.em, r:vente.r, s:vente.s, em_clb:vente.em_clb, perles:vente.perles, source:'vendu', date_vente:vente.date_vente };
+  }
+
+  if(!data){ showToast(`Référence #${ref} introuvable`); return; }
+
+  ARTICLES.push(data);
+  input.value = '';
+  renderArticlesList();
+  updatePreview();
+}
+
+/* ── supprimer article ── */
+function removeArticle(ref){
+  ARTICLES = ARTICLES.filter(a=>a.ref!==ref);
+  renderArticlesList();
+  updatePreview();
+}
+
+/* ── afficher liste articles dans le form ── */
+function renderArticlesList(){
+  const el = document.getElementById('articles-list');
+  if(!ARTICLES.length){
+    el.innerHTML = '<div class="art-empty" id="art-empty">Aucun article ajouté</div>';
+    return;
+  }
+  el.innerHTML = ARTICLES.map(a=>`
+    <div class="art-item">
+      <div class="art-item-info">
+        <div class="art-item-ref">#${a.ref}</div>
+        <div class="art-item-name">${a.article}</div>
+        <div class="art-item-price">${fmt(a.or_grs)} grs OR</div>
+        <div class="art-item-pr">P.R : <span>${fmtN(a.pa)} MAD</span></div>
+        <div class="art-item-pv">
+          <label>Prix de vente</label>
+          <input type="number" value="${a.pv||''}" placeholder="0"
+            oninput="updatePv(${a.ref}, this.value)" />
+          <span>MAD</span>
+        </div>
+      </div>
+      <button class="art-item-remove" onclick="removeArticle(${a.ref})" title="Supprimer">✕</button>
+    </div>
+  `).join('');
+}
+
+/* ── mettre à jour le prix de vente d'un article ── */
+function updatePv(ref, val){
+  const a = ARTICLES.find(a=>a.ref===ref);
+  if(a){ a.pv = parseFloat(val)||0; updatePreview(); }
+}
+
+/* ── mettre à jour l'aperçu ── */
+function updatePreview(){
+  const preview = document.getElementById('invoice-preview');
+  const clientName = document.getElementById('client-name').value.trim();
+  const clientPhone = document.getElementById('client-phone').value.trim();
+  const clientEmail = document.getElementById('client-email').value.trim();
+  const clientCity = document.getElementById('client-city').value.trim();
+  const invNum = document.getElementById('inv-num').value.trim();
+  const avance = parseFloat(document.getElementById('pay-avance').value)||0;
+  const mode = document.getElementById('pay-mode').value;
+  const note = document.getElementById('inv-note').value.trim();
+
+  if(!clientName && !ARTICLES.length){
+    preview.innerHTML = '<div class="inv-empty">Remplissez le formulaire pour voir l\'aperçu</div>';
+    return;
+  }
+
+  const total = ARTICLES.reduce((s,a)=>s+(a.pv||0),0);
+  const orTotal = ARTICLES.reduce((s,a)=>s+(a.or_grs||0),0);
+  const reste = Math.max(0, total - avance);
+
+  const today = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+  // Tableau articles
+  const rows = ARTICLES.map(a=>{
+    const pierres = [];
+    if(a.d) pierres.push(`Diamants · ${fmt(a.d)} ct`);
+    if(a.em) pierres.push(`Émeraudes · ${fmt(a.em)} ct`);
+    if(a.r) pierres.push(`Rubis · ${fmt(a.r)} ct`);
+    if(a.s) pierres.push(`Saphirs · ${fmt(a.s)} ct`);
+    if(a.em_clb) pierres.push(`Ém. Colombie · ${fmt(a.em_clb)} ct`);
+    if(a.perles) pierres.push(`Perles · ${fmt(a.perles)} grs`);
+    return `
+      <tr>
+        <td>
+          <span class="inv-ref">#${a.ref}</span><span class="inv-art">${a.article}</span>
+          ${a.date_vente?`<div class="inv-art-sub">${fmtD(a.date_vente)}</div>`:''}
+        </td>
+        <td style="vertical-align:middle">${pierres.map(p=>`<span class="inv-pierre">${p}</span>`).join('')}</td>
+        <td style="vertical-align:middle;text-align:right"><div style="font-size:11px;color:#9a8060;margin-bottom:2px">${fmt(a.or_grs)} grs OR</div></td>
+        <td class="inv-price">${fmtN(a.pv)} MAD</td>
+      </tr>`;
+  }).join('');
+
+  // Badge paiement
+  let badgeHtml = '';
+  if(avance>0 && avance>=total){
+    badgeHtml = `<div class="inv-badge" style="border-color:#27ae60;color:#1e8449;background:#eafaf1">✓ Soldé</div>`;
+  } else if(avance>0){
+    badgeHtml = `<div class="inv-badge">Avance versée</div>${mode?`<div class="inv-badge-sub">${mode} · ${fmtN(avance)} MAD</div>`:''}`;
+  } else {
+    badgeHtml = `<div class="inv-badge" style="border-color:#e74c3c;color:#c0392b;background:#fdf0ef">Aucun règlement</div>`;
+  }
+
+  // Totaux
+  let totauxHtml = `
+    <div class="inv-t-row"><span>OR total</span><span>${fmt(orTotal)} grs</span></div>
+    <div class="inv-t-total"><span>Total TTC</span><span>${fmtN(total)} MAD</span></div>`;
+  if(avance>0){
+    totauxHtml += `<div class="inv-t-row"><span>Avance${mode?' ('+mode+')':''}</span><span>− ${fmtN(avance)} MAD</span></div>`;
+    if(reste>0) totauxHtml += `<div class="inv-t-reste"><span>Reste dû</span><span>${fmtN(reste)} MAD</span></div>`;
+    else totauxHtml += `<div class="inv-t-row" style="color:#27ae60;font-weight:600"><span>Soldé</span><span>✓</span></div>`;
+  }
+
+  preview.innerHTML = `
+    <div class="inv-header">
+      <div class="zellige"></div>
+      <div class="inv-header-inner">
+        <div>
+          <div class="inv-brand-name">Trabelsi</div>
+          <div class="inv-brand-sub">Bijouterie &amp; Joaillerie</div>
+          <div class="inv-brand-addr">Mega Mall · Rabat<br>+212 661 195 773</div>
+        </div>
+        <div class="inv-meta">
+          <div class="inv-meta-word">Facture</div>
+          <div class="inv-meta-num">#${invNum||'—'}</div>
+          <div class="inv-meta-date">${today}</div>
+        </div>
+      </div>
+      <div class="zellige"></div>
+    </div>
+
+    <div class="inv-body">
+      <div class="inv-client-row">
+        <div>
+          <div class="inv-lbl">Facturé à</div>
+          <div class="inv-client-name">${clientName||'—'}</div>
+          <div class="inv-client-sub">${[clientCity,clientPhone,clientEmail].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="inv-lbl" style="text-align:right">Statut</div>
+          ${badgeHtml}
+        </div>
+      </div>
+
+      ${ARTICLES.length ? `
+        <div style="margin-bottom:10px"><div class="inv-lbl">Détail des articles</div></div>
+        <table class="inv-table">
+          <thead><tr>
+            <th>Article</th>
+            <th>Pierres précieuses</th>
+            <th style="text-align:right">OR</th>
+            <th style="text-align:right">Prix</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+
+        <div class="inv-totaux">
+          <div class="inv-totaux-box">${totauxHtml}</div>
+        </div>
+        ${note?`<div style="margin-top:16px;font-size:11px;color:#9a8060;border-top:1px solid #f0e8d8;padding-top:12px">📝 ${note}</div>`:''}
+      ` : `<div style="text-align:center;padding:30px;color:#c9a84c;opacity:.5;font-style:italic">Ajoutez des articles pour compléter la facture</div>`}
+    </div>
+
+    <div class="inv-footer">
+      <div class="inv-footer-brand">Trabelsi Bijouterie &amp; Joaillerie</div>
+      <div class="inv-footer-note">Merci de votre confiance</div>
+    </div>
+  `;
+}
+
+/* ── sauvegarder facture (bouton explicite) ── */
+async function saveFactureExplicite(){
+  if(!validate()) return;
+  const btn = document.getElementById('btn-save-facture');
+  if(_factureSaved){
+    btn.textContent = '✅ Déjà enregistrée';
+    btn.classList.add('saved');
+    setTimeout(()=>{ btn.textContent = '💾 Enregistrer dans l\'historique'; }, 2000);
+    return;
+  }
+  btn.textContent = '⏳ Enregistrement...';
+  btn.disabled = true;
+  await saveFacture();
+  btn.disabled = false;
+  if(_factureSaved){
+    btn.textContent = '✅ Enregistrée !';
+    btn.classList.add('saved');
+    // lien rapide vers historique
+    const link = document.createElement('a');
+    link.href='/historique-factures';
+    link.textContent=' → Voir l\'historique';
+    link.style.cssText='color:#fff;font-size:12px;text-decoration:underline;';
+    btn.appendChild(link);
+  } else {
+    btn.textContent = '❌ Erreur — réessayer';
+    setTimeout(()=>{ btn.textContent = '💾 Enregistrer dans l\'historique'; }, 2500);
+  }
+}
+
+/* ── sauvegarder facture ── */
+let _factureSaved = false;
+async function saveFacture(){
+  if(_factureSaved) return; // éviter doublons
+  const clientName = document.getElementById('client-name').value.trim();
+  const invNum = document.getElementById('inv-num').value.trim();
+  const avance = parseFloat(document.getElementById('pay-avance').value)||0;
+  const mode = document.getElementById('pay-mode').value;
+  const note = document.getElementById('inv-note').value.trim();
+  const total = ARTICLES.reduce((s,a)=>s+(a.pv||0),0);
+  const payload = {
+    numero: invNum,
+    client: clientName,
+    telephone: document.getElementById('client-phone').value.trim(),
+    email: document.getElementById('client-email').value.trim(),
+    ville: document.getElementById('client-city').value.trim(),
+    articles: ARTICLES.map(a=>({ref:a.ref,article:a.article,pv:a.pv,or_grs:a.or_grs})),
+    total: total,
+    avance: avance,
+    mode_paiement: mode,
+    note: note,
+  };
+  try{
+    await fetch('/api/factures',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    _factureSaved = true;
+  }catch(e){}
+}
+
+/* ── imprimer ── */
+function printInvoice(){
+  if(!validate()) return;
+  saveFacture();
+  const clientName = document.getElementById('client-name').value.trim();
+  const oldTitle = document.title;
+  document.title = `Facture - ${clientName} - TRABELSI`;
+  window.print();
+  document.title = oldTitle;
+}
+
+/* ── WhatsApp ── */
+function shareWhatsApp(){
+  if(!validate()) return;
+  saveFacture();
+  const clientName = document.getElementById('client-name').value.trim();
+  const clientPhone = document.getElementById('client-phone').value.trim();
+  const invNum = document.getElementById('inv-num').value.trim();
+  const avance = parseFloat(document.getElementById('pay-avance').value)||0;
+  const mode = document.getElementById('pay-mode').value;
+  const total = ARTICLES.reduce((s,a)=>s+(a.pv||0),0);
+  const reste = Math.max(0, total - avance);
+
+  let msg = `🏆 *TRABELSI Bijouterie & Joaillerie*\n`;
+  msg += `_Mega Mall · Rabat_\n\n`;
+  msg += `*Facture #${invNum}*\n`;
+  msg += `Client : ${clientName}\n\n`;
+  msg += `*Articles :*\n`;
+  ARTICLES.forEach(a=>{ msg += `• #${a.ref} ${a.article} — ${fmtN(a.pv)} MAD\n`; });
+  msg += `\n*Total : ${fmtN(total)} MAD*\n`;
+  if(avance>0){ msg += `Avance${mode?' ('+mode+')':''} : ${fmtN(avance)} MAD\n`; }
+  if(reste>0){ msg += `💰 Reste dû : *${fmtN(reste)} MAD*\n`; }
+  else { msg += `✅ Soldé\n`; }
+  msg += `\nMerci de votre confiance 🙏`;
+
+  const phone = clientPhone.replace(/\D/g,'');
+  const url = phone
+    ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+/* ── Email ── */
+function shareEmail(){
+  if(!validate()) return;
+  saveFacture();
+  const clientName = document.getElementById('client-name').value.trim();
+  const clientEmail = document.getElementById('client-email').value.trim();
+  const invNum = document.getElementById('inv-num').value.trim();
+  const avance = parseFloat(document.getElementById('pay-avance').value)||0;
+  const mode = document.getElementById('pay-mode').value;
+  const total = ARTICLES.reduce((s,a)=>s+(a.pv||0),0);
+  const reste = Math.max(0, total - avance);
+
+  const subject = `Facture #${invNum} — TRABELSI Bijouterie`;
+  let body = `Madame, Monsieur ${clientName},\n\nVeuillez trouver ci-dessous le détail de votre facture.\n\n`;
+  body += `FACTURE #${invNum}\n${'─'.repeat(40)}\n\n`;
+  body += `ARTICLES :\n`;
+  ARTICLES.forEach(a=>{ body += `  • #${a.ref} ${a.article} — ${fmtN(a.pv)} MAD\n`; });
+  body += `\nTOTAL : ${fmtN(total)} MAD\n`;
+  if(avance>0){ body += `Avance${mode?' ('+mode+')':''} : ${fmtN(avance)} MAD\n`; }
+  if(reste>0){ body += `Reste dû : ${fmtN(reste)} MAD\n`; }
+  else { body += `Statut : Soldé ✓\n`; }
+  body += `\nCordialement,\nTRABELSI Bijouterie & Joaillerie\nMega Mall · Rabat\n+212 661 195 773`;
+
+  const mailto = `mailto:${clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+}
+
+/* ── validation ── */
+function validate(){
+  const name = document.getElementById('client-name').value.trim();
+  if(!name){ showToast('Entrez le nom du client'); return false; }
+  if(!ARTICLES.length){ showToast('Ajoutez au moins un article'); return false; }
+  return true;
+}
+
+/* ── utils ── */
+function fmt(v,d=2){ return v==null||v===''?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d}); }
+function fmtN(v){ return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
+function fmtD(d){ if(!d)return '—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+/* ── listeners live ── */
+['client-name','client-phone','client-email','client-city','inv-num'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updatePreview);
+});
+
+init();
+</script>
+<script src="/static/notifications.js?v=3"></script>
+<script>
+/* ── HAMBURGER NAV ── */
+function toggleNav(){
+  const nl=document.querySelector('.nav-links');
+  const ov=document.querySelector('.nav-overlay');
+  const btn=document.getElementById('hamburger-btn');
+  if(!nl)return;
+  const open=nl.classList.toggle('nav-open');
+  if(ov)ov.classList.toggle('nav-open',open);
+  if(btn)btn.textContent=open?'✕':'☰';
+}
+(function(){
+  const ov=document.createElement('div');
+  ov.className='nav-overlay';
+  ov.onclick=function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  };
+  document.body.appendChild(ov);
+  // Close nav when a link is clicked
+  document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  }));
+})();
+</script>
+<script src="/chatbot.js"></script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>

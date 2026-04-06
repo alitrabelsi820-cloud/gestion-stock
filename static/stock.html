@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Trabelsi">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock — TRABELSI</title>
+<style>
+:root{--gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;--bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;--txt:#1a1612;--muted:#9a8e7e;--green:#2ecc71;--blue:#3498db;--red:#e74c3c;--purple:#9b59b6;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+/* NAV */
+nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:22px 28px 0;}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:transform .2s,border-color .2s;}
+.card:hover{transform:translateY(-2px);border-color:var(--gold-d);}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.card.c1::before{background:linear-gradient(90deg,var(--gold),var(--gold-l));}
+.card.c2::before{background:linear-gradient(90deg,#1a6a3a,var(--green));}
+.card.c3::before{background:linear-gradient(90deg,#1a4a7a,var(--blue));}
+.card.c4::before{background:linear-gradient(90deg,#6a1a8a,var(--purple));}
+.card-ico{font-size:24px;margin-bottom:8px;}
+.card-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.card-val{font-size:22px;font-weight:700;margin-top:3px;}
+.c1 .card-val{color:var(--gold-l);}
+.c2 .card-val{color:var(--green);}
+.c3 .card-val{color:var(--blue);}
+.c4 .card-val{color:#c39bd3;}
+
+/* TOOLBAR */
+.toolbar{padding:18px 28px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.search-wrap{flex:1;min-width:180px;position:relative;}
+.search-wrap input{width:100%;padding:9px 14px 9px 38px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;transition:border-color .2s;}
+.search-wrap input:focus{border-color:var(--gold);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
+select,input[type=text],input[type=number],input[type=date]{padding:9px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;cursor:pointer;transition:border-color .2s;}
+select:focus{border-color:var(--gold);}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;letter-spacing:.3px;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
+.btn-gold:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.btn-outline{background:transparent;border:1px solid var(--bd);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-blue{background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:var(--blue);}
+.btn-blue:hover{background:rgba(52,152,219,.3);}
+.btn-red{background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:var(--red);}
+.btn-red:hover{background:rgba(231,76,60,.3);}
+.count-lbl{font-size:12px;color:var(--muted);white-space:nowrap;}
+.count-lbl span{color:var(--gold);font-weight:700;}
+
+/* TABLE */
+.tbl-wrap{padding:0 28px 40px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:var(--bg3);padding:11px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+thead th:hover{color:var(--gold-l);}
+tbody tr{border-bottom:1px solid var(--bd);cursor:pointer;transition:background .15s;}
+tbody tr:hover{background:rgba(201,168,76,.04);}
+tbody td{padding:10px 13px;vertical-align:middle;white-space:nowrap;}
+td.ref-col{font-family:monospace;font-size:14px;font-weight:700;color:var(--gold-l);}
+td.or-col{color:var(--gold-l);font-weight:600;}
+td.pa-col{color:#7f8c8d;font-weight:500;}
+td.nil{color:var(--bd);text-align:center;}
+td.has{color:#82e0aa;}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-bag{background:rgba(155,89,182,.2);color:#c39bd3;border:1px solid rgba(155,89,182,.3);}
+.b-bra{background:rgba(52,152,219,.2);color:#7fb3d6;border:1px solid rgba(52,152,219,.3);}
+.b-col{background:rgba(201,168,76,.2);color:var(--gold-l);border:1px solid rgba(201,168,76,.3);}
+.b-pen{background:rgba(46,204,113,.2);color:#82e0aa;border:1px solid rgba(46,204,113,.3);}
+.b-bo{background:rgba(231,76,60,.2);color:#f1948a;border:1px solid rgba(231,76,60,.3);}
+.b-oth{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--bd);}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--gold-d);border-radius:16px;padding:28px;width:580px;max-width:94vw;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.12),0 0 0 1px rgba(184,146,60,.15);}
+.modal h2{font-size:18px;color:var(--gold-l);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.mf{background:var(--bg3);border-radius:8px;padding:11px 13px;}
+.mf.full{grid-column:span 2;}
+.mf label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+.mf .v{font-size:15px;font-weight:600;}
+.mf .v.gold{color:var(--gold-l);}
+.mf .v.grn{color:var(--green);}
+.close-btn{position:absolute;top:14px;right:14px;background:var(--bd);border:none;color:var(--txt);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.close-btn:hover{background:var(--red);}
+.modal-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+
+/* EDIT FORM */
+.edit-form .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.edit-form .form-row.full{grid-template-columns:1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.form-group input,.form-group select{padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--gold);}
+.form-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold);margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--bd);}
+
+/* PHOTO */
+.article-photo{width:100%;max-height:220px;object-fit:contain;border-radius:10px;border:1px solid var(--bd);background:var(--bg3);margin-bottom:14px;}
+.no-photo{width:100%;height:100px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;background:var(--bg3);border-radius:10px;border:1px solid var(--bd);margin-bottom:14px;}
+
+/* PAGINATION */
+.pag{display:flex;align-items:center;justify-content:center;gap:6px;padding:16px 28px;}
+.pg-btn{width:34px;height:34px;border-radius:7px;border:1px solid var(--bd);background:var(--bg2);color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.pg-btn:hover,.pg-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.1);}
+.pg-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{background:#1a5c35;border:1px solid var(--green);color:var(--green);}
+.toast.error{background:#5c1a1a;border:1px solid var(--red);color:var(--red);}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.spin{display:inline-block;animation:spin 1s linear infinite;font-size:24px;}
+
+}
+@media(max-width:768px){.cards{grid-template-columns:1fr 1fr;}.nav-links a{padding:6px 10px;font-size:12px;}}
+
+
+/* ── MOBILE NAV / HAMBURGER ── */
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;border-radius:8px;line-height:1;transition:background .2s;}
+.hamburger:hover{background:var(--bg3);}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:97;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);max-height:calc(100vh - 69px);overflow-y:auto;}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px !important;border-radius:10px;white-space:nowrap;}
+  .nav-overlay.nav-open{display:block;}
+  nav > a[href="/logout"]{display:none;}
+  .mob-logout{display:block !important;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand" style="text-decoration:none;color:inherit">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links">
+    <a href="/accueil">Accueil</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/stock" class="active">Stock</a>
+    <a href="/vendu">Ventes</a>
+    <a href="/credit">Crédits Clients</a>
+    <a href="/cheques">Chèques</a>
+    <a href="/facture">Facture</a>
+    <a href="/fournisseurs">Fournisseurs</a>
+    <a href="/fiche">Fiche</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
+
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="cards">
+  <div class="card c1"><div class="card-ico">📦</div><div class="card-lbl">Articles en stock</div><div class="card-val" id="s-nb">—</div></div>
+  <div class="card c2" style="cursor:default">
+    <div class="card-ico">➕</div>
+    <div class="card-lbl">Ajouter un Article</div>
+    <button onclick="event.stopPropagation();openAddModal()" style="margin-top:10px;width:100%;padding:9px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.3px">➕ Nouvel article →</button>
+    <div id="na-status" style="font-size:11px;color:var(--muted);margin-top:6px;min-height:16px"></div>
+  </div>
+  <!-- CARTE PRIX DE L'OR -->
+  <div class="card" style="background:var(--bg2);border:1px solid rgba(184,146,60,.35);cursor:default">
+    <div class="card-ico">🥇</div>
+    <div class="card-lbl">Prix de l'or (MAD/gr)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+      <div>
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Achat (PA)</div>
+        <div style="font-size:18px;font-weight:700;color:var(--gold-l)" id="po-achat-disp">—</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Vente (PV)</div>
+        <div style="font-size:18px;font-weight:700;color:var(--green)" id="po-vente-disp">—</div>
+      </div>
+    </div>
+    <button onclick="openPrixOr()" style="margin-top:10px;width:100%;padding:7px;border-radius:8px;border:1px solid rgba(184,146,60,.4);background:rgba(184,146,60,.08);color:var(--gold-l);cursor:pointer;font-size:12px;font-weight:700">✏️ Modifier les prix</button>
+  </div>
+</div>
+
+<!-- MODAL PRIX DE L'OR -->
+<div class="overlay" id="ov-prix-or" onclick="closePrixOr(event)">
+  <div class="modal" style="width:400px">
+    <button class="close-btn" onclick="closePrixOr()">✕</button>
+    <h2>🥇 Prix de l'or</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">Ces prix s'appliquent aux articles sans pierres (vendus au poids). La modification recalcule automatiquement le PA de tous ces articles.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Prix achat (PA) MAD/gr</label>
+        <input type="number" id="po-achat" min="1" step="1" style="padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;width:100%">
+      </div>
+      <div class="form-group">
+        <label>Prix vente (PV) MAD/gr</label>
+        <input type="number" id="po-vente" min="1" step="1" style="padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--txt);font-size:13px;outline:none;width:100%">
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:8px">
+      <button class="btn btn-gold" onclick="savePrixOr()">💾 Enregistrer</button>
+      <button class="btn btn-outline" onclick="closePrixOr()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="q" placeholder="Référence, type d'article…" oninput="filter()">
+  </div>
+  <select id="ft" onchange="filter()">
+    <option value="">Tous les types</option>
+  </select>
+  <select id="sb" onchange="filter()">
+    <option value="id">Trier par Réf</option>
+    <option value="article">Trier par Article</option>
+    <option value="or_grs">Trier par OR</option>
+    <option value="pa">Trier par Prix</option>
+    <option value="date">Trier par Date</option>
+  </select>
+  <select id="sd" onchange="filter()">
+    <option value="asc">Croissant</option>
+    <option value="desc">Décroissant</option>
+  </select>
+  <button class="btn btn-outline" onclick="reset()">Réinitialiser</button>
+  <span class="count-lbl"><span id="cnt">0</span> article(s)</span>
+</div>
+
+<div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sort('id')">Réf</th>
+        <th onclick="sort('date')">Date</th>
+        <th onclick="sort('article')">Article</th>
+        <th onclick="sort('or_grs')">OR (grs)</th>
+        <th onclick="sort('pa')">Prix de Revient</th>
+        <th title="Diamants">D</th>
+        <th title="Émeraudes">Em</th>
+        <th title="Rubis">R</th>
+        <th title="Saphirs">S</th>
+        <th title="Pierres Fines">P.Fines</th>
+        <th title="Rosaces">Rosaces</th>
+        <th title="Émeraudes Colombie">Em.Clb</th>
+        <th title="Perles (grs)">Perles</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div id="empty" class="empty" style="display:none">
+    <div class="spin">⏳</div>
+    <p id="empty-msg" style="margin-top:12px">Chargement…</p>
+  </div>
+</div>
+<div class="pag" id="pag"></div>
+
+<!-- MODAL DETAIL / VOIR -->
+<div class="overlay" id="ov" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h2 id="m-title">Article</h2>
+    <div id="m-photo-wrap"></div>
+    <div class="modal-grid" id="m-grid"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" id="m-vente-btn">💰 Enregistrer une vente</button>
+      <button class="btn btn-blue" id="m-edit-btn">✏️ Modifier</button>
+      <button class="btn btn-red" id="m-del-btn">🗑️ Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUTER ARTICLE -->
+<div class="overlay" id="ov-add" onclick="closeAddModal(event)">
+  <div class="modal" style="width:640px">
+    <button class="close-btn" onclick="closeAddModal()">✕</button>
+    <h2>➕ Ajouter un Article au Stock</h2>
+
+    <div class="form-section-title">Identification *</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Référence *</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="na-id" placeholder="ex: 4500" min="1" oninput="checkNARef()" style="flex:1;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none">
+          <span id="na-ref-status" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;white-space:nowrap"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Type d'article *</label>
+        <select id="na-article" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none">
+          <option value="">— Sélectionner —</option>
+          <option>Anneaux - homme</option><option>B.O</option><option>Bague</option>
+          <option>Bracelet</option><option>Ceinture</option><option>Chaîne</option>
+          <option>Chapelet</option><option>chaine +pendentif</option><option>cheval Baccarat</option>
+          <option>chevalière</option><option>Collier</option><option>Collier de perles</option>
+          <option>collier / pendentif</option><option>Coran</option><option>Dague</option>
+          <option>Gourmette</option><option>Margueritte</option><option>Mdejja</option>
+          <option>Pendentif</option><option>Pièce de golf</option><option>Piéce Dauphin</option>
+          <option>Pince à cravatte</option><option>Solitaire</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:10px">
+      <div class="form-group">
+        <label>Date d'entrée *</label>
+        <input type="date" id="na-date" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none">
+      </div>
+      <div class="form-group">
+        <label>Prix de Revient — P.R (MAD) *</label>
+        <input type="number" id="na-pa" placeholder="ex: 25000" min="0" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none">
+      </div>
+    </div>
+
+    <div class="form-section-title" style="margin-top:14px">Composition — OR & Carats</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>OR (grammes) *</label>
+        <input type="number" id="na-or" placeholder="ex: 12.5" step="0.01" min="0" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none">
+      </div>
+      <div class="form-group">
+        <label>Carats (Cts)</label>
+        <input type="number" id="na-cts" placeholder="ex: 18" step="0.01" min="0" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none">
+      </div>
+    </div>
+
+    <div class="form-section-title" style="margin-top:14px">Pierres Précieuses (cts) — Optionnel</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+      <div class="form-group"><label>Diamants</label><input type="number" id="na-d" placeholder="0" step="0.01" min="0" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none"></div>
+      <div class="form-group"><label>Émeraudes</label><input type="number" id="na-em" placeholder="0" step="0.01" min="0" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none"></div>
+      <div class="form-group"><label>Rubis</label><input type="number" id="na-r" placeholder="0" step="0.01" min="0" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none"></div>
+      <div class="form-group"><label>Saphirs</label><input type="number" id="na-s" placeholder="0" step="0.01" min="0" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none"></div>
+      <div class="form-group"><label>Pierres Fines</label><input type="number" id="na-pf" placeholder="0" step="0.01" min="0" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none"></div>
+      <div class="form-group"><label>Rosaces</label><input type="number" id="na-ros" placeholder="0" step="0.01" min="0" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none"></div>
+      <div class="form-group"><label>Ém. Colombie</label><input type="number" id="na-ec" placeholder="0" step="0.01" min="0" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none"></div>
+      <div class="form-group"><label>Perles (grs)</label><input type="number" id="na-per" placeholder="0" step="0.01" min="0" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none"></div>
+    </div>
+
+    <div class="form-section-title" style="margin-top:14px">Fabrication & Fournisseur — Optionnel</div>
+    <div class="form-row" style="margin-bottom:16px">
+      <div class="form-group">
+        <label>Fabricant</label>
+        <select id="na-fabricant" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none">
+          <option value="">— Non précisé —</option>
+          <option value="Driss">Driss</option>
+          <option value="Hicham">Hicham</option>
+        </select>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:12px;padding-top:22px">
+        <input type="checkbox" id="na-ismail" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="toggleIsmail('na')">
+          <div style="position:relative;display:inline-block">
+            <div id="na-ismail-toggle" style="width:46px;height:24px;background:var(--bd);border-radius:12px;cursor:pointer;transition:background .25s;position:relative">
+              <div style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .25s" id="na-ismail-knob"></div>
+            </div>
+          </div>
+          <span style="font-size:13px;color:var(--txt)">Pierres d'<strong>Ismail</strong> 💎</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section-title" style="margin-top:14px">Photo — Optionnel</div>
+    <div id="na-photo-zone" onclick="document.getElementById('na-photo-input').click()" style="border:2px dashed var(--bd);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:var(--bg3)">
+      <div id="na-photo-preview-wrap">
+        <div style="color:var(--muted);font-size:13px">📷 Cliquez pour ajouter une photo (PNG, JPG)</div>
+      </div>
+      <input type="file" id="na-photo-input" accept="image/*" style="display:none" onchange="previewNAPhoto(this)">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-gold" id="na-submit-btn" onclick="submitNA()">✅ Ajouter au stock</button>
+      <button class="btn btn-outline" onclick="resetNA()">🔄 Réinitialiser</button>
+      <button class="btn btn-outline" onclick="closeAddModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ÉDITION -->
+<div class="overlay" id="ov-edit" onclick="closeEditModal(event)">
+  <div class="modal" style="width:620px">
+    <button class="close-btn" onclick="closeEditModal()">✕</button>
+    <h2>✏️ Modifier l'Article <span id="edit-ref-title" style="color:var(--gold)"></span></h2>
+    <form class="edit-form" onsubmit="submitEdit(event)">
+      <div class="form-section-title">Informations générales</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Référence</label>
+          <input type="number" id="e-id" readonly style="opacity:.5;cursor:not-allowed">
+        </div>
+        <div class="form-group">
+          <label>Date d'entrée</label>
+          <input type="date" id="e-date">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label>Type d'article</label>
+          <input type="text" id="e-article" placeholder="ex: Bague, Collier, Pendentif…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>OR (grammes)</label>
+          <input type="number" id="e-or" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Prix de Revient (MAD)</label>
+          <input type="number" id="e-pa" step="1" placeholder="0">
+        </div>
+      </div>
+      <div class="form-section-title">Pierres précieuses</div>
+      <div class="form-row">
+        <div class="form-group"><label>Diamants (cts)</label><input type="number" id="e-d" step="0.01" placeholder="—"></div>
+        <div class="form-group"><label>Émeraudes (cts)</label><input type="number" id="e-em" step="0.01" placeholder="—"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Rubis (cts)</label><input type="number" id="e-r" step="0.01" placeholder="—"></div>
+        <div class="form-group"><label>Saphirs (cts)</label><input type="number" id="e-s" step="0.01" placeholder="—"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Pierres Fines</label><input type="number" id="e-pf" step="0.01" placeholder="—"></div>
+        <div class="form-group"><label>Rosaces</label><input type="number" id="e-ros" step="0.01" placeholder="—"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Ém. Colombie (cts)</label><input type="number" id="e-ec" step="0.01" placeholder="—"></div>
+        <div class="form-group"><label>Perles (grs)</label><input type="number" id="e-per" step="0.01" placeholder="—"></div>
+      </div>
+      <div class="form-section-title" style="margin-top:14px">Fabrication & Fournisseur</div>
+      <div class="form-row" style="margin-bottom:4px">
+        <div class="form-group">
+          <label>Fabricant</label>
+          <select id="e-fabricant" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none">
+            <option value="">— Non précisé —</option>
+            <option value="Driss">Driss</option>
+            <option value="Hicham">Hicham</option>
+          </select>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:12px;padding-top:22px">
+          <input type="checkbox" id="e-ismail" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="toggleIsmail('e')">
+            <div style="position:relative;display:inline-block">
+              <div id="e-ismail-toggle" style="width:46px;height:24px;background:var(--bd);border-radius:12px;cursor:pointer;transition:background .25s;position:relative">
+                <div style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .25s" id="e-ismail-knob"></div>
+              </div>
+            </div>
+            <span style="font-size:13px;color:var(--txt)">Pierres d'<strong>Ismail</strong> 💎</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions" style="margin-top:20px">
+        <button type="submit" class="btn btn-gold">💾 Enregistrer</button>
+        <button type="button" class="btn btn-outline" onclick="closeEditModal()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PG = 50;
+let ALL = [], filtered = [], page = 1, sortCol = 'id', sortDir = 'asc';
+let currentArticle = null;
+let prixOrConfig = {prix_or_achat: 1000, prix_or_vente: 1100};
+
+function isPoidsArticle(a){
+  const pierres=['d','em','r','s','p_fines','rosaces','em_clb','perles'];
+  return !pierres.some(p=>a[p]);
+}
+
+async function loadPrixOr(){
+  try{
+    prixOrConfig = await fetch('/api/config').then(r=>r.json());
+    document.getElementById('po-achat-disp').textContent = prixOrConfig.prix_or_achat.toLocaleString('fr-FR')+' MAD';
+    document.getElementById('po-vente-disp').textContent = prixOrConfig.prix_or_vente.toLocaleString('fr-FR')+' MAD';
+  }catch(e){}
+}
+
+function openPrixOr(){
+  document.getElementById('po-achat').value = prixOrConfig.prix_or_achat;
+  document.getElementById('po-vente').value = prixOrConfig.prix_or_vente;
+  document.getElementById('ov-prix-or').classList.add('open');
+}
+
+function closePrixOr(e){
+  if(e&&e.target!==document.getElementById('ov-prix-or'))return;
+  document.getElementById('ov-prix-or').classList.remove('open');
+}
+
+async function savePrixOr(){
+  const achat = parseFloat(document.getElementById('po-achat').value);
+  const vente = parseFloat(document.getElementById('po-vente').value);
+  if(!achat||!vente||achat<=0||vente<=0){toast('Prix invalides','error');return;}
+  try{
+    const r = await fetch('/api/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({prix_or_achat:achat,prix_or_vente:vente})});
+    const j = await r.json();
+    if(j.success){
+      closePrixOr();
+      await loadPrixOr();
+      await load(); // Recharger le stock (PA mis à jour)
+      toast('Prix de l\'or mis à jour ✓','success');
+    }else toast(j.error||'Erreur','error');
+  }catch(e){toast('Erreur réseau','error');}
+}
+
+async function load() {
+  try {
+    const [arts, stats] = await Promise.all([
+      fetch('/api/articles').then(r=>r.json()),
+      fetch('/api/stats').then(r=>r.json())
+    ]);
+    ALL = arts;
+    await loadPrixOr();
+    document.getElementById('s-nb').textContent = stats.nb_articles;
+
+    const types = [...new Set(ALL.map(a=>a.article).filter(Boolean))].sort();
+    const sel = document.getElementById('ft');
+    sel.innerHTML = '<option value="">Tous les types</option>';
+    types.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);});
+
+    filter();
+  } catch(e) {
+    document.getElementById('empty').style.display='block';
+    document.getElementById('empty-msg').textContent='Erreur de connexion au serveur.';
+  }
+}
+
+function badge(a) {
+  const t = (a||'').toLowerCase();
+  if(t.includes('bague')||t.includes('solitaire')||t.includes('chevalière')) return 'b-bag';
+  if(t.includes('bracelet')||t.includes('gourmette')) return 'b-bra';
+  if(t.includes('collier')||t.includes('perles')) return 'b-col';
+  if(t.includes('pendentif')||t.includes('chaine')||t.includes('chaîne')) return 'b-pen';
+  if(t.includes('b.o')||t.includes('boucle')) return 'b-bo';
+  return 'b-oth';
+}
+
+function fmt(v) { return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:2}); }
+function fmtN(v) { return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
+function fmtD(d) { if(!d) return '—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+function filter() {
+  const q = document.getElementById('q').value.toLowerCase();
+  const ft = document.getElementById('ft').value;
+  sortCol = document.getElementById('sb').value;
+  sortDir = document.getElementById('sd').value;
+
+  filtered = ALL.filter(a =>
+    (!q || String(a.id).includes(q) || (a.article||'').toLowerCase().includes(q)) &&
+    (!ft || a.article === ft)
+  );
+
+  filtered.sort((a,b)=>{
+    let va=a[sortCol], vb=b[sortCol];
+    if(['id','or_grs','pa'].includes(sortCol)){va=parseFloat(va)||0;vb=parseFloat(vb)||0;}
+    else{va=String(va||'').toLowerCase();vb=String(vb||'').toLowerCase();}
+    return (va<vb?-1:va>vb?1:0)*(sortDir==='asc'?1:-1);
+  });
+
+  document.getElementById('cnt').textContent = filtered.length;
+  page = 1;
+  render();
+  renderPag();
+}
+
+function render() {
+  const body = document.getElementById('tbody');
+  const empty = document.getElementById('empty');
+  const start = (page-1)*PG;
+  const rows = filtered.slice(start, start+PG);
+
+  if(!rows.length){body.innerHTML='';empty.style.display='block';document.getElementById('empty-msg').textContent='Aucun article trouvé.';return;}
+  empty.style.display='none';
+
+  body.innerHTML = rows.map((a,i)=>`
+    <tr onclick="showDetail(${start+i})">
+      <td class="ref-col">#${a.id}</td>
+      <td>${fmtD(a.date)}</td>
+      <td>
+        <span class="badge ${badge(a.article)}">${a.article||'—'}</span>
+        ${a.fabricant?`<span style="font-size:10px;color:var(--muted);display:block;margin-top:2px">${a.fabricant}</span>`:''}
+        ${a.ismail_pierres?`<span style="font-size:10px;color:var(--green,#2ecc71)">💎 Ismail</span>`:''}
+      </td>
+      <td class="or-col">${a.or_grs!=null?fmt(a.or_grs)+' grs':'—'}</td>
+      <td class="pa-col">${a.pa!=null?fmtN(a.pa)+' MAD':'—'}</td>
+      <td class="${a.d?'has':'nil'}">${a.d?fmt(a.d):'—'}</td>
+      <td class="${a.em?'has':'nil'}">${a.em?fmt(a.em):'—'}</td>
+      <td class="${a.r?'has':'nil'}">${a.r?fmt(a.r):'—'}</td>
+      <td class="${a.s?'has':'nil'}">${a.s?fmt(a.s):'—'}</td>
+      <td class="${a.p_fines?'has':'nil'}">${a.p_fines?fmt(a.p_fines):'—'}</td>
+      <td class="${a.rosaces?'has':'nil'}">${a.rosaces?fmt(a.rosaces):'—'}</td>
+      <td class="${a.em_clb?'has':'nil'}">${a.em_clb?fmt(a.em_clb):'—'}</td>
+      <td class="${a.perles?'has':'nil'}">${a.perles?fmt(a.perles)+' grs':'—'}</td>
+      <td style="display:flex;gap:5px;align-items:center">
+        <button class="btn btn-gold" style="padding:4px 11px;font-size:11px" onclick="event.stopPropagation();showDetail(${start+i})">Voir</button>
+        <button class="btn btn-blue" style="padding:4px 11px;font-size:11px" onclick="event.stopPropagation();openEdit(${start+i})">✏️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderPag() {
+  const total = Math.ceil(filtered.length/PG);
+  const p = document.getElementById('pag');
+  if(total<=1){p.innerHTML='';return;}
+  let h=`<button class="pg-btn" ${page===1?'disabled':''} onclick="goP(${page-1})">‹</button>`;
+  let pages=[];
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||(i>=page-2&&i<=page+2)) pages.push(i);
+    else if(pages[pages.length-1]!=='…') pages.push('…');
+  }
+  pages.forEach(pp=>{
+    if(pp==='…') h+=`<span style="color:var(--muted);padding:0 3px">…</span>`;
+    else h+=`<button class="pg-btn ${pp===page?'active':''}" onclick="goP(${pp})">${pp}</button>`;
+  });
+  h+=`<button class="pg-btn" ${page===total?'disabled':''} onclick="goP(${page+1})">›</button>`;
+  p.innerHTML=h;
+}
+
+function goP(n){page=n;render();renderPag();window.scrollTo({top:200,behavior:'smooth'});}
+function sort(c){if(sortCol===c)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=c;sortDir='asc';}document.getElementById('sb').value=c;filter();}
+function reset(){document.getElementById('q').value='';document.getElementById('ft').value='';document.getElementById('sb').value='id';document.getElementById('sd').value='asc';filter();}
+
+async function showDetail(idx) {
+  const a = filtered[idx];
+  currentArticle = a;
+  document.getElementById('m-title').textContent = `Article #${a.id} — ${a.article}`;
+
+  // Photo
+  const photoWrap = document.getElementById('m-photo-wrap');
+  const imgUrl = `/api/photo/${a.id}`;
+  const img = new Image();
+  img.onload = () => { photoWrap.innerHTML = `<img src="${imgUrl}" class="article-photo" alt="Photo #${a.id}">`; };
+  img.onerror = () => { photoWrap.innerHTML = `<div class="no-photo">📷 Pas de photo disponible</div>`; };
+  img.src = imgUrl;
+
+  document.getElementById('m-grid').innerHTML = [
+    ['Date d\'entrée', fmtD(a.date), ''],
+    ['Référence', '#'+a.id, 'gold'],
+    ['Type d\'article', a.article||'—', ''],
+    ['OR (grammes)', a.or_grs!=null?fmt(a.or_grs)+' grs':'—', 'gold'],
+    ['Prix de Revient', a.pa!=null?fmtN(a.pa)+' MAD':'—', 'grn'],
+    ['Diamants (cts)', a.d?fmt(a.d):'—', ''],
+    ['Émeraudes (cts)', a.em?fmt(a.em):'—', ''],
+    ['Rubis (cts)', a.r?fmt(a.r):'—', ''],
+    ['Saphirs (cts)', a.s?fmt(a.s):'—', ''],
+    ['Pierres Fines', a.p_fines?fmt(a.p_fines):'—', ''],
+    ['Rosaces', a.rosaces?fmt(a.rosaces):'—', ''],
+    ['Ém. Colombie', a.em_clb?fmt(a.em_clb):'—', ''],
+    ['Perles (grs)', a.perles?fmt(a.perles)+' grs':'—', ''],
+    ['Fabricant', a.fabricant||'—', ''],
+    ['Pierres Ismail', a.ismail_pierres?'💎 Oui — Ismail':'—', a.ismail_pierres?'grn':''],
+  ].map(([l,v,c])=>`<div class="mf"><label>${l}</label><div class="v ${c}">${v}</div></div>`).join('');
+
+  document.getElementById('m-vente-btn').onclick = ()=>{ closeModal(); window.location.href = `/vendu#vente-${a.id}`; document.getElementById('nv-ref-input').value=a.id; setTimeout(searchNV,200); };
+  document.getElementById('m-edit-btn').onclick = ()=>{ closeModal(); openEdit(idx); };
+  document.getElementById('m-del-btn').onclick = ()=>{ deleteArticle(a.id); };
+  document.getElementById('ov').classList.add('open');
+}
+
+function closeModal(e){if(!e||e.target===document.getElementById('ov'))document.getElementById('ov').classList.remove('open');}
+
+function toggleIsmail(prefix){
+  const cb = document.getElementById(prefix+'-ismail');
+  const tog = document.getElementById(prefix+'-ismail-toggle');
+  const knob = document.getElementById(prefix+'-ismail-knob');
+  cb.checked = !cb.checked;
+  if(cb.checked){
+    tog.style.background='var(--green,#2ecc71)';
+    knob.style.transform='translateX(22px)';
+  } else {
+    tog.style.background='var(--bd)';
+    knob.style.transform='translateX(0)';
+  }
+}
+
+function setIsmail(prefix, val){
+  const cb = document.getElementById(prefix+'-ismail');
+  const tog = document.getElementById(prefix+'-ismail-toggle');
+  const knob = document.getElementById(prefix+'-ismail-knob');
+  cb.checked = !!val;
+  if(val){
+    tog.style.background='var(--green,#2ecc71)';
+    knob.style.transform='translateX(22px)';
+  } else {
+    tog.style.background='var(--bd)';
+    knob.style.transform='translateX(0)';
+  }
+}
+
+function openEdit(idx) {
+  const a = filtered[idx];
+  currentArticle = a;
+  document.getElementById('edit-ref-title').textContent = '#'+a.id;
+  document.getElementById('e-id').value = a.id;
+  document.getElementById('e-date').value = a.date || '';
+  document.getElementById('e-article').value = a.article || '';
+  document.getElementById('e-or').value = a.or_grs != null ? a.or_grs : '';
+  document.getElementById('e-pa').value = a.pa != null ? a.pa : '';
+  document.getElementById('e-d').value = a.d != null ? a.d : '';
+  document.getElementById('e-em').value = a.em != null ? a.em : '';
+  document.getElementById('e-r').value = a.r != null ? a.r : '';
+  document.getElementById('e-s').value = a.s != null ? a.s : '';
+  document.getElementById('e-pf').value = a.p_fines != null ? a.p_fines : '';
+  document.getElementById('e-ros').value = a.rosaces != null ? a.rosaces : '';
+  document.getElementById('e-ec').value = a.em_clb != null ? a.em_clb : '';
+  document.getElementById('e-per').value = a.perles != null ? a.perles : '';
+  document.getElementById('e-fabricant').value = a.fabricant || '';
+  setIsmail('e', a.ismail_pierres);
+  document.getElementById('ov-edit').classList.add('open');
+}
+
+function closeEditModal(e){if(!e||e.target===document.getElementById('ov-edit'))document.getElementById('ov-edit').classList.remove('open');}
+
+async function submitEdit(e) {
+  e.preventDefault();
+  if(!currentArticle) return;
+  const ref = currentArticle.id;
+  const payload = {
+    date: document.getElementById('e-date').value,
+    article: document.getElementById('e-article').value,
+    or_grs: document.getElementById('e-or').value,
+    pa: document.getElementById('e-pa').value,
+    d: document.getElementById('e-d').value,
+    em: document.getElementById('e-em').value,
+    r: document.getElementById('e-r').value,
+    s: document.getElementById('e-s').value,
+    p_fines: document.getElementById('e-pf').value,
+    rosaces: document.getElementById('e-ros').value,
+    em_clb: document.getElementById('e-ec').value,
+    perles: document.getElementById('e-per').value,
+    fabricant: document.getElementById('e-fabricant').value || null,
+    ismail_pierres: document.getElementById('e-ismail').checked,
+  };
+  try {
+    const res = await fetch(`/api/articles/${ref}`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(data.success) {
+      toast('Article modifié avec succès !', 'success');
+      closeEditModal();
+      await load();
+    } else {
+      toast(data.error || 'Erreur', 'error');
+    }
+  } catch(err) {
+    toast('Erreur de connexion', 'error');
+  }
+}
+
+async function deleteArticle(ref) {
+  if(!confirm(`Supprimer définitivement l'article #${ref} du stock ?`)) return;
+  try {
+    const res = await fetch(`/api/articles/${ref}`, {method:'DELETE'});
+    const data = await res.json();
+    if(data.success) {
+      toast('Article supprimé.', 'success');
+      closeModal();
+      await load();
+    } else {
+      toast(data.error || 'Erreur', 'error');
+    }
+  } catch(err) {
+    toast('Erreur de connexion', 'error');
+  }
+}
+
+function toast(msg, type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type+' show';
+  setTimeout(()=>t.className='toast',3000);
+}
+
+// ── AJOUTER ARTICLE ─────────────────────────────────────
+let naRefOk = false;
+let naExistingIds = new Set();
+
+function openAddModal(){
+  // Charger les IDs existants
+  naExistingIds = new Set(ALL.map(a=>a.id));
+  resetNA();
+  document.getElementById('ov-add').classList.add('open');
+}
+function closeAddModal(e){if(!e||e.target===document.getElementById('ov-add'))document.getElementById('ov-add').classList.remove('open');}
+
+function checkNARef(){
+  const v=parseInt(document.getElementById('na-id').value);
+  const s=document.getElementById('na-ref-status');
+  if(!v){s.style.display='none';naRefOk=false;return;}
+  if(naExistingIds.has(v)){
+    s.textContent='⚠️ Déjà utilisée';s.style.cssText='display:inline;font-size:12px;padding:4px 10px;border-radius:6px;white-space:nowrap;background:rgba(231,76,60,.15);color:var(--red)';naRefOk=false;
+  } else {
+    s.textContent='✅ Disponible';s.style.cssText='display:inline;font-size:12px;padding:4px 10px;border-radius:6px;white-space:nowrap;background:rgba(46,204,113,.15);color:var(--green)';naRefOk=true;
+  }
+}
+
+function gna(id){const v=document.getElementById(id).value;return v===''?null:v;}
+function gnaf(id){const v=document.getElementById(id).value;return v===''?null:parseFloat(v);}
+
+async function submitNA(){
+  const id=parseInt(gna('na-id'));
+  const article=gna('na-article');
+  const or_grs=gnaf('na-or');
+  const pa=gnaf('na-pa');
+  if(!id||!naRefOk){toast('Référence invalide ou déjà utilisée','error');return;}
+  if(!article){toast('Sélectionnez un type d\'article','error');return;}
+  if(or_grs==null){toast('Poids OR obligatoire','error');return;}
+  if(pa==null){toast('Prix d\'achat obligatoire','error');return;}
+  const btn=document.getElementById('na-submit-btn');
+  btn.disabled=true;btn.textContent='⏳ Enregistrement…';
+  const payload={id,date:gna('na-date')||new Date().toISOString().split('T')[0],article,or_grs,pa,
+    d:gnaf('na-d'),em:gnaf('na-em'),r:gnaf('na-r'),s:gnaf('na-s'),
+    p_fines:gnaf('na-pf'),rosaces:gnaf('na-ros'),em_clb:gnaf('na-ec'),perles:gnaf('na-per'),
+    fabricant:gna('na-fabricant')||null,
+    ismail_pierres:document.getElementById('na-ismail').checked};
+  try{
+    const res=await fetch('/api/articles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    if(res.ok){
+      // Upload photo si sélectionnée
+      const photoInput=document.getElementById('na-photo-input');
+      if(photoInput.files.length>0){
+        const file=photoInput.files[0];
+        const ext=file.name.split('.').pop().toLowerCase();
+        await new Promise(resolve=>{
+          const reader=new FileReader();
+          reader.onload=async e=>{
+            const b64=e.target.result.split(',')[1];
+            try{await fetch('/api/photo/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ref:id,photo_base64:b64,ext})});}
+            catch(e){}
+            resolve();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+      toast(`✅ Article #${id} ajouté au stock !`,'success');
+      document.getElementById('na-status').style.color='var(--green)';
+      document.getElementById('na-status').textContent='✓ #'+id+' ajouté';
+      naExistingIds.add(id);
+      closeAddModal();
+      await load();
+    } else {toast(data.error||'Erreur','error');}
+  }catch(e){toast('Erreur de connexion','error');}
+  btn.disabled=false;btn.textContent='✅ Ajouter au stock';
+}
+
+function previewNAPhoto(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('na-photo-preview-wrap').innerHTML=
+      `<img src="${e.target.result}" style="max-height:160px;max-width:100%;border-radius:8px;object-fit:contain;margin-bottom:6px"><br><small style="color:var(--muted)">${file.name}</small>`;
+    document.getElementById('na-photo-zone').style.borderColor='var(--gold)';
+    document.getElementById('na-photo-zone').style.background='rgba(184,146,60,.06)';
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetNA(){
+  ['na-id','na-article','na-pa','na-or','na-cts','na-d','na-em','na-r','na-s','na-pf','na-ros','na-ec','na-per','na-fabricant']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  setIsmail('na', false);
+  document.getElementById('na-ref-status').style.display='none';
+  document.getElementById('na-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('na-photo-input').value='';
+  document.getElementById('na-photo-preview-wrap').innerHTML='<div style="color:var(--muted);font-size:13px">📷 Cliquez pour ajouter une photo (PNG, JPG)</div>';
+  document.getElementById('na-photo-zone').style.borderColor='';
+  document.getElementById('na-photo-zone').style.background='var(--bg3)';
+  naRefOk=false;
+}
+
+load();
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+<script>
+
+});
+</script>
+<script src="/static/notifications.js?v=3"></script>
+<script>
+/* ── HAMBURGER NAV ── */
+function toggleNav(){
+  const nl=document.querySelector('.nav-links');
+  const ov=document.querySelector('.nav-overlay');
+  const btn=document.getElementById('hamburger-btn');
+  if(!nl)return;
+  const open=nl.classList.toggle('nav-open');
+  if(ov)ov.classList.toggle('nav-open',open);
+  if(btn)btn.textContent=open?'✕':'☰';
+}
+(function(){
+  const ov=document.createElement('div');
+  ov.className='nav-overlay';
+  ov.onclick=function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  };
+  document.body.appendChild(ov);
+  // Close nav when a link is clicked
+  document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',function(){
+    document.querySelector('.nav-links')?.classList.remove('nav-open');
+    ov.classList.remove('nav-open');
+    const btn=document.getElementById('hamburger-btn');
+    if(btn)btn.textContent='☰';
+  }));
+})();
+</script>
+<script src="/chatbot.js"></script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>
