@@ -203,7 +203,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     });
     const data = await res.json();
     if (data.success) {
-      window.location.href = '/accueil';
+      window.location.href = data.redirect || '/accueil';
     } else {
       err.classList.add('show');
       document.getElementById('pwd').value = '';
