@@ -2,6 +2,7 @@
 backup.py — Sauvegarde automatique des données
 - Local  : dossier backups/ (copie des JSON + base SQLite)
 - OneDrive : copie de gestionstock.db vers OneDrive/BIjouterie/Backups-DB/
+- Sync photos : télécharge les nouvelles photos R2 → photos_compressed/
 Conserve les 30 derniers backups dans chaque emplacement.
 """
 import shutil, os
@@ -72,5 +73,49 @@ def run_backup():
     return stamp, files_saved
 
 
+def sync_photos_from_r2():
+    """Télécharge depuis R2 les photos manquantes dans photos_compressed/."""
+    import os
+    R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY", "")
+    R2_SECRET_KEY = os.environ.get("R2_SECRET_KEY", "")
+    R2_ACCOUNT_ID = os.environ.get("R2_ACCOUNT_ID", "0214bd70a06317f8616baeb74eba7d20")
+    R2_BUCKET     = os.environ.get("R2_BUCKET_NAME", "bijouterie-photos")
+
+    # Credentials hardcodés en fallback pour le Mac local
+    if not R2_ACCESS_KEY:
+        R2_ACCESS_KEY = "9abc7f46ddc14792455f77bd6eefa304"
+        R2_SECRET_KEY = "25dfdaae576cadfd29ac0fb6991b05069ce182416d36e812525b29d96847373e"
+
+    PHOTOS_DIR = BASE_DIR / "photos_compressed"
+    PHOTOS_DIR.mkdir(exist_ok=True)
+
+    try:
+        import boto3, warnings
+        warnings.filterwarnings("ignore")
+        s3 = boto3.client("s3",
+            endpoint_url=f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+            aws_access_key_id=R2_ACCESS_KEY,
+            aws_secret_access_key=R2_SECRET_KEY,
+            region_name="auto")
+
+        paginator = s3.get_paginator("list_objects_v2")
+        downloaded = 0
+        for page in paginator.paginate(Bucket=R2_BUCKET):
+            for obj in page.get("Contents", []):
+                key = obj["Key"]
+                local_path = PHOTOS_DIR / key
+                if not local_path.exists():
+                    s3.download_file(R2_BUCKET, key, str(local_path))
+                    downloaded += 1
+
+        if downloaded:
+            print(f"  [Sync photos] {downloaded} nouvelles photos téléchargées depuis R2")
+        else:
+            print(f"  [Sync photos] Toutes les photos sont à jour")
+    except Exception as e:
+        print(f"  [Sync photos] Erreur (non bloquante) : {e}")
+
+
 if __name__ == "__main__":
     run_backup()
+    sync_photos_from_r2()

@@ -1857,14 +1857,20 @@ def open_browser():
 def backup_loop():
     """Backup automatique : au démarrage puis toutes les 24h."""
     import time
-    from backup import run_backup
+    from backup import run_backup, sync_photos_from_r2
     while True:
         try:
             stamp, files = run_backup()
             print(f"  [Backup] Sauvegarde effectuée : {stamp}")
         except Exception as e:
             print(f"  [Backup] Erreur : {e}")
-        time.sleep(24 * 3600)  # attendre 24h
+        # Sync photos R2 → photos_compressed/ toutes les heures
+        for _ in range(24):
+            try:
+                sync_photos_from_r2()
+            except Exception as e:
+                print(f"  [Sync photos] Erreur : {e}")
+            time.sleep(3600)  # toutes les heures
 
 if __name__ == "__main__":
     # Initialiser la base de données SQLite (migration JSON → SQLite au premier lancement)
