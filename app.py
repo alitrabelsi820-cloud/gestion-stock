@@ -12,6 +12,9 @@ import re
 import secrets
 import threading
 import urllib.parse
+import urllib.request
+import hmac
+import hashlib
 import webbrowser
 from datetime import datetime
 from pathlib import Path
@@ -117,7 +120,6 @@ def find_photo_url(ref):
 
 def _upload_to_r2(filename, data_bytes):
     """Upload un fichier vers Cloudflare R2 via l'API S3-compatible."""
-    import hmac, hashlib, urllib.request
     from datetime import datetime as dt
     now = dt.utcnow()
     date_stamp = now.strftime("%Y%m%d")
@@ -1500,8 +1502,6 @@ function filter(type, btn) {{
                 filename = f"{int(ref)}.jpg"
                 if R2_ACCESS_KEY and R2_SECRET_KEY:
                     # Upload vers Cloudflare R2
-                    import urllib.request
-                    import hmac, hashlib
                     _upload_to_r2(filename, photo_bytes)
                 else:
                     # Fallback local : dossier photos_compressed
