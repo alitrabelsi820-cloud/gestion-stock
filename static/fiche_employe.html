@@ -187,8 +187,8 @@ async function search(){
   try{
     const [stockRes, ventes, credits] = await Promise.all([
       fetch(`/api/articles/${ref}`).then(r=>r.json()),
-      fetch('/api/ventes').then(r=>r.json()),
-      fetch('/api/credits').then(r=>r.json())
+      fetch('/api/ventes').then(r=>r.ok?r.json():[]).catch(()=>[]),
+      fetch('/api/credits').then(r=>r.ok?r.json():[]).catch(()=>[])
     ]);
     // Map ref → Set de clients avec crédit ouvert
     const creditMap = new Map();
