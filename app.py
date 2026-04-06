@@ -947,6 +947,10 @@ function filter(type, btn) {{
                 except:
                     self.send_response(500); self.end_headers()
                 return
+            if path == "/api/ventes":
+                self.send_json(load_ventes()); return
+            if path == "/api/credits":
+                self.send_json(load_credits()); return
             # Toute autre route → accès refusé pour l'employé
             self.send_response(302)
             self.send_header("Location", "/fiche")
