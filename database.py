@@ -614,23 +614,22 @@ def seed_all(payload):
 
         for c in payload.get("credits", []):
             conn.execute("""INSERT OR REPLACE INTO credits
-                (id,client,telephone,ref_article,article,montant_total,avance,reste,statut,date_vente,date_solde,notes,paiements)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
-                c.get("id"), c.get("client"), c.get("telephone"), c.get("ref_article"),
-                c.get("article"), c.get("montant_total"), c.get("avance"), c.get("reste"),
-                c.get("statut"), c.get("date_vente"), c.get("date_solde"), c.get("notes"),
-                json.dumps(c.get("paiements") or [])
+                (id,client,contact,date_achat,refs,article,montant_total,paiements,reste,statut,date_solde,note)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                c.get("id"), c.get("client"), c.get("contact"), c.get("date_achat"),
+                c.get("refs"), c.get("article"), c.get("montant_total"),
+                json.dumps(c.get("paiements") or []),
+                c.get("reste"), c.get("statut"), c.get("date_solde"), c.get("note","")
             ))
 
         for f in payload.get("fournisseurs", []):
             conn.execute("""INSERT OR REPLACE INTO fournisseurs
-                (id,nom,telephone,montant_total,avance,reste,statut,date_achat,date_solde,notes,articles,paiements)
+                (id,fournisseur,contact,date_commande,num_commande,article,montant_total,paiements,reste,statut,date_solde,note)
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", (
-                f.get("id"), f.get("nom"), f.get("telephone"), f.get("montant_total"),
-                f.get("avance"), f.get("reste"), f.get("statut"), f.get("date_achat"),
-                f.get("date_solde"), f.get("notes"),
-                json.dumps(f.get("articles") or []),
-                json.dumps(f.get("paiements") or [])
+                f.get("id"), f.get("fournisseur"), f.get("contact"), f.get("date_commande"),
+                f.get("num_commande"), f.get("article"), f.get("montant_total"),
+                json.dumps(f.get("paiements") or []),
+                f.get("reste"), f.get("statut"), f.get("date_solde"), f.get("note","")
             ))
 
         for ch in payload.get("cheques", []):
@@ -656,8 +655,9 @@ def seed_all(payload):
             ))
 
         for n in payload.get("notifs", []):
-            conn.execute("INSERT OR REPLACE INTO notifs (id,message,type,date,dismissed) VALUES (?,?,?,?,?)", (
-                n.get("id"), n.get("message"), n.get("type"), n.get("date"), int(bool(n.get("dismissed")))
+            conn.execute("INSERT OR REPLACE INTO notifs (id,type,date,ref,article,client,dismissed) VALUES (?,?,?,?,?,?,?)", (
+                n.get("id"), n.get("type"), n.get("date"), n.get("ref"),
+                n.get("article"), n.get("client"), int(bool(n.get("dismissed")))
             ))
 
         cfg = payload.get("config", {})
