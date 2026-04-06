@@ -43,8 +43,8 @@ PHOTOS_DIR_COMPRESSED = BASE_DIR / "photos_compressed"
 
 # ─── Authentification — deux rôles ────────────────────────────────────────────
 # Mots de passe depuis variables d'environnement (ou valeurs par défaut en local)
-MOT_DE_PASSE_ADMIN   = os.environ.get("MOT_DE_PASSE_ADMIN",   "    ")
-MOT_DE_PASSE_EMPLOYE = os.environ.get("MOT_DE_PASSE_EMPLOYE", "employe")
+MOT_DE_PASSE_ADMIN   = os.environ.get("MOT_DE_PASSE_ADMIN",   "trabelsi2024")
+MOT_DE_PASSE_EMPLOYE = os.environ.get("MOT_DE_PASSE_EMPLOYE", "employe2024")
 
 # token → "admin" | "employe"
 SESSIONS = {}
