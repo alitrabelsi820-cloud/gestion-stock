@@ -113,10 +113,27 @@ def recalc_credit(c):
     return c
 
 def find_photo_url(ref):
-    """Retourne l'URL R2 de la photo si disponible, sinon None."""
-    if R2_PUBLIC_URL:
-        return f"{R2_PUBLIC_URL}/{ref}.jpg"
-    return None
+    """Retourne une URL signée R2 (7 jours) si les credentials sont configurés, sinon None."""
+    if not (R2_ACCESS_KEY and R2_SECRET_KEY and R2_ACCOUNT_ID):
+        return None
+    try:
+        import boto3, warnings
+        warnings.filterwarnings("ignore")
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+            aws_access_key_id=R2_ACCESS_KEY,
+            aws_secret_access_key=R2_SECRET_KEY,
+            region_name="auto",
+        )
+        url = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": R2_BUCKET_NAME, "Key": f"{ref}.jpg"},
+            ExpiresIn=7 * 24 * 3600,  # 7 jours
+        )
+        return url
+    except Exception:
+        return None
 
 def _upload_to_r2(filename, data_bytes):
     """Upload un fichier vers Cloudflare R2 via l'API S3-compatible."""
