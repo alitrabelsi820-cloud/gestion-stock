@@ -145,12 +145,13 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     <div class="search-row">
       <div class="search-field">
         <label>Numéro de référence</label>
-        <input type="text" id="ref-input" placeholder="⌨️  Appuyer pour saisir" readonly
-          style="cursor:pointer;caret-color:transparent;transition:transform .12s,border-color .12s,background .12s,box-shadow .12s"
-          ontouchstart="this.style.transform='scale(0.97)';this.style.borderColor='#1abc9c';this.style.background='#e6faf6';this.style.boxShadow='0 0 0 4px rgba(26,188,156,0.25)';openNumpad()"
-          ontouchend="this.style.transform='';this.style.borderColor='';this.style.background='';this.style.boxShadow=''"
-          ontouchcancel="this.style.transform='';this.style.borderColor='';this.style.background='';this.style.boxShadow=''"
-          onclick="openNumpad()">
+        <input type="text" id="ref-input" placeholder="⌨️  Saisir la référence" inputmode="numeric"
+          style="transition:border-color .2s;"
+          ontouchstart="this.style.borderColor='#1abc9c';openNumpad()"
+          ontouchend="this.style.borderColor=''"
+          ontouchcancel="this.style.borderColor=''"
+          onclick="openNumpad()"
+          onkeydown="if(event.key==='Enter')search()">
       </div>
       <button class="btn btn-gold" onclick="search()">🔍 Rechercher</button>
       <button class="btn btn-garder" id="btn-garder" onclick="garder()" disabled>📌 Garder</button>
