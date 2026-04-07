@@ -836,10 +836,20 @@ function filter(type, btn) {{
             )
             if 'apple-mobile-web-app-capable' not in content:
                 content = content.replace('<meta name="viewport"', pwa_tags + '<meta name="viewport"', 1)
-            # Injecter fix nav-links desktop : MutationObserver + timeouts
+            # Injecter fix nav-links desktop : CSS inline + MutationObserver + setInterval
             nav_fix = (
+                '<style>'
+                '@media(min-width:861px){'
+                'nav .nav-links,body>.nav-links{'
+                'display:flex!important;flex-direction:row!important;'
+                'position:static!important;visibility:visible!important;'
+                'opacity:1!important;height:auto!important;overflow:visible!important;'
+                'max-height:none!important;}'
+                '}'
+                '</style>'
                 '<script>'
                 '(function(){'
+                'var _obs=null;'
                 'function fixNav(){'
                 'if(window.innerWidth<=860)return;'
                 'var nl=document.querySelector("nav .nav-links")||document.querySelector(".nav-links");'
@@ -854,15 +864,13 @@ function filter(type, btn) {{
                 'nl.style.setProperty("opacity","1","important");'
                 'nl.style.setProperty("height","auto","important");'
                 'nl.style.setProperty("overflow","visible","important");'
+                'nl.style.setProperty("max-height","none","important");'
+                'if(_obs)_obs.disconnect();'
+                '_obs=new MutationObserver(function(){if(window.innerWidth>860)fixNav();});'
+                '_obs.observe(nl,{attributes:true,attributeFilter:["style","class"]});'
                 '}'
-                'function watchNav(){'
-                'var nl=document.querySelector("nav .nav-links")||document.querySelector(".nav-links");'
-                'if(!nl)return;'
-                'fixNav();'
-                'var obs=new MutationObserver(function(){if(window.innerWidth>860)fixNav();});'
-                'obs.observe(nl,{attributes:true,attributeFilter:["style","class"]});'
-                '}'
-                '[50,100,200,400,800,1500].forEach(function(t){setTimeout(watchNav,t);});'
+                '[0,50,100,200,400,700,1200,2000].forEach(function(t){setTimeout(fixNav,t);});'
+                'var _si=setInterval(fixNav,500);setTimeout(function(){clearInterval(_si);},8000);'
                 'window.addEventListener("resize",fixNav);'
                 '})();'
                 '</script>'
