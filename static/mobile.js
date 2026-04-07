@@ -5,8 +5,6 @@
 (function () {
   'use strict';
 
-  /* Lance après le chargement complet de la page
-     (notifications.js aussi s'injecte au DOMContentLoaded) */
   function init() {
 
     const nav = document.querySelector('nav');
@@ -15,10 +13,12 @@
     const navLinks = nav.querySelector('.nav-links');
     if (!navLinks) return;
 
-    /* ── 1. Cacher le bouton Déconnexion inline (style="" résiste au CSS) ── */
+    /* ── 1. Déplacer nav-links dans le body pour éviter le stacking context de nav ── */
+    document.body.appendChild(navLinks);
+
+    /* ── 2. Cacher le bouton Déconnexion inline sur mobile ── */
     function hideInlineLogout() {
       nav.querySelectorAll('a[href="/logout"], a[href*="logout"]').forEach(function (a) {
-        /* On ne touche pas aux liens DANS le menu déroulant */
         if (a.classList.contains('mob-logout')) return;
         if (a.parentElement === navLinks) return;
         if (window.innerWidth <= 860) {
@@ -29,11 +29,10 @@
       });
     }
 
-    /* ── 2. Ajouter le lien Déconnexion dans le menu dropdown ──────────── */
+    /* ── 3. Ajouter le lien Déconnexion dans le menu dropdown ── */
     if (!navLinks.querySelector('.mob-logout')) {
       const logoutEl = nav.querySelector('a[href="/logout"], a[href*="logout"]');
       const href = logoutEl ? logoutEl.getAttribute('href') : '/logout';
-
       const mob = document.createElement('a');
       mob.className = 'mob-logout';
       mob.href = href;
@@ -41,7 +40,7 @@
       navLinks.appendChild(mob);
     }
 
-    /* ── 3. Injecter le hamburger si absent ─────────────────────────────── */
+    /* ── 4. Injecter le hamburger si absent ── */
     let hamburger = nav.querySelector('.hamburger');
     if (!hamburger) {
       hamburger = document.createElement('button');
@@ -52,7 +51,7 @@
       nav.appendChild(hamburger);
     }
 
-    /* ── 4. Overlay sombre derrière le menu ─────────────────────────────── */
+    /* ── 5. Overlay sombre ── */
     let overlay = document.getElementById('nav-overlay-dark');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -61,7 +60,7 @@
       document.body.appendChild(overlay);
     }
 
-    /* ── 5. Fonctions open / close ───────────────────────────────────────── */
+    /* ── 6. Fonctions open / close ── */
     function openMenu() {
       navLinks.classList.add('nav-open');
       overlay.classList.add('open');
@@ -78,7 +77,7 @@
       document.body.style.overflow = '';
     }
 
-    /* ── 6. Événements ───────────────────────────────────────────────────── */
+    /* ── 7. Événements ── */
     hamburger.addEventListener('click', function (e) {
       e.stopPropagation();
       navLinks.classList.contains('nav-open') ? closeMenu() : openMenu();
@@ -96,12 +95,11 @@
       if (e.key === 'Escape') closeMenu();
     });
 
-    /* ── 7. Appliquer les corrections au chargement et au resize ─────────── */
+    /* ── 8. Corrections au chargement et resize ── */
     hideInlineLogout();
     window.addEventListener('resize', hideInlineLogout);
   }
 
-  /* ── Lancer après que notifications.js ait eu le temps de s'injecter ── */
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       setTimeout(init, 50);
