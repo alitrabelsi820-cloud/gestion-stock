@@ -60,7 +60,19 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
 .toast.success{background:#1a5c35;border:1px solid var(--green);color:var(--green);}
 .toast.error{background:#5c1a1a;border:1px solid var(--red);color:var(--red);}
 
-@media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr 1fr;}.nav-links a{padding:6px 10px;font-size:12px;}}
+/* Photo upload */
+.photo-upload-area{border:2px dashed var(--bd);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:24px;}
+.photo-upload-area:hover,.photo-upload-area.dragover{border-color:var(--gold);background:rgba(201,168,76,.05);}
+.photo-preview{width:100%;max-height:220px;object-fit:contain;border-radius:8px;margin-top:12px;display:none;}
+.photo-upload-icon{font-size:36px;margin-bottom:8px;}
+.photo-upload-txt{font-size:13px;color:var(--muted);}
+.photo-upload-sub{font-size:11px;color:var(--muted);opacity:.7;margin-top:4px;}
+
+@media(max-width:600px){
+  .grid2,.grid3{grid-template-columns:1fr;}
+  .grid4{grid-template-columns:1fr 1fr;}
+  .nav-links a{padding:6px 10px;font-size:12px;}
+}
 
 
 /* ── MOBILE NAV / HAMBURGER ── */
@@ -174,6 +186,18 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
       </div>
     </div>
 
+    <!-- Section Photo -->
+    <div class="section-title">📷 Photo de l'article — Optionnel</div>
+    <div class="photo-upload-area" id="photo-area" onclick="document.getElementById('photo-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+      <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this.files[0])">
+      <div id="photo-placeholder">
+        <div class="photo-upload-icon">📷</div>
+        <div class="photo-upload-txt">Appuyer pour prendre / choisir une photo</div>
+        <div class="photo-upload-sub">JPG, PNG — max 10 Mo</div>
+      </div>
+      <img id="photo-preview" class="photo-preview" alt="Aperçu">
+    </div>
+
     <!-- Section 3: Pierres précieuses -->
     <div class="section-title">Pierres Précieuses (cts) — Optionnel</div>
     <div class="grid4">
@@ -224,6 +248,28 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
 <script>
 let refOk = false;
 let existingIds = new Set();
+let photoBase64 = null;
+
+function handlePhoto(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    photoBase64 = e.target.result.split(',')[1]; // base64 seulement
+    const preview = document.getElementById('photo-preview');
+    const placeholder = document.getElementById('photo-placeholder');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('photo-area').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handlePhoto(file);
+}
 
 async function loadIds() {
   try {
@@ -284,6 +330,16 @@ async function submit() {
     });
     const data = await res.json();
     if(res.ok){
+      // Upload photo si présente
+      if (photoBase64) {
+        try {
+          await fetch('/api/photo/upload', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ref: id, photo_base64: photoBase64})
+          });
+        } catch(e) {}
+      }
       toast(`✅ Article #${id} ajouté au stock avec succès !`,'success');
       existingIds.add(id);
       setTimeout(()=>resetForm(),1800);
@@ -299,6 +355,9 @@ function resetForm(){
   ['f-id','f-article','f-date','f-pa','f-or','f-cts','f-d','f-em','f-r','f-s','f-pf','f-ros','f-ec','f-per']
     .forEach(id=>{const el=document.getElementById(id);if(el.tagName==='SELECT')el.value='';else el.value='';});
   document.getElementById('ref-status').style.display='none';
+  document.getElementById('photo-preview').style.display='none';
+  document.getElementById('photo-placeholder').style.display='block';
+  photoBase64 = null;
   refOk=false;
   // Date du jour
   document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
