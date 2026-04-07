@@ -5,15 +5,30 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ── FIX NAV DESKTOP : nav-links déplacé dans body par mobile.js ── */
-/* Sur desktop, on le repositionne en fixed sur la nav bar */
+/* ── FIX NAV DESKTOP : forcer l'affichage des liens nav ── */
 @media (min-width: 861px) {
+  /* Cas 1 : nav-links dans nav (normal) */
+  nav .nav-links {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    position: static !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    flex-direction: row !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex-wrap: wrap !important;
+  }
+  /* Cas 2 : nav-links déplacé dans body par mobile.js */
   body > .nav-links {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    height: 68px !important;
+    height: 62px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -24,11 +39,11 @@
     border: none !important;
     pointer-events: none !important;
     gap: 4px !important;
+    flex-direction: row !important;
   }
   body > .nav-links a {
     pointer-events: all !important;
   }
-  /* Masquer le lien déconnexion qui est déjà dans la nav */
   body > .nav-links .mob-logout {
     display: none !important;
   }
