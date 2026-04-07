@@ -13,8 +13,16 @@
     const navLinks = nav.querySelector('.nav-links');
     if (!navLinks) return;
 
-    /* ── 1. Déplacer nav-links dans le body pour éviter le stacking context de nav ── */
-    document.body.appendChild(navLinks);
+    /* ── 1. Déplacer nav-links dans le body UNIQUEMENT sur mobile ── */
+    function moveNavLinks() {
+      if (window.innerWidth <= 860 && navLinks.parentElement !== document.body) {
+        document.body.appendChild(navLinks);
+      } else if (window.innerWidth > 860 && navLinks.parentElement === document.body) {
+        nav.appendChild(navLinks);
+      }
+    }
+    moveNavLinks();
+    window.addEventListener('resize', moveNavLinks);
 
     /* ── 2. Cacher le bouton Déconnexion inline sur mobile ── */
     function hideInlineLogout() {
