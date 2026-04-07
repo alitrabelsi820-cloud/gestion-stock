@@ -250,8 +250,27 @@ body{
 </head>
 <body>
 
-<!-- Bouton déconnexion -->
-<a href="/logout" style="position:fixed;top:14px;right:16px;z-index:999;background:rgba(30,25,10,.75);border:1px solid rgba(184,146,60,.3);color:rgba(184,146,60,.8);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;padding:7px 14px;border-radius:20px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .2s;" onmouseover="this.style.background='rgba(184,146,60,.2)';this.style.color='#c9a84c'" onmouseout="this.style.background='rgba(30,25,10,.75)';this.style.color='rgba(184,146,60,.8)'">⎋ Déconnexion</a>
+<!-- NAV BAR -->
+<nav style="background:#fff;border-bottom:1px solid rgba(10,10,10,0.09);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;height:62px;">
+  <a href="/accueil" class="nav-brand" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:12px;">
+    <div class="nav-logo" style="width:36px;height:36px;background:#0A0A0A;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#C4A35A;font-family:'Playfair Display',serif;">T</div>
+    <div class="nav-title" style="font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#0A0A0A;font-family:'Playfair Display',serif;">Trabelsi</div>
+  </a>
+  <div id="notif-wrap"></div>
+  <div class="nav-links" style="display:flex;gap:4px;">
+    <a href="/accueil" class="active">Accueil</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/stock">Stock</a>
+    <a href="/vendu">Ventes</a>
+    <a href="/credit">Crédits</a>
+    <a href="/cheques">Chèques</a>
+    <a href="/facture">Facture</a>
+    <a href="/fournisseurs">Fournisseurs</a>
+    <a href="/fiche">Fiche</a>
+  </div>
+  <button class="hamburger" aria-label="Menu" style="display:none;">☰</button>
+  <a href="/logout" class="nav-logout-btn" style="font-size:11px;letter-spacing:1px;color:#888;text-decoration:none;border:1px solid rgba(10,10,10,0.12);padding:6px 14px;border-radius:4px;">⎋ Déconnexion</a>
+</nav>
 
 <!-- Coins arabesque -->
 <div class="corner corner-tl">
