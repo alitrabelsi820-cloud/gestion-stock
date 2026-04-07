@@ -98,7 +98,7 @@
     margin-bottom: 8px;
   }
 
-  input[type="password"] {
+  input[type="text"] {
     width: 100%;
     background: #1e1e1e;
     border: 1px solid #2a2a2a;
@@ -111,12 +111,12 @@
     transition: border-color .2s;
   }
 
-  input[type="password"]:focus {
+  input[type="text"]:focus {
     border-color: #c9a84c;
     box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
   }
 
-  input[type="password"]::placeholder {
+  input[type="text"]::placeholder {
     letter-spacing: 2px;
     font-size: 14px;
     color: #333;
@@ -179,7 +179,7 @@
   <form id="loginForm">
     <div class="form-group">
       <label>Mot de passe</label>
-      <input type="password" id="pwd" placeholder="••••••••" autocomplete="current-password" autofocus>
+      <input type="text" id="pwd" placeholder="Mot de passe" autocomplete="current-password" autofocus>
     </div>
     <button type="submit" class="btn">Accéder</button>
   </form>
