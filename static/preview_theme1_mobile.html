@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thème 1 — Aperçu Mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:#1a1a1a;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  min-height:100vh;
+  padding:40px 20px;
+  font-family:'Inter',sans-serif;
+  gap:40px;
+}
+
+/* PHONE FRAME */
+.phone-wrap{text-align:center;}
+.phone-label{
+  color:#888;font-size:12px;letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:16px;
+}
+.phone{
+  width:390px;
+  height:844px;
+  background:#000;
+  border-radius:50px;
+  padding:12px;
+  box-shadow:
+    0 0 0 2px #333,
+    0 40px 80px rgba(0,0,0,.8),
+    inset 0 0 0 2px #222;
+  position:relative;
+  overflow:hidden;
+}
+.phone-notch{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  width:120px;height:34px;
+  background:#000;border-radius:0 0 20px 20px;
+  z-index:999;
+}
+.phone-screen{
+  width:100%;height:100%;
+  border-radius:40px;
+  overflow:hidden;
+  background:#FAFAF8;
+  position:relative;
+}
+.phone-screen iframe{
+  width:390px;height:844px;
+  border:none;
+  transform-origin:top left;
+}
+
+/* INNER MOBILE CONTENT */
+:root{
+  --bg:#FAFAF8;
+  --card:#FFFFFF;
+  --txt:#0A0A0A;
+  --muted:#888880;
+  --gold:#C4A35A;
+  --gold-light:rgba(196,163,90,0.1);
+  --border:rgba(196,163,90,0.2);
+  --border-dark:rgba(10,10,10,0.08);
+}
+
+.mobile-content{
+  width:100%;
+  height:100%;
+  background:var(--bg);
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.mobile-content::-webkit-scrollbar{display:none;}
+
+/* NAV MOBILE */
+.mob-nav{
+  position:sticky;top:0;z-index:100;
+  background:var(--card);
+  border-bottom:1px solid var(--border-dark);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  height:54px;
+  padding-top:44px; /* status bar */
+  height:98px;
+}
+.mob-brand{
+  font-family:'Playfair Display',serif;
+  font-size:14px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--txt);
+}
+.mob-hamburger{
+  font-size:18px;color:var(--muted);
+  cursor:pointer;
+}
+
+/* HERO */
+.mob-hero{
+  padding:32px 20px 28px;
+  text-align:center;
+  border-bottom:1px solid var(--border-dark);
+  background:var(--bg);
+}
+.mob-eyebrow{
+  font-size:8px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:14px;
+}
+.mob-title{
+  font-family:'Playfair Display',serif;
+  font-size:36px;font-weight:400;
+  color:var(--txt);line-height:1.1;
+  letter-spacing:2px;margin-bottom:8px;
+}
+.mob-sub{
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:6px;
+}
+.mob-divider{
+  width:40px;height:1px;background:var(--gold);
+  margin:14px auto;
+}
+.mob-date{
+  font-family:'Playfair Display',serif;
+  font-size:13px;color:var(--gold);font-style:italic;
+}
+
+/* STATS */
+.mob-stats{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:0;
+  border-bottom:1px solid var(--border-dark);
+}
+.mob-stat{
+  padding:16px 18px;
+  border-right:1px solid var(--border-dark);
+  border-bottom:1px solid var(--border-dark);
+}
+.mob-stat:nth-child(even){border-right:none;}
+.mob-stat-val{
+  font-family:'Playfair Display',serif;
+  font-size:20px;font-weight:500;color:var(--txt);
+}
+.mob-stat-lbl{
+  font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);margin-top:4px;
+}
+
+/* SECTION */
+.mob-section{padding:20px;}
+.mob-section-title{
+  font-size:8px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;
+  padding-bottom:10px;border-bottom:1px solid var(--border-dark);
+}
+
+/* MODULES */
+.mob-modules{display:flex;flex-direction:column;gap:0;}
+.mob-module{
+  background:var(--card);
+  border:1px solid var(--border-dark);
+  border-radius:0;
+  padding:16px 18px;
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:-1px;
+  text-decoration:none;color:var(--txt);
+  transition:background .15s;
+}
+.mob-module:first-child{border-radius:8px 8px 0 0;}
+.mob-module:last-child{border-radius:0 0 8px 8px;margin-bottom:0;}
+.mob-module:active{background:#F5F4F0;}
+.mob-module.featured{border-left:3px solid var(--gold);}
+.mob-module-icon{font-size:20px;width:36px;text-align:center;}
+.mob-module-info{flex:1;}
+.mob-module-name{
+  font-family:'Playfair Display',serif;
+  font-size:14px;font-weight:500;color:var(--txt);
+}
+.mob-module-desc{
+  font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4;
+}
+.mob-module-arrow{color:var(--gold);font-size:12px;}
+
+.mob-badge{
+  font-size:8px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--gold);
+  padding:2px 6px;margin-bottom:4px;display:inline-block;
+}
+
+/* BOTTOM SAFE AREA */
+.mob-bottom{height:40px;}
+
+/* LABEL */
+.theme-label{
+  position:fixed;bottom:20px;right:20px;
+  background:#C4A35A;color:#0A0A0A;
+  padding:8px 16px;font-size:11px;letter-spacing:2px;font-weight:700;
+  border-radius:6px;
+}
+</style>
+</head>
+<body>
+
+<div class="phone-wrap">
+  <div class="phone-label">iPhone — Thème 1</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <div class="mobile-content">
+
+        <!-- NAV -->
+        <div class="mob-nav">
+          <div class="mob-brand">Trabelsi</div>
+          <div class="mob-hamburger">☰</div>
+        </div>
+
+        <!-- HERO -->
+        <div class="mob-hero">
+          <div class="mob-eyebrow">Système de Gestion</div>
+          <h1 class="mob-title">TRABELSI</h1>
+          <div class="mob-sub">Bijouterie · Joaillerie</div>
+          <div class="mob-divider"></div>
+          <div class="mob-date">Mardi 7 Avril 2026</div>
+        </div>
+
+        <!-- STATS -->
+        <div class="mob-stats">
+          <div class="mob-stat">
+            <div class="mob-stat-val">247</div>
+            <div class="mob-stat-lbl">Articles</div>
+          </div>
+          <div class="mob-stat">
+            <div class="mob-stat-val">18 400 g</div>
+            <div class="mob-stat-lbl">Or total</div>
+          </div>
+          <div class="mob-stat">
+            <div class="mob-stat-val">34</div>
+            <div class="mob-stat-lbl">Ventes</div>
+          </div>
+          <div class="mob-stat">
+            <div class="mob-stat-val">12</div>
+            <div class="mob-stat-lbl">Crédits</div>
+          </div>
+        </div>
+
+        <!-- MODULES -->
+        <div class="mob-section">
+          <div class="mob-section-title">Stock & Ventes</div>
+          <div class="mob-modules">
+            <a href="#" class="mob-module featured">
+              <div class="mob-module-icon">📊</div>
+              <div class="mob-module-info">
+                <div class="mob-badge">Live</div>
+                <div class="mob-module-name">Dashboard</div>
+                <div class="mob-module-desc">Stats en temps réel</div>
+              </div>
+              <div class="mob-module-arrow">→</div>
+            </a>
+            <a href="#" class="mob-module">
+              <div class="mob-module-icon">📦</div>
+              <div class="mob-module-info">
+                <div class="mob-module-name">Stock</div>
+                <div class="mob-module-desc">Gérer les articles</div>
+              </div>
+              <div class="mob-module-arrow">→</div>
+            </a>
+            <a href="#" class="mob-module">
+              <div class="mob-module-icon">💰</div>
+              <div class="mob-module-info">
+                <div class="mob-module-name">Ventes</div>
+                <div class="mob-module-desc">Historique et enregistrement</div>
+              </div>
+              <div class="mob-module-arrow">→</div>
+            </a>
+            <a href="#" class="mob-module">
+              <div class="mob-module-icon">＋</div>
+              <div class="mob-module-info">
+                <div class="mob-module-name">Ajouter</div>
+                <div class="mob-module-desc">Nouvel article au stock</div>
+              </div>
+              <div class="mob-module-arrow">→</div>
+            </a>
+          </div>
+        </div>
+
+        <div class="mob-section">
+          <div class="mob-section-title">Finances Clients</div>
+          <div class="mob-modules">
+            <a href="#" class="mob-module">
+              <div class="mob-module-icon">💳</div>
+              <div class="mob-module-info">
+                <div class="mob-module-name">Crédits</div>
+                <div class="mob-module-desc">Paiements différés</div>
+              </div>
+              <div class="mob-module-arrow">→</div>
+            </a>
+            <a href="#" class="mob-module">
+              <div class="mob-module-icon">🧾</div>
+              <div class="mob-module-info">
+                <div class="mob-module-name">Chèques</div>
+                <div class="mob-module-desc">Suivi et encaissement</div>
+              </div>
+              <div class="mob-module-arrow">→</div>
+            </a>
+            <a href="#" class="mob-module">
+              <div class="mob-module-icon">📄</div>
+              <div class="mob-module-info">
+                <div class="mob-module-name">Factures</div>
+                <div class="mob-module-desc">Générer et envoyer</div>
+              </div>
+              <div class="mob-module-arrow">→</div>
+            </a>
+            <a href="#" class="mob-module">
+              <div class="mob-module-icon">🏢</div>
+              <div class="mob-module-info">
+                <div class="mob-module-name">Fournisseurs</div>
+                <div class="mob-module-desc">Commandes et gestion</div>
+              </div>
+              <div class="mob-module-arrow">→</div>
+            </a>
+          </div>
+        </div>
+
+        <div class="mob-bottom"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="theme-label">Thème 1 — Mobile</div>
+</body>
+</html>

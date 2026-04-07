@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thème 2 — Souk Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F2E8D9;
+  --card:#FFF8F0;
+  --nav:#2C1A0E;
+  --txt:#1A0E05;
+  --muted:#8B6A50;
+  --gold:#B8732A;
+  --teal:#2A7B7A;
+  --terra:#C4603A;
+  --gold-light:rgba(184,115,42,0.12);
+  --border:rgba(184,115,42,0.25);
+}
+body{
+  font-family:'Cairo',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  min-height:100vh;
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23B8732A' stroke-width='0.4' opacity='0.15'%3E%3Cpolygon points='30,4 36,22 54,22 40,33 45,51 30,41 15,51 20,33 6,22 24,22'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* NAV */
+nav{
+  background:var(--nav);
+  padding:0 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:68px;
+  border-bottom:3px solid var(--gold);
+}
+.nav-brand{
+  font-family:'Amiri',serif;
+  font-size:22px;color:#F0C060;
+  letter-spacing:3px;
+}
+.nav-links{display:flex;gap:6px;}
+.nav-links a{
+  color:rgba(255,255,255,.7);
+  text-decoration:none;font-size:13px;font-weight:600;
+  padding:6px 14px;border-radius:6px;
+  transition:all .2s;
+}
+.nav-links a:hover,.nav-links a.active{
+  background:rgba(184,115,42,.3);
+  color:#F0C060;
+}
+.nav-logout{
+  color:rgba(255,255,255,.5);font-size:12px;
+  text-decoration:none;padding:6px 14px;
+  border:1px solid rgba(255,255,255,.2);border-radius:6px;
+}
+
+/* HERO */
+.hero{
+  background:linear-gradient(135deg, #3D2210 0%, #2C1A0E 100%);
+  padding:48px 40px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23F0C060' stroke-width='0.5' opacity='0.08'%3E%3Cpolygon points='40,5 47,28 70,28 52,42 59,65 40,51 21,65 28,42 10,28 33,28'/%3E%3C/g%3E%3C/svg%3E") repeat;
+}
+.hero-content{position:relative;z-index:1;}
+.hero-badge{
+  display:inline-block;
+  background:var(--gold);color:#fff;
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  padding:4px 14px;border-radius:20px;margin-bottom:16px;font-weight:600;
+}
+.hero-title{
+  font-family:'Amiri',serif;
+  font-size:52px;color:#F0C060;
+  line-height:1.1;margin-bottom:8px;
+}
+.hero-sub{
+  color:rgba(255,255,255,.6);font-size:13px;letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:16px;
+}
+.hero-date{color:#F0C060;font-size:15px;font-weight:600;}
+
+/* STATS */
+.stats-bar{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:#fff;
+  border-bottom:2px solid var(--border);
+}
+.stat{
+  padding:20px 24px;
+  border-right:1px solid var(--border);
+  text-align:center;
+}
+.stat:last-child{border-right:none;}
+.stat-val{font-size:26px;font-weight:700;color:var(--gold);}
+.stat-lbl{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600;}
+
+/* CONTENT */
+.content{padding:32px 32px;}
+.section-head{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:20px;
+}
+.section-head h2{
+  font-family:'Amiri',serif;
+  font-size:22px;color:var(--txt);
+}
+.section-line{flex:1;height:1px;background:var(--border);}
+
+/* GRID */
+.grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:16px;margin-bottom:32px;
+}
+.module{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:24px 20px;
+  text-decoration:none;color:var(--txt);
+  transition:all .2s;
+  position:relative;overflow:hidden;
+}
+.module::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--gold),var(--terra));
+}
+.module:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(184,115,42,.2);
+}
+.module.teal::before{background:linear-gradient(90deg,var(--teal),#3AABA9);}
+.module.terra::before{background:linear-gradient(90deg,var(--terra),#E07050);}
+.module-icon{font-size:28px;margin-bottom:12px;}
+.module-name{font-size:15px;font-weight:700;margin-bottom:6px;}
+.module-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+
+.theme-label{
+  position:fixed;bottom:20px;right:20px;
+  background:var(--nav);color:#F0C060;
+  padding:8px 16px;font-size:11px;letter-spacing:2px;
+  border-radius:6px;border:1px solid var(--gold);
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">ترابلسي</div>
+  <div class="nav-links">
+    <a href="#" class="active">Accueil</a>
+    <a href="#">Stock</a>
+    <a href="#">Ventes</a>
+    <a href="#">Finances</a>
+    <a href="#">Dashboard</a>
+  </div>
+  <a href="#" class="nav-logout">⎋ Déconnexion</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Système ERP</div>
+    <h1 class="hero-title">TRABELSI</h1>
+    <div class="hero-sub">Bijouterie · Joaillerie · Mega Mall · Rabat</div>
+    <div class="hero-date">Mardi 7 Avril 2026</div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-val">247</div><div class="stat-lbl">Articles en stock</div></div>
+  <div class="stat"><div class="stat-val">18 400 g</div><div class="stat-lbl">Or total</div></div>
+  <div class="stat"><div class="stat-val">34</div><div class="stat-lbl">Ventes ce mois</div></div>
+  <div class="stat"><div class="stat-val">12</div><div class="stat-lbl">Crédits actifs</div></div>
+</div>
+
+<div class="content">
+  <div class="section-head">
+    <h2>Stock & Ventes</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="grid">
+    <a href="#" class="module">
+      <div class="module-icon">📊</div>
+      <div class="module-name">Dashboard</div>
+      <div class="module-desc">Stats en temps réel et analyses financières</div>
+    </a>
+    <a href="#" class="module">
+      <div class="module-icon">📦</div>
+      <div class="module-name">Stock</div>
+      <div class="module-desc">Consulter et gérer tous les articles en stock</div>
+    </a>
+    <a href="#" class="module teal">
+      <div class="module-icon">💰</div>
+      <div class="module-name">Ventes</div>
+      <div class="module-desc">Historique et enregistrement des ventes</div>
+    </a>
+    <a href="#" class="module terra">
+      <div class="module-icon">＋</div>
+      <div class="module-name">Ajouter</div>
+      <div class="module-desc">Ajouter un nouvel article au stock</div>
+    </a>
+  </div>
+
+  <div class="section-head">
+    <h2>Finances Clients</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="grid">
+    <a href="#" class="module teal">
+      <div class="module-icon">💳</div>
+      <div class="module-name">Crédits</div>
+      <div class="module-desc">Paiements différés et crédits clients</div>
+    </a>
+    <a href="#" class="module terra">
+      <div class="module-icon">🧾</div>
+      <div class="module-name">Chèques</div>
+      <div class="module-desc">Suivi et encaissement des chèques</div>
+    </a>
+    <a href="#" class="module">
+      <div class="module-icon">📄</div>
+      <div class="module-name">Factures</div>
+      <div class="module-desc">Générer et envoyer des factures</div>
+    </a>
+    <a href="#" class="module">
+      <div class="module-icon">🏢</div>
+      <div class="module-name">Fournisseurs</div>
+      <div class="module-desc">Gestion des fournisseurs et commandes</div>
+    </a>
+  </div>
+</div>
+
+<div class="theme-label">Thème 2 — Souk Digital</div>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thème 3 — ERP Sombre Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0F0F0F;
+  --sidebar:#141414;
+  --card:#1A1A1A;
+  --card2:#1E1E1E;
+  --border:rgba(255,255,255,0.07);
+  --txt:#F0F0F0;
+  --muted:#666;
+  --muted2:#999;
+  --gold:#F0B429;
+  --gold-dim:rgba(240,180,41,0.12);
+  --green:#22C55E;
+  --blue:#3B82F6;
+  --red:#EF4444;
+}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  min-height:100vh;
+  display:flex;
+}
+
+/* SIDEBAR */
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  height:100vh;position:fixed;top:0;left:0;
+}
+.sidebar-logo{
+  padding:24px 20px;
+  border-bottom:1px solid var(--border);
+}
+.logo-icon{
+  width:36px;height:36px;
+  background:linear-gradient(135deg,#F0B429,#C48A10);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:14px;color:#0A0A0A;
+  margin-bottom:10px;
+}
+.logo-name{font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--txt);}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+
+.sidebar-section{
+  padding:16px 12px 8px;
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);
+}
+.sidebar-links{padding:0 8px;}
+.sidebar-link{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;
+  color:var(--muted2);text-decoration:none;
+  font-size:13px;font-weight:500;
+  transition:all .15s;margin-bottom:2px;
+}
+.sidebar-link:hover{background:rgba(255,255,255,.05);color:var(--txt);}
+.sidebar-link.active{background:var(--gold-dim);color:var(--gold);}
+.sidebar-link .icon{font-size:15px;width:18px;text-align:center;}
+.sidebar-bottom{margin-top:auto;padding:16px 8px;border-top:1px solid var(--border);}
+.logout-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;
+  color:var(--muted);text-decoration:none;font-size:13px;
+  transition:all .15s;
+}
+.logout-btn:hover{color:#EF4444;background:rgba(239,68,68,.08);}
+
+/* MAIN */
+.main{
+  margin-left:220px;flex:1;
+  min-height:100vh;
+}
+
+/* TOPBAR */
+.topbar{
+  height:60px;
+  background:var(--sidebar);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:15px;font-weight:600;color:var(--txt);}
+.topbar-date{font-size:12px;color:var(--muted2);}
+.notif{
+  width:34px;height:34px;border-radius:8px;
+  background:var(--card2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;cursor:pointer;position:relative;
+}
+.notif-dot{
+  position:absolute;top:6px;right:7px;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--gold);
+}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.avatar{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--gold),#C48A10);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#0A0A0A;
+}
+
+/* CONTENT */
+.content{padding:28px 32px;}
+
+/* STATS */
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:16px;margin-bottom:28px;
+}
+.stat{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;padding:20px 22px;
+  position:relative;overflow:hidden;
+}
+.stat::after{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:2px;
+}
+.stat.g::after{background:var(--gold);}
+.stat.gr::after{background:var(--green);}
+.stat.bl::after{background:var(--blue);}
+.stat.rd::after{background:var(--red);}
+.stat-ico{font-size:18px;margin-bottom:12px;opacity:.7;}
+.stat-val{font-size:24px;font-weight:700;color:var(--txt);margin-bottom:4px;}
+.stat-lbl{font-size:11px;color:var(--muted2);}
+.stat-change{
+  font-size:11px;font-weight:600;margin-top:8px;
+  display:flex;align-items:center;gap:4px;
+}
+.up{color:var(--green);}
+.down{color:var(--red);}
+
+/* MODULES */
+.modules-title{
+  font-size:12px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:16px;
+}
+.modules{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:14px;margin-bottom:28px;
+}
+.module{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;padding:20px;
+  text-decoration:none;color:var(--txt);
+  transition:all .2s;
+  display:flex;flex-direction:column;gap:10px;
+}
+.module:hover{
+  border-color:rgba(240,180,41,.3);
+  background:var(--card2);
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+.module-icon-wrap{
+  width:38px;height:38px;border-radius:8px;
+  background:var(--gold-dim);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+.module.teal .module-icon-wrap{background:rgba(59,130,246,.12);}
+.module.grn .module-icon-wrap{background:rgba(34,197,94,.12);}
+.module.red .module-icon-wrap{background:rgba(239,68,68,.1);}
+.module-name{font-size:13px;font-weight:600;}
+.module-desc{font-size:11px;color:var(--muted2);line-height:1.5;}
+.module-badge{
+  display:inline-flex;align-items:center;
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  background:rgba(240,180,41,.15);color:var(--gold);
+  padding:3px 8px;border-radius:20px;width:fit-content;
+}
+
+.theme-label{
+  position:fixed;bottom:20px;right:20px;
+  background:var(--gold);color:#0A0A0A;
+  padding:8px 16px;font-size:11px;letter-spacing:2px;font-weight:700;
+  border-radius:6px;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">T</div>
+    <div class="logo-name">Trabelsi</div>
+    <div class="logo-sub">Gestion de Stock</div>
+  </div>
+
+  <div class="sidebar-section">Stock & Ventes</div>
+  <div class="sidebar-links">
+    <a href="#" class="sidebar-link active"><span class="icon">🏠</span> Accueil</a>
+    <a href="#" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="#" class="sidebar-link"><span class="icon">📦</span> Stock</a>
+    <a href="#" class="sidebar-link"><span class="icon">💰</span> Ventes</a>
+    <a href="#" class="sidebar-link"><span class="icon">＋</span> Ajouter</a>
+  </div>
+
+  <div class="sidebar-section">Finances</div>
+  <div class="sidebar-links">
+    <a href="#" class="sidebar-link"><span class="icon">💳</span> Crédits</a>
+    <a href="#" class="sidebar-link"><span class="icon">🧾</span> Chèques</a>
+    <a href="#" class="sidebar-link"><span class="icon">📄</span> Factures</a>
+    <a href="#" class="sidebar-link"><span class="icon">🏢</span> Fournisseurs</a>
+  </div>
+
+  <div class="sidebar-bottom">
+    <a href="#" class="logout-btn"><span>⎋</span> Déconnexion</a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Tableau de bord</div>
+      <div class="topbar-date">Mardi 7 Avril 2026</div>
+    </div>
+    <div class="topbar-right">
+      <div class="notif">🔔<div class="notif-dot"></div></div>
+      <div class="avatar">AD</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat g">
+        <div class="stat-ico">📦</div>
+        <div class="stat-val">247</div>
+        <div class="stat-lbl">Articles en stock</div>
+        <div class="stat-change up">↑ 12 ce mois</div>
+      </div>
+      <div class="stat gr">
+        <div class="stat-ico">⚖️</div>
+        <div class="stat-val">18 400 g</div>
+        <div class="stat-lbl">Or total</div>
+        <div class="stat-change up">↑ 340 g</div>
+      </div>
+      <div class="stat bl">
+        <div class="stat-ico">💰</div>
+        <div class="stat-val">34</div>
+        <div class="stat-lbl">Ventes ce mois</div>
+        <div class="stat-change down">↓ 3 vs mois dernier</div>
+      </div>
+      <div class="stat rd">
+        <div class="stat-ico">💳</div>
+        <div class="stat-val">12</div>
+        <div class="stat-lbl">Crédits actifs</div>
+        <div class="stat-change up">↑ 2 nouveaux</div>
+      </div>
+    </div>
+
+    <!-- MODULES -->
+    <div class="modules-title">Accès rapide</div>
+    <div class="modules">
+      <a href="#" class="module">
+        <div class="module-badge">● Live</div>
+        <div class="module-icon-wrap">📊</div>
+        <div class="module-name">Dashboard</div>
+        <div class="module-desc">Stats en temps réel et analyses financières</div>
+      </a>
+      <a href="#" class="module teal">
+        <div class="module-icon-wrap">📦</div>
+        <div class="module-name">Stock</div>
+        <div class="module-desc">Consulter et gérer tous les articles</div>
+      </a>
+      <a href="#" class="module grn">
+        <div class="module-icon-wrap">💰</div>
+        <div class="module-name">Ventes</div>
+        <div class="module-desc">Historique et enregistrement des ventes</div>
+      </a>
+      <a href="#" class="module">
+        <div class="module-icon-wrap">＋</div>
+        <div class="module-name">Ajouter</div>
+        <div class="module-desc">Ajouter un nouvel article au stock</div>
+      </a>
+      <a href="#" class="module">
+        <div class="module-icon-wrap">💳</div>
+        <div class="module-name">Crédits</div>
+        <div class="module-desc">Paiements différés et crédits clients</div>
+      </a>
+      <a href="#" class="module">
+        <div class="module-icon-wrap">🧾</div>
+        <div class="module-name">Chèques</div>
+        <div class="module-desc">Suivi et encaissement des chèques</div>
+      </a>
+      <a href="#" class="module red">
+        <div class="module-icon-wrap">📄</div>
+        <div class="module-name">Factures</div>
+        <div class="module-desc">Générer et envoyer des factures clients</div>
+      </a>
+      <a href="#" class="module">
+        <div class="module-icon-wrap">🏢</div>
+        <div class="module-name">Fournisseurs</div>
+        <div class="module-desc">Gestion des fournisseurs et commandes</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="theme-label">Thème 3 — ERP Sombre Pro</div>
+</body>
+</html>

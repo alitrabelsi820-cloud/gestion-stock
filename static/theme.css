@@ -1,0 +1,503 @@
+/* ═══════════════════════════════════════════════════════════
+   THEME.CSS — Thème "Maison de Luxe"
+   Override pur CSS — ne touche à aucune logique ni donnée
+   ═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── VARIABLES GLOBALES ─────────────────────────────────── */
+:root {
+  --gold:    #C4A35A !important;
+  --gold-l:  #9A7A3A !important;
+  --gold-d:  #8A6A2A !important;
+  --gold-pale: rgba(196,163,90,0.10) !important;
+  --bg:      #FAFAF8 !important;
+  --bg2:     #FFFFFF !important;
+  --bg3:     #F5F4F0 !important;
+  --bd:      rgba(10,10,10,0.09) !important;
+  --txt:     #0A0A0A !important;
+  --muted:   #888880 !important;
+}
+
+/* ── FONT GLOBALE ───────────────────────────────────────── */
+body {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  background: #FAFAF8 !important;
+  color: #0A0A0A !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NAV
+   ══════════════════════════════════════════════════════════ */
+nav {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid rgba(10,10,10,0.09) !important;
+  box-shadow: none !important;
+}
+
+.nav-logo {
+  background: #0A0A0A !important;
+  border-radius: 4px !important;
+  color: #C4A35A !important;
+  font-family: 'Playfair Display', serif !important;
+}
+
+.nav-title {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 500 !important;
+  letter-spacing: 3px !important;
+  font-size: 14px !important;
+  color: #0A0A0A !important;
+}
+
+.nav-links a {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  color: #888880 !important;
+  border-radius: 4px !important;
+}
+
+.nav-links a:hover {
+  color: #C4A35A !important;
+  background: rgba(196,163,90,0.08) !important;
+}
+
+.nav-links a.active {
+  color: #C4A35A !important;
+  background: rgba(196,163,90,0.10) !important;
+  border: 1px solid rgba(196,163,90,0.22) !important;
+}
+
+.mob-logout, .nav-logout-btn {
+  color: #888880 !important;
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PAGE HEADER
+   ══════════════════════════════════════════════════════════ */
+.page {
+  background: #FAFAF8 !important;
+}
+
+.page-header h1 {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 500 !important;
+  font-size: 24px !important;
+  color: #0A0A0A !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CARDS / STATS
+   ══════════════════════════════════════════════════════════ */
+.card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(10,10,10,0.09) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+.card:hover {
+  transform: none !important;
+  border-color: rgba(196,163,90,0.35) !important;
+  box-shadow: none !important;
+}
+
+.card::before {
+  height: 2px !important;
+  border-radius: 0 !important;
+}
+
+.card-val {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 26px !important;
+  font-weight: 500 !important;
+  color: #0A0A0A !important;
+}
+
+.card-ico {
+  font-size: 20px !important;
+  opacity: 0.6 !important;
+}
+
+.card-lbl {
+  font-size: 9px !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: #888880 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BOUTONS
+   ══════════════════════════════════════════════════════════ */
+.btn {
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+}
+
+.btn-gold {
+  background: #0A0A0A !important;
+  color: #C4A35A !important;
+  border: 1px solid #0A0A0A !important;
+}
+
+.btn-gold:hover {
+  background: #1A1A1A !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+.btn-outline {
+  background: transparent !important;
+  border: 1px solid rgba(10,10,10,0.15) !important;
+  color: #888880 !important;
+}
+
+.btn-outline:hover {
+  border-color: #C4A35A !important;
+  color: #C4A35A !important;
+  background: transparent !important;
+}
+
+.btn-sm {
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TABLES
+   ══════════════════════════════════════════════════════════ */
+table {
+  border-collapse: collapse !important;
+}
+
+thead th {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: #888880 !important;
+  border-bottom: 1px solid rgba(10,10,10,0.09) !important;
+  background: #FAFAF8 !important;
+  padding: 10px 14px !important;
+}
+
+tbody td {
+  border-bottom: 1px solid rgba(10,10,10,0.06) !important;
+  padding: 11px 14px !important;
+  font-size: 13px !important;
+}
+
+tbody tr:hover td {
+  background: rgba(196,163,90,0.04) !important;
+}
+
+tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+td.ref-col {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #0A0A0A !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TABS
+   ══════════════════════════════════════════════════════════ */
+.tab {
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+  border: 1px solid rgba(10,10,10,0.09) !important;
+  color: #888880 !important;
+  background: transparent !important;
+}
+
+.tab:hover {
+  border-color: #C4A35A !important;
+  color: #C4A35A !important;
+  background: transparent !important;
+}
+
+.tab.active {
+  background: #0A0A0A !important;
+  border-color: #0A0A0A !important;
+  color: #C4A35A !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TOOLBAR & SEARCH
+   ══════════════════════════════════════════════════════════ */
+.toolbar {
+  background: #FAFAF8 !important;
+  border-bottom: 1px solid rgba(10,10,10,0.06) !important;
+}
+
+.search-wrap input,
+input[type=text], input[type=number], input[type=date],
+input[type=email], input[type=tel], input[type=password],
+select, textarea {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(10,10,10,0.12) !important;
+  border-radius: 4px !important;
+  color: #0A0A0A !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+.search-wrap input:focus,
+input:focus, select:focus, textarea:focus {
+  border-color: #C4A35A !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MODAUX
+   ══════════════════════════════════════════════════════════ */
+.modal, .confirm-box {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(10,10,10,0.09) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12) !important;
+}
+
+.modal h2 {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  color: #0A0A0A !important;
+  border-bottom: 1px solid rgba(10,10,10,0.09) !important;
+  letter-spacing: 0.5px !important;
+}
+
+.overlay, .ov, .confirm-overlay {
+  background: rgba(10,10,10,0.45) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* Labels des champs */
+label, .mf label, .form-label {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  color: #888880 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PANELS & SECTIONS
+   ══════════════════════════════════════════════════════════ */
+.panel, .panel-full, .form-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(10,10,10,0.09) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+.section-title, .panel h2, .panel-title {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 500 !important;
+  color: #0A0A0A !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   ACCUEIL — Hero & Modules
+   ══════════════════════════════════════════════════════════ */
+
+/* Hero background : override motif étoile par fond uni subtil */
+.hero {
+  background: #FAFAF8 !important;
+}
+
+.hero::before {
+  opacity: 0.06 !important;
+}
+
+.hero::after {
+  display: none !important;
+}
+
+.brand-name {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 400 !important;
+  letter-spacing: 10px !important;
+  color: #0A0A0A !important;
+  font-size: 52px !important;
+}
+
+/* Sous-titre hero */
+.hero-brand p, .hero-brand div {
+  letter-spacing: 4px !important;
+  color: #888880 !important;
+  font-size: 11px !important;
+}
+
+/* Modules accueil */
+.module {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(10,10,10,0.09) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+.module::before, .module::after {
+  display: none !important;
+}
+
+.module:hover {
+  background: #F5F4F0 !important;
+  border-color: rgba(196,163,90,0.3) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.module-name {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  color: #0A0A0A !important;
+}
+
+.module-ico, .module-icon {
+  font-size: 22px !important;
+  opacity: 0.75 !important;
+}
+
+.module-desc {
+  font-size: 11px !important;
+  color: #888880 !important;
+}
+
+.module-badge {
+  background: transparent !important;
+  border: 1px solid #C4A35A !important;
+  color: #C4A35A !important;
+  font-size: 8px !important;
+  letter-spacing: 2px !important;
+  border-radius: 2px !important;
+  padding: 2px 7px !important;
+}
+
+/* Coins décoratifs accueil */
+.corner { opacity: 0.3 !important; }
+
+/* ══════════════════════════════════════════════════════════
+   BADGES & STATUTS
+   ══════════════════════════════════════════════════════════ */
+.badge-green, .status-ok {
+  background: rgba(34,197,94,0.08) !important;
+  color: #16A34A !important;
+  border: 1px solid rgba(34,197,94,0.2) !important;
+  border-radius: 3px !important;
+}
+
+.badge-red, .status-late {
+  background: rgba(239,68,68,0.08) !important;
+  color: #DC2626 !important;
+  border: 1px solid rgba(239,68,68,0.2) !important;
+  border-radius: 3px !important;
+}
+
+.badge-gold {
+  background: rgba(196,163,90,0.1) !important;
+  color: #9A7A3A !important;
+  border: 1px solid rgba(196,163,90,0.25) !important;
+  border-radius: 3px !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TOAST NOTIFICATIONS
+   ══════════════════════════════════════════════════════════ */
+.toast, .toast-item {
+  border-radius: 4px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SCROLL & MISC
+   ══════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #FAFAF8; }
+::-webkit-scrollbar-thumb { background: rgba(196,163,90,0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #C4A35A; }
+
+/* Sélection texte */
+::selection { background: rgba(196,163,90,0.2); color: #0A0A0A; }
+
+/* Liens */
+a { transition: color 0.15s !important; }
+
+/* Séparateurs */
+hr { border-color: rgba(10,10,10,0.08) !important; }
+
+/* ══════════════════════════════════════════════════════════
+   TBL-WRAP
+   ══════════════════════════════════════════════════════════ */
+.tbl-wrap {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(10,10,10,0.09) !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PERIOD STATS / BENEF BOX
+   ══════════════════════════════════════════════════════════ */
+.period-stat, .benef-item, .tot-item {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(10,10,10,0.09) !important;
+  border-radius: 4px !important;
+}
+
+.ps-val, .benef-val, .tot-val {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 500 !important;
+  color: #0A0A0A !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE — menu dropdown
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 860px) {
+  .nav-links {
+    background: #FFFFFF !important;
+    border-top: 1px solid rgba(196,163,90,0.2) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08) !important;
+  }
+
+  .nav-links a {
+    color: #0A0A0A !important;
+    border-radius: 4px !important;
+    font-size: 13px !important;
+    letter-spacing: 0.5px !important;
+    text-transform: none !important;
+  }
+
+  .nav-links a.active {
+    background: rgba(196,163,90,0.1) !important;
+    color: #9A7A3A !important;
+  }
+
+  .mob-logout {
+    color: #DC2626 !important;
+    border-top: 1px solid rgba(10,10,10,0.07) !important;
+  }
+
+  .brand-name {
+    font-size: 32px !important;
+    letter-spacing: 6px !important;
+  }
+}
