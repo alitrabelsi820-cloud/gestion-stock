@@ -826,14 +826,24 @@ function filter(type, btn) {{
 
     def send_html(self, path):
         try:
-            content = path.read_bytes()
+            content = path.read_text(encoding="utf-8")
+            # Injecter les balises PWA si absentes (standalone iOS)
+            pwa_tags = (
+                '<meta name="apple-mobile-web-app-capable" content="yes">\n'
+                '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n'
+                '<meta name="apple-mobile-web-app-title" content="Trabelsi">\n'
+                '<link rel="manifest" href="/static/manifest.json">\n'
+            )
+            if 'apple-mobile-web-app-capable' not in content:
+                content = content.replace('<meta name="viewport"', pwa_tags + '<meta name="viewport"', 1)
+            body = content.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", len(content))
+            self.send_header("Content-Length", len(body))
             self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
             self.send_header("Pragma", "no-cache")
             self.end_headers()
-            self.wfile.write(content)
+            self.wfile.write(body)
         except FileNotFoundError:
             self.send_response(404)
             self.end_headers()
