@@ -86,9 +86,19 @@
     overlay.addEventListener('click', closeMenu);
 
     navLinks.querySelectorAll('a').forEach(function (a) {
+      /* Click normal (desktop) */
       a.addEventListener('click', function () {
         setTimeout(closeMenu, 100);
       });
+      /* touchend pour iOS Safari : les liens dans fixed+overflow ne répondent pas au click */
+      a.addEventListener('touchend', function (e) {
+        e.preventDefault();
+        var href = a.getAttribute('href');
+        closeMenu();
+        if (href && href !== '#') {
+          setTimeout(function () { window.location.href = href; }, 80);
+        }
+      }, { passive: false });
     });
 
     document.addEventListener('keydown', function (e) {
