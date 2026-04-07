@@ -6,168 +6,204 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Connexion — Trabelsi</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: #0d0d0d;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
+body {
+  background: #0d0d0d;
+  font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
 
-  /* Motif géométrique en fond */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30,5 L55,30 L30,55 L5,30 Z' fill='none' stroke='%23c9a84c' stroke-width='0.4' opacity='0.08'/%3E%3C/svg%3E");
-    background-size: 60px 60px;
-    pointer-events: none;
-  }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30,5 L55,30 L30,55 L5,30 Z' fill='none' stroke='%23c9a84c' stroke-width='0.4' opacity='0.08'/%3E%3C/svg%3E");
+  background-size: 60px 60px;
+  pointer-events: none;
+}
 
-  .card {
-    background: #161616;
-    border: 1px solid #2a2a2a;
-    border-radius: 16px;
-    padding: 48px 40px;
-    width: 100%;
-    max-width: 380px;
-    position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
+.card {
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  padding: 36px 32px 32px;
+  width: 100%;
+  max-width: 340px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
 
-  /* Ligne dorée en haut */
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #c9a84c, transparent);
-    border-radius: 16px 16px 0 0;
-  }
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+  border-radius: 20px 20px 0 0;
+}
 
-  .logo {
-    text-align: center;
-    margin-bottom: 32px;
-  }
+.logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
 
-  .logo-icon {
-    width: 64px; height: 64px;
-    background: linear-gradient(135deg, #c9a84c, #9a7530);
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    font-weight: 900;
-    color: #1a1200;
-    font-family: Georgia, serif;
-    margin-bottom: 14px;
-  }
+.logo-icon {
+  width: 60px; height: 60px;
+  background: linear-gradient(135deg, #c9a84c, #9a7530);
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: #1a1200;
+  font-family: Georgia, serif;
+  margin-bottom: 12px;
+}
 
-  .logo-name {
-    font-size: 20px;
-    font-weight: 700;
-    color: #f0d070;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-  }
+.logo-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f0d070;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
 
-  .logo-sub {
-    font-size: 10px;
-    color: #555;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-top: 3px;
-  }
+.logo-sub {
+  font-size: 10px;
+  color: #555;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
 
-  .form-group {
-    margin-bottom: 20px;
-  }
+/* Affichage des points */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 20px 0 24px;
+  min-height: 18px;
+}
 
-  label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: #666;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
+.dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid #444;
+  background: transparent;
+  transition: background .15s, border-color .15s;
+}
 
-  input[type="text"] {
-    width: 100%;
-    background: #1e1e1e;
-    border: 1px solid #2a2a2a;
-    border-radius: 10px;
-    padding: 14px 16px;
-    font-size: 18px;
-    color: #f0f0f0;
-    letter-spacing: 4px;
-    outline: none;
-    transition: border-color .2s;
-  }
+.dot.filled {
+  background: #c9a84c;
+  border-color: #c9a84c;
+}
 
-  input[type="text"]:focus {
-    border-color: #c9a84c;
-    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
-  }
+/* Erreur */
+.error {
+  background: rgba(231,76,60,0.1);
+  border: 1px solid rgba(231,76,60,0.3);
+  color: #e74c3c;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  display: none;
+  text-align: center;
+}
+.error.show { display: block; }
 
-  input[type="text"]::placeholder {
-    letter-spacing: 2px;
-    font-size: 14px;
-    color: #333;
-  }
+/* Pavé numérique */
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
 
-  .btn {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #c9a84c, #9a7530);
-    color: #1a1200;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: opacity .2s, transform .1s;
-    margin-top: 8px;
-  }
+.nk {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: none;
+  background: #252525;
+  color: #f0f0f0;
+  font-size: 22px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s, transform .08s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  line-height: 1;
+}
 
-  .btn:hover { opacity: 0.9; }
-  .btn:active { transform: scale(0.98); }
+.nk .sub {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #888;
+  margin-top: 2px;
+}
 
-  .error {
-    background: rgba(231,76,60,0.1);
-    border: 1px solid rgba(231,76,60,0.3);
-    color: #e74c3c;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 12px;
-    margin-bottom: 18px;
-    display: none;
-    text-align: center;
-  }
+.nk:active, .nk.pressed {
+  background: #c9a84c;
+  color: #1a1200;
+  transform: scale(0.92);
+}
 
-  .error.show { display: block; }
+.nk.empty {
+  background: transparent;
+  cursor: default;
+}
 
-  .footer-txt {
-    text-align: center;
-    font-size: 10px;
-    color: #333;
-    margin-top: 24px;
-    letter-spacing: 1px;
-  }
+.nk.del {
+  background: #252525;
+  font-size: 20px;
+}
+
+.nk.del:active, .nk.del.pressed {
+  background: rgba(231,76,60,0.3);
+  color: #e74c3c;
+  transform: scale(0.92);
+}
+
+/* Bouton accéder */
+.btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #c9a84c, #9a7530);
+  color: #1a1200;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: opacity .2s, transform .1s;
+}
+
+.btn:active { transform: scale(0.98); opacity: 0.9; }
+
+.footer-txt {
+  text-align: center;
+  font-size: 10px;
+  color: #333;
+  margin-top: 20px;
+  letter-spacing: 1px;
+}
 </style>
 </head>
 <body>
 
 <div class="card">
-
   <div class="logo">
     <div class="logo-icon">T</div>
     <div class="logo-name">Trabelsi</div>
@@ -176,44 +212,103 @@
 
   <div class="error" id="err">Mot de passe incorrect</div>
 
-  <form id="loginForm">
-    <div class="form-group">
-      <label>Mot de passe</label>
-      <input type="text" id="pwd" placeholder="Mot de passe" autocomplete="current-password" autofocus>
-    </div>
-    <button type="submit" class="btn">Accéder</button>
-  </form>
+  <div class="dots" id="dots"></div>
+
+  <div class="numpad">
+    <button class="nk" onclick="np('1')">1</button>
+    <button class="nk" onclick="np('2')">2<span class="sub">ABC</span></button>
+    <button class="nk" onclick="np('3')">3<span class="sub">DEF</span></button>
+    <button class="nk" onclick="np('4')">4<span class="sub">GHI</span></button>
+    <button class="nk" onclick="np('5')">5<span class="sub">JKL</span></button>
+    <button class="nk" onclick="np('6')">6<span class="sub">MNO</span></button>
+    <button class="nk" onclick="np('7')">7<span class="sub">PQRS</span></button>
+    <button class="nk" onclick="np('8')">8<span class="sub">TUV</span></button>
+    <button class="nk" onclick="np('9')">9<span class="sub">WXYZ</span></button>
+    <button class="nk empty"></button>
+    <button class="nk" onclick="np('0')">0</button>
+    <button class="nk del" onclick="npDel()">⌫</button>
+  </div>
+
+  <button class="btn" onclick="login()">Accéder</button>
 
   <div class="footer-txt">Mega Mall · Rabat</div>
-
 </div>
 
 <script>
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const pwd = document.getElementById('pwd').value;
+let pwd = '';
+
+function renderDots() {
+  const c = document.getElementById('dots');
+  c.innerHTML = '';
+  for (let i = 0; i < Math.max(pwd.length, 1); i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < pwd.length ? ' filled' : '');
+    c.appendChild(d);
+  }
+}
+
+function np(d) {
+  if (pwd.length >= 10) return;
+  pwd += d;
+  renderDots();
+  // Feedback tactile
+  if (navigator.vibrate) navigator.vibrate(8);
+}
+
+function npDel() {
+  if (!pwd.length) return;
+  pwd = pwd.slice(0, -1);
+  renderDots();
+}
+
+async function login() {
+  if (!pwd) return;
   const err = document.getElementById('err');
   err.classList.remove('show');
-
   try {
     const res = await fetch('/api/login', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({password: pwd})
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
     });
     const data = await res.json();
     if (data.success) {
       window.location.href = data.redirect || '/accueil';
     } else {
       err.classList.add('show');
-      document.getElementById('pwd').value = '';
-      document.getElementById('pwd').focus();
+      pwd = '';
+      renderDots();
+      // Shake animation
+      const card = document.querySelector('.card');
+      card.style.animation = 'none';
+      card.offsetHeight;
+      card.style.animation = 'shake .4s ease';
     }
   } catch(e) {
-    err.textContent = 'Erreur de connexion au serveur';
+    err.textContent = 'Erreur de connexion';
     err.classList.add('show');
   }
+}
+
+// Clavier physique (Mac/desktop)
+document.addEventListener('keydown', function(e) {
+  if (e.key >= '0' && e.key <= '9') np(e.key);
+  else if (e.key === 'Backspace') npDel();
+  else if (e.key === 'Enter') login();
 });
+
+// Feedback tactile boutons
+document.querySelectorAll('.nk:not(.empty)').forEach(btn => {
+  btn.addEventListener('touchstart', () => btn.classList.add('pressed'), {passive:true});
+  btn.addEventListener('touchend', () => btn.classList.remove('pressed'), {passive:true});
+});
+
+// Animation shake
+const style = document.createElement('style');
+style.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}';
+document.head.appendChild(style);
+
+renderDots();
 </script>
 
 </body>
