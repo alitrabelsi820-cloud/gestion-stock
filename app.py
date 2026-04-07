@@ -836,7 +836,7 @@ function filter(type, btn) {{
             )
             if 'apple-mobile-web-app-capable' not in content:
                 content = content.replace('<meta name="viewport"', pwa_tags + '<meta name="viewport"', 1)
-            # Injecter fix nav-links desktop : force l'affichage après tout JS
+            # Injecter fix nav-links desktop : MutationObserver + timeouts
             nav_fix = (
                 '<script>'
                 '(function(){'
@@ -850,8 +850,19 @@ function filter(type, btn) {{
                 'nl.style.setProperty("position","static","important");'
                 'nl.style.setProperty("background","transparent","important");'
                 'nl.style.setProperty("box-shadow","none","important");'
+                'nl.style.setProperty("visibility","visible","important");'
+                'nl.style.setProperty("opacity","1","important");'
+                'nl.style.setProperty("height","auto","important");'
+                'nl.style.setProperty("overflow","visible","important");'
                 '}'
-                'setTimeout(fixNav,100);setTimeout(fixNav,300);setTimeout(fixNav,600);'
+                'function watchNav(){'
+                'var nl=document.querySelector("nav .nav-links")||document.querySelector(".nav-links");'
+                'if(!nl)return;'
+                'fixNav();'
+                'var obs=new MutationObserver(function(){if(window.innerWidth>860)fixNav();});'
+                'obs.observe(nl,{attributes:true,attributeFilter:["style","class"]});'
+                '}'
+                '[50,100,200,400,800,1500].forEach(function(t){setTimeout(watchNav,t);});'
                 'window.addEventListener("resize",fixNav);'
                 '})();'
                 '</script>'
