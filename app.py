@@ -836,6 +836,28 @@ function filter(type, btn) {{
             )
             if 'apple-mobile-web-app-capable' not in content:
                 content = content.replace('<meta name="viewport"', pwa_tags + '<meta name="viewport"', 1)
+            # Injecter fix nav-links desktop : force l'affichage après tout JS
+            nav_fix = (
+                '<script>'
+                '(function(){'
+                'function fixNav(){'
+                'if(window.innerWidth<=860)return;'
+                'var nl=document.querySelector("nav .nav-links")||document.querySelector(".nav-links");'
+                'if(!nl)return;'
+                'nl.style.setProperty("display","flex","important");'
+                'nl.style.setProperty("flex-direction","row","important");'
+                'nl.style.setProperty("align-items","center","important");'
+                'nl.style.setProperty("position","static","important");'
+                'nl.style.setProperty("background","transparent","important");'
+                'nl.style.setProperty("box-shadow","none","important");'
+                '}'
+                'setTimeout(fixNav,100);setTimeout(fixNav,300);setTimeout(fixNav,600);'
+                'window.addEventListener("resize",fixNav);'
+                '})();'
+                '</script>'
+            )
+            if '</body>' in content:
+                content = content.replace('</body>', nav_fix + '\n</body>', 1)
             body = content.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
