@@ -120,13 +120,13 @@
     margin-right: 4px !important;
   }
 
-  /* Overlay foncé derrière le menu */
+  /* Overlay foncé derrière le menu — doit être SOUS le nav (z-index:100) */
   .nav-overlay-dark {
     display: none;
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,.35);
-    z-index: 9989;
+    z-index: 99;
   }
   .nav-overlay-dark.open { display: block; }
 }
