@@ -116,6 +116,18 @@
     /* ── 8. Corrections au chargement et resize ── */
     hideInlineLogout();
     window.addEventListener('resize', hideInlineLogout);
+
+    /* ── 9. Forcer scroll horizontal sur les tableaux ── */
+    function fixTableScroll() {
+      if (window.innerWidth > 860) return;
+      document.querySelectorAll('.tbl-wrap').forEach(function(el) {
+        el.style.setProperty('overflow-x', 'auto', 'important');
+        el.style.setProperty('overflow-y', 'visible', 'important');
+        el.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+      });
+    }
+    fixTableScroll();
+    window.addEventListener('resize', fixTableScroll);
   }
 
   if (document.readyState === 'loading') {

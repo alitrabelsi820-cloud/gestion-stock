@@ -497,6 +497,14 @@ hr { border-color: rgba(10,10,10,0.08) !important; }
   overflow: hidden !important;
 }
 
+@media (max-width: 860px) {
+  .tbl-wrap {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
 /* ══════════════════════════════════════════════════════════
    PERIOD STATS / BENEF BOX
    ══════════════════════════════════════════════════════════ */

@@ -902,7 +902,11 @@ function filter(type, btn) {{
             self.send_response(200)
             self.send_header("Content-Type", mime)
             self.send_header("Content-Length", len(content))
-            self.send_header("Cache-Control", "public, max-age=86400")
+            # CSS et JS : jamais de cache (pour que les mises à jour soient immédiates)
+            if path.suffix in (".css", ".js"):
+                self.send_header("Cache-Control", "no-cache, must-revalidate")
+            else:
+                self.send_header("Cache-Control", "public, max-age=86400")
             self.end_headers()
             self.wfile.write(content)
         except FileNotFoundError:
@@ -1274,6 +1278,13 @@ function filter(type, btn) {{
 
             article = articles[idx]
             now = datetime.now()
+            date_vente_input = str(data.get("date_vente", "")).strip()
+            try:
+                from datetime import date as _date
+                datetime.strptime(date_vente_input, "%Y-%m-%d")
+                date_vente_str = date_vente_input
+            except Exception:
+                date_vente_str = now.strftime("%Y-%m-%d")
             cfg = load_config()
 
             if is_poids_article(article):
@@ -1296,7 +1307,7 @@ function filter(type, btn) {{
                 vente = {
                     "id_vente": int(now.timestamp() * 1000),
                     "date_achat": article.get("date"),
-                    "date_vente": now.strftime("%Y-%m-%d"),
+                    "date_vente": date_vente_str,
                     "ref": article["id"],
                     "article": article.get("article", ""),
                     "or_grs": poids_vendu,
@@ -1308,6 +1319,7 @@ function filter(type, btn) {{
                     "pv": pv,
                     "benef": benef,
                     "client": str(data.get("client", "")).strip(),
+                    "telephone": str(data.get("telephone", "")).strip(),
                     "mode_paiement": str(data.get("mode_paiement", "")).strip(),
                     "commentaire": str(data.get("note", "")).strip(),
                 }
@@ -1338,7 +1350,7 @@ function filter(type, btn) {{
                 vente = {
                     "id_vente": int(now.timestamp() * 1000),
                     "date_achat": article.get("date"),
-                    "date_vente": now.strftime("%Y-%m-%d"),
+                    "date_vente": date_vente_str,
                     "ref": article["id"],
                     "article": article["article"],
                     "or_grs": article.get("or_grs"),
@@ -1354,6 +1366,7 @@ function filter(type, btn) {{
                     "pv": pv,
                     "benef": benef,
                     "client": str(data.get("client", "")).strip(),
+                    "telephone": str(data.get("telephone", "")).strip(),
                     "mode_paiement": str(data.get("mode_paiement", "")).strip(),
                     "commentaire": str(data.get("note", "")).strip(),
                 }

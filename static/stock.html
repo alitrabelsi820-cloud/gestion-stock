@@ -169,6 +169,7 @@ td.has{color:#82e0aa;}
     <a href="/facture">Facture</a>
     <a href="/fournisseurs">Fournisseurs</a>
     <a href="/fiche">Fiche</a>
+      <a href="/logout" class="mob-logout" style="color:#c0392b;font-weight:600;">⎋ Déconnexion</a>
   </div>
   <button class="hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
 
@@ -655,22 +656,22 @@ async function showDetail(idx) {
   img.src = imgUrl;
 
   document.getElementById('m-grid').innerHTML = [
-    ['Date d\'entrée', fmtD(a.date), ''],
-    ['Référence', '#'+a.id, 'gold'],
-    ['Type d\'article', a.article||'—', ''],
-    ['OR (grammes)', a.or_grs!=null?fmt(a.or_grs)+' grs':'—', 'gold'],
-    ['Prix de Revient', a.pa!=null?fmtN(a.pa)+' MAD':'—', 'grn'],
-    ['Diamants (cts)', a.d?fmt(a.d):'—', ''],
-    ['Émeraudes (cts)', a.em?fmt(a.em):'—', ''],
-    ['Rubis (cts)', a.r?fmt(a.r):'—', ''],
-    ['Saphirs (cts)', a.s?fmt(a.s):'—', ''],
-    ['Pierres Fines', a.p_fines?fmt(a.p_fines):'—', ''],
-    ['Rosaces', a.rosaces?fmt(a.rosaces):'—', ''],
-    ['Ém. Colombie', a.em_clb?fmt(a.em_clb):'—', ''],
-    ['Perles (grs)', a.perles?fmt(a.perles)+' grs':'—', ''],
-    ['Fabricant', a.fabricant||'—', ''],
-    ['Pierres Ismail', a.ismail_pierres?'💎 Oui — Ismail':'—', a.ismail_pierres?'grn':''],
-  ].map(([l,v,c])=>`<div class="mf"><label>${l}</label><div class="v ${c}">${v}</div></div>`).join('');
+    ['Date d\'entrée',  fmtD(a.date),               ''],
+    ['Référence',       '#'+a.id,                    'gold'],
+    a.article        ? ['Type d\'article',  a.article,                    '']    : null,
+    a.or_grs != null ? ['OR (grammes)',     fmt(a.or_grs)+' grs',         'gold']: null,
+    a.pa     != null ? ['Prix de Revient',  fmtN(a.pa)+' MAD',            'grn'] : null,
+    a.d              ? ['Diamants (cts)',   fmt(a.d),                     '']    : null,
+    a.em             ? ['Émeraudes (cts)',  fmt(a.em),                    '']    : null,
+    a.r              ? ['Rubis (cts)',      fmt(a.r),                     '']    : null,
+    a.s              ? ['Saphirs (cts)',    fmt(a.s),                     '']    : null,
+    a.p_fines        ? ['Pierres Fines',   fmt(a.p_fines),               '']    : null,
+    a.rosaces        ? ['Rosaces',         fmt(a.rosaces),               '']    : null,
+    a.em_clb         ? ['Ém. Colombie',    fmt(a.em_clb),                '']    : null,
+    a.perles         ? ['Perles (grs)',     fmt(a.perles)+' grs',         '']    : null,
+    a.fabricant      ? ['Fabricant',        a.fabricant,                  '']    : null,
+    a.ismail_pierres ? ['Pierres Ismail',  '💎 Oui — Ismail',            'grn'] : null,
+  ].filter(Boolean).map(([l,v,c])=>`<div class="mf"><label>${l}</label><div class="v ${c}">${v}</div></div>`).join('');
 
   document.getElementById('m-vente-btn').onclick = ()=>{ closeModal(); window.location.href = `/vendu#vente-${a.id}`; document.getElementById('nv-ref-input').value=a.id; setTimeout(searchNV,200); };
   document.getElementById('m-edit-btn').onclick = ()=>{ closeModal(); openEdit(idx); };

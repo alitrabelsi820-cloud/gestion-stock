@@ -23,6 +23,18 @@
 /* ── NAV MOBILE ─────────────────────────────────────────── */
 @media (max-width: 860px) {
 
+  /* Nav fixe au viewport — empêche le scroll horizontal de la décaler */
+  nav {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    top: 0 !important;
+  }
+
+  /* Compenser la hauteur de la nav fixe */
+  body { padding-top: 62px; }
+
   /* Afficher le hamburger */
   .hamburger { display: flex !important; }
 
@@ -43,9 +55,8 @@
   }
 
   /* Cacher le bouton déconnexion dans la nav (inline ou classe) */
-  nav > a,
-  nav a[href*="logout"],
-  nav a[href="/logout"],
+  /* Sauf .nav-logout (utilisé sur mamoun.html qui n'a pas de menu hamburger) */
+  nav > a:not(.nav-logout):not(.nav-brand),
   nav .nav-logout-btn {
     display: none !important;
   }
@@ -321,6 +332,35 @@
     left: 8px !important;
     bottom: 16px !important;
     max-width: none !important;
+  }
+}
+
+/* ── TABLEAUX LARGES : réduction des colonnes sur mobile ─── */
+@media (max-width: 768px) {
+
+  /* ── TABLE CRÉDITS (#tbl) : 8 cols → 6 cols ──
+     Cachées : Date achat (2), Avances payées (5) */
+  #tbl th:nth-child(2), #tbl td:nth-child(2),
+  #tbl th:nth-child(5), #tbl td:nth-child(5) {
+    display: none !important;
+  }
+  #tbl { min-width: 0 !important; width: 100% !important; }
+
+  /* ── TABLE CHÈQUES (#cheques-tbl) : 10 cols → 5 cols ──
+     Cachées : N° Chèque (4), Nb Chèques (5), Banque (6), Date Encaissement (8) */
+  #cheques-tbl th:nth-child(4), #cheques-tbl td:nth-child(4),
+  #cheques-tbl th:nth-child(5), #cheques-tbl td:nth-child(5),
+  #cheques-tbl th:nth-child(6), #cheques-tbl td:nth-child(6),
+  #cheques-tbl th:nth-child(8), #cheques-tbl td:nth-child(8) {
+    display: none !important;
+  }
+  #cheques-tbl { min-width: 0 !important; width: 100% !important; }
+
+  /* ── Padding réduit pour toutes les cellules sur mobile ── */
+  #tbl th, #tbl td,
+  #cheques-tbl th, #cheques-tbl td {
+    padding: 8px 8px !important;
+    font-size: 11px !important;
   }
 }
 

@@ -141,8 +141,9 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     <a href="/facture">Facture</a>
     <a href="/fournisseurs">Fournisseurs</a>
     <a href="/fiche" class="active">Fiche</a>
+    <a href="/logout" class="mob-logout" style="color:#c0392b;font-weight:600;">⎋ Déconnexion</a>
   </div>
-  <button class="hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
 
   <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
 </nav>
@@ -271,16 +272,16 @@ function renderStock(a, enCredit){
         <div class="fiche-article-name">${a.article||'—'}</div>
         <div class="info-grid">
           <div class="info-item"><label>Date d'entrée</label><div class="val">${fmtD(a.date)}</div></div>
-          <div class="info-item"><label>Prix de Revient (P.R)</label><div class="val grn">${a.pa!=null?fmtN(a.pa)+' MAD':'—'}</div></div>
-          <div class="info-item"><label>OR (grammes)</label><div class="val gold">${a.or_grs!=null?fmt(a.or_grs)+' grs':'—'}</div></div>
-          <div class="info-item"><label>Diamants</label><div class="val ${a.d?'has':''}">${a.d?fmt(a.d)+' cts':'—'}</div></div>
-          <div class="info-item"><label>Émeraudes</label><div class="val ${a.em?'has':''}">${a.em?fmt(a.em)+' cts':'—'}</div></div>
-          <div class="info-item"><label>Rubis</label><div class="val ${a.r?'has':''}">${a.r?fmt(a.r)+' cts':'—'}</div></div>
-          <div class="info-item"><label>Saphirs</label><div class="val ${a.s?'has':''}">${a.s?fmt(a.s)+' cts':'—'}</div></div>
-          <div class="info-item"><label>Pierres Fines</label><div class="val ${a.p_fines?'has':''}">${a.p_fines?fmt(a.p_fines):'—'}</div></div>
-          <div class="info-item"><label>Rosaces</label><div class="val ${a.rosaces?'has':''}">${a.rosaces?fmt(a.rosaces):'—'}</div></div>
-          <div class="info-item"><label>Ém. Colombie</label><div class="val ${a.em_clb?'has':''}">${a.em_clb?fmt(a.em_clb)+' cts':'—'}</div></div>
-          <div class="info-item"><label>Perles</label><div class="val ${a.perles?'has':''}">${a.perles?fmt(a.perles)+' grs':'—'}</div></div>
+          ${a.pa!=null?`<div class="info-item"><label>Prix de Revient (P.R)</label><div class="val grn">${fmtN(a.pa)} MAD</div></div>`:''}
+          ${a.or_grs!=null?`<div class="info-item"><label>OR (grammes)</label><div class="val gold">${fmt(a.or_grs)} grs</div></div>`:''}
+          ${a.d?`<div class="info-item"><label>Diamants</label><div class="val has">${fmt(a.d)} cts</div></div>`:''}
+          ${a.em?`<div class="info-item"><label>Émeraudes</label><div class="val has">${fmt(a.em)} cts</div></div>`:''}
+          ${a.r?`<div class="info-item"><label>Rubis</label><div class="val has">${fmt(a.r)} cts</div></div>`:''}
+          ${a.s?`<div class="info-item"><label>Saphirs</label><div class="val has">${fmt(a.s)} cts</div></div>`:''}
+          ${a.p_fines?`<div class="info-item"><label>Pierres Fines</label><div class="val has">${fmt(a.p_fines)}</div></div>`:''}
+          ${a.rosaces?`<div class="info-item"><label>Rosaces</label><div class="val has">${fmt(a.rosaces)}</div></div>`:''}
+          ${a.em_clb?`<div class="info-item"><label>Ém. Colombie</label><div class="val has">${fmt(a.em_clb)} cts</div></div>`:''}
+          ${a.perles?`<div class="info-item"><label>Perles</label><div class="val has">${fmt(a.perles)} grs</div></div>`:''}
         </div>
       </div>
     </div>
@@ -317,13 +318,13 @@ function renderVendu(v, nb, enCredit){
         <div class="fiche-article-name">${v.article||'—'}</div>
         <div class="info-grid">
           <div class="info-item"><label>Date d'achat</label><div class="val">${fmtD(v.date_achat)}</div></div>
-          <div class="info-item"><label>Prix de Revient (P.R)</label><div class="val">${v.pa!=null?fmtN(v.pa)+' MAD':'—'}</div></div>
-          <div class="info-item"><label>OR (grammes)</label><div class="val gold">${v.or_grs!=null?fmt(v.or_grs)+' grs':'—'}</div></div>
-          <div class="info-item"><label>Diamants</label><div class="val ${v.d?'has':''}">${v.d?fmt(v.d)+' cts':'—'}</div></div>
-          <div class="info-item"><label>Émeraudes</label><div class="val ${v.em?'has':''}">${v.em?fmt(v.em)+' cts':'—'}</div></div>
-          <div class="info-item"><label>Rubis</label><div class="val ${v.r?'has':''}">${v.r?fmt(v.r)+' cts':'—'}</div></div>
-          <div class="info-item"><label>Saphirs</label><div class="val ${v.s?'has':''}">${v.s?fmt(v.s)+' cts':'—'}</div></div>
-          <div class="info-item"><label>Perles</label><div class="val ${v.perles?'has':''}">${v.perles?fmt(v.perles)+' grs':'—'}</div></div>
+          ${v.pa!=null?`<div class="info-item"><label>Prix de Revient (P.R)</label><div class="val grn">${fmtN(v.pa)} MAD</div></div>`:''}
+          ${v.or_grs!=null?`<div class="info-item"><label>OR (grammes)</label><div class="val gold">${fmt(v.or_grs)} grs</div></div>`:''}
+          ${v.d?`<div class="info-item"><label>Diamants</label><div class="val has">${fmt(v.d)} cts</div></div>`:''}
+          ${v.em?`<div class="info-item"><label>Émeraudes</label><div class="val has">${fmt(v.em)} cts</div></div>`:''}
+          ${v.r?`<div class="info-item"><label>Rubis</label><div class="val has">${fmt(v.r)} cts</div></div>`:''}
+          ${v.s?`<div class="info-item"><label>Saphirs</label><div class="val has">${fmt(v.s)} cts</div></div>`:''}
+          ${v.perles?`<div class="info-item"><label>Perles</label><div class="val has">${fmt(v.perles)} grs</div></div>`:''}
         </div>
         <div class="vente-section">
           <div class="vente-section-title">📦 Informations de Vente</div>
