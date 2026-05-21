@@ -293,6 +293,7 @@ async function login() {
     });
     const data = await res.json();
     if (data.success) {
+      sessionStorage.setItem('gs_active', '1');
       window.location.href = data.redirect || '/accueil';
     } else {
       err.classList.add('show');

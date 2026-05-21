@@ -5,6 +5,15 @@
 (function () {
   'use strict';
 
+  /* ── Sécurité : déconnexion automatique si l'app a été fermée ── */
+  if (!sessionStorage.getItem('gs_active')) {
+    /* La sessionStorage est vide = app fermée/rechargée à froid → logout */
+    fetch('/logout', { method: 'GET', redirect: 'manual' })
+      .catch(function(){})
+      .finally(function(){ window.location.replace('/login'); });
+    return; /* Arrêter le reste du script */
+  }
+
   var SIDEBAR_WIDTH = 240;
   var BREAKPOINT = 861;
 
