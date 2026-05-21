@@ -139,8 +139,11 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     <a href="/fournisseurs">Fournisseurs</a>
     <a href="/dashboard">Dashboard</a>
     <a href="/fiche">Fiche</a>
+    <a href="/galerie">📷 Galerie photos</a>
+        <a href="/historique-activite">📅 Historique</a>
     <a href="/facture">Facture</a>
     <a href="/cheques">Chèques</a>
+      <a href="/logout" class="mob-logout" style="color:#c0392b;font-weight:600;">⎋ Déconnexion</a>
   </div>
   <button class="hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
 
@@ -150,12 +153,56 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
 <div class="page">
   <div class="page-header">
     <h1>💰 Enregistrer une Vente</h1>
-    <p>Recherche l'article par référence. Il sera retiré du stock automatiquement.</p>
+    <p>Renseignez les coordonnées du client, puis ajoutez les articles achetés.</p>
   </div>
 
-  <!-- ÉTAPE 1: Recherche -->
+  <!-- ÉTAPE 1: Client -->
   <div class="form-card">
-    <div class="section-title">Étape 1 — Trouver l'Article</div>
+    <div class="section-title">Étape 1 — Coordonnées Client</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="field">
+        <label>Nom du Client</label>
+        <input type="text" id="f-client" placeholder="ex: Mohamed Alami" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Téléphone</label>
+        <input type="tel" id="f-tel" placeholder="ex: 06 12 34 56 78" autocomplete="tel">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="field">
+        <label>Mode de paiement</label>
+        <select id="f-mode" style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
+          <option value="Espèces">💵 Espèces</option>
+          <option value="Virement">🏦 Virement</option>
+          <option value="Chèque">📄 Chèque</option>
+          <option value="Carte bancaire">💳 Carte bancaire</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Paiement</label>
+        <select id="f-paiement-type" onchange="toggleAvance()" style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
+          <option value="total">✅ En totalité</option>
+          <option value="avance">⏳ Avance</option>
+          <option value="rien">❌ Rien</option>
+        </select>
+      </div>
+    </div>
+    <div id="f-avance-row" style="display:none;margin-bottom:16px">
+      <div class="field">
+        <label>Montant de l'avance (MAD)</label>
+        <input type="number" id="f-avance" placeholder="ex: 5000" min="0" step="1" style="width:100%">
+      </div>
+    </div>
+    <div class="field">
+      <label>Note / Remarque</label>
+      <input type="text" id="f-note" placeholder="Informations complémentaires…">
+    </div>
+  </div>
+
+  <!-- ÉTAPE 2: Recherche -->
+  <div class="form-card">
+    <div class="section-title">Étape 2 — Ajouter des Articles</div>
     <div class="search-row">
       <div class="field" style="max-width:250px">
         <label>Référence de l'article *</label>
@@ -198,7 +245,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
       <!-- PV + bénéfice preview + bouton panier -->
       <div style="margin-top:14px;display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap">
         <div class="field" style="max-width:200px" id="f-pv-bloc">
-          <label>Prix de Vente (MAD) *</label>
+          <label>Prix de Vente *</label>
           <input type="number" id="f-pv" placeholder="ex: 35000" min="0" oninput="currentArticle&&isPoidsArticle(currentArticle)?calcBenefPoids():calcBenef()">
         </div>
         <div class="benef-box" style="flex:1;margin-top:0">
@@ -250,16 +297,6 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
       <div class="tot-item"><label>Total P.V</label><div class="tv" id="tot-pv" style="color:var(--blue)">—</div></div>
       <div class="tot-item"><label>Bénéfice Total</label><div class="tv" id="tot-benef">—</div></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-      <div class="field">
-        <label>Nom du Client</label>
-        <input type="text" id="f-client" placeholder="ex: Mohamed Alami">
-      </div>
-      <div class="field">
-        <label>Note / Remarque</label>
-        <input type="text" id="f-note" placeholder="Informations complémentaires…">
-      </div>
-    </div>
     <div style="display:flex;gap:12px">
       <button class="btn btn-gold" id="confirm-btn" onclick="openConfirm()">✅ Confirmer la vente</button>
       <button class="btn btn-outline" onclick="viderPanier()">🗑️ Vider le panier</button>
@@ -307,7 +344,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
 </div>
 
 <!-- ALERTE ISMAIL -->
-<div id="ov-ismail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center" onclick="closeIsmailAlert(event)">
+<div id="ov-ismail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center" onclick="closeIsmailAlert(event)">
   <div style="background:var(--bg2,#1e1a10);border:2px solid #f39c12;border-radius:16px;padding:32px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.5)">
     <div style="font-size:42px;margin-bottom:12px">💎</div>
     <h2 style="color:#f39c12;margin:0 0 10px;font-size:20px">Rappel — Ismail</h2>
@@ -329,6 +366,35 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
 let currentArticle = null;
 let panier = [];
 let ventePrixOrConfig = {prix_or_achat: 1000, prix_or_vente: 1100};
+
+function toggleAvance(){
+  const v = document.getElementById('f-paiement-type').value;
+  document.getElementById('f-avance-row').style.display = v==='avance' ? 'block' : 'none';
+}
+
+async function creerCreditDepuisVente(client, tel, mode, paiement_type, avance, panierCopy){
+  if(paiement_type === 'total') return;
+  const totalPV = panierCopy.reduce((s,i) => s + (i.pv || 0), 0);
+  if(!totalPV || !client) return;
+  const refs = panierCopy.map(i => i.article?.id).filter(Boolean).join(', ');
+  const articles = panierCopy.map(i => i.article?.article || '—').join(', ');
+  const today = new Date().toISOString().slice(0,10);
+  const avanceMontant = paiement_type === 'avance' ? (avance || 0) : 0;
+  await fetch('/api/credits', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      client, contact: tel,
+      date_achat: today,
+      refs, article: articles,
+      montant_total: totalPV,
+      avance: avanceMontant,
+      mode_paiement: mode,
+      date_avance: today,
+      note: ''
+    })
+  }).catch(()=>{});
+}
 
 (async()=>{ try{ventePrixOrConfig=await fetch('/api/config').then(r=>r.json());}catch(e){} })();
 
@@ -362,7 +428,7 @@ function displayArticle(a){
   document.getElementById('art-ref').textContent='Référence #'+a.id;
   document.getElementById('art-date').textContent=fmtD(a.date);
   document.getElementById('art-or').textContent=a.or_grs?fmt(a.or_grs)+' grs':'—';
-  document.getElementById('art-pa').textContent=a.pa?fmt(a.pa)+' MAD':'—';
+  document.getElementById('art-pa').textContent=a.pa?fmt(a.pa)+'':'—';
   document.getElementById('art-d').textContent=a.d?fmt(a.d)+' cts':'—';
   document.getElementById('art-em').textContent=a.em?fmt(a.em)+' cts':'—';
   document.getElementById('art-r').textContent=a.r?fmt(a.r)+' cts':'—';
@@ -375,7 +441,7 @@ function displayArticle(a){
     document.getElementById('f-poids').value='';
     document.getElementById('f-pv').value='';
     document.getElementById('f-stock-dispo').textContent=fmt(a.or_grs||0)+' grs';
-    document.getElementById('f-pa-gr').textContent=ventePrixOrConfig.prix_or_achat.toLocaleString('fr-FR')+' MAD';
+    document.getElementById('f-pa-gr').textContent=ventePrixOrConfig.prix_or_achat.toLocaleString('fr-FR')+'';
     document.getElementById('f-pa-total').textContent='—';
     document.getElementById('b-pa').textContent='—';
     document.getElementById('b-pv').textContent='—';
@@ -385,7 +451,7 @@ function displayArticle(a){
     document.getElementById('f-poids-bloc').style.display='none';
     document.getElementById('f-pv-bloc').style.display='block';
     document.getElementById('f-pv').value='';
-    document.getElementById('b-pa').textContent=a.pa?fmt(a.pa)+' MAD':'—';
+    document.getElementById('b-pa').textContent=a.pa?fmt(a.pa)+'':'—';
     calcBenef();
   }
   document.getElementById('art-card').classList.add('visible');
@@ -396,12 +462,12 @@ function calcBenefPoids(){
   const pa=poids*(ventePrixOrConfig.prix_or_achat||0);
   const pv=parseFloat(document.getElementById('f-pv').value)||0;
   const benef=pv-pa;
-  document.getElementById('b-pa').textContent=poids?fmt(pa)+' MAD':'—';
-  document.getElementById('f-pa-total').textContent=poids?fmt(pa)+' MAD':'—';
-  document.getElementById('b-pv').textContent=pv?fmt(pv)+' MAD':'—';
+  document.getElementById('b-pa').textContent=poids?fmt(pa)+'':'—';
+  document.getElementById('f-pa-total').textContent=poids?fmt(pa)+'':'—';
+  document.getElementById('b-pv').textContent=pv?fmt(pv)+'':'—';
   const el=document.getElementById('b-benef');
   if(!poids&&!pv){el.textContent='—';el.className='bv neu';}
-  else{el.textContent=fmt(benef)+' MAD';el.className='bv '+(benef>=0?'pos':'neg');}
+  else{el.textContent=fmt(benef)+'';el.className='bv '+(benef>=0?'pos':'neg');}
 }
 
 function addToPanier(){
@@ -412,8 +478,10 @@ function addToPanier(){
     const stock=parseFloat(currentArticle.or_grs)||0;
     if(poids>stock+0.001){toast(`Stock insuffisant : ${stock} grs disponibles`,'error');return;}
     const pa=Math.round(poids*ventePrixOrConfig.prix_or_achat);
-    const pv=Math.round(poids*ventePrixOrConfig.prix_or_vente);
-    panier.push({article:currentArticle, pv, poids_vendu:poids, pa_calc:pa, au_poids:true});
+    const pvInput=parseFloat(document.getElementById('f-pv').value);
+    const pv=(!isNaN(pvInput)&&pvInput>0)?pvInput:Math.round(poids*ventePrixOrConfig.prix_or_vente);
+    const restant=Math.round((stock-poids)*1000)/1000;
+    panier.push({article:currentArticle, pv, poids_vendu:poids, pa_calc:pa, au_poids:true, stock_restant:restant});
   } else {
     const pv=parseFloat(document.getElementById('f-pv').value);
     if(isNaN(pv)||pv<0){toast('Entrez le prix de vente','error');return;}
@@ -436,21 +504,22 @@ function renderPanier(){
     const b=item.pv-pa;
     totPA+=pa; totPV+=item.pv;
     const poidsLabel=item.au_poids?`<span style="font-size:11px;background:rgba(184,146,60,.15);color:var(--gold-l);padding:1px 6px;border-radius:8px;margin-left:4px">⚖️ ${item.poids_vendu} grs</span>`:'';
+    const restantLabel=item.au_poids?(item.stock_restant>0.001?`<div style="font-size:10px;color:var(--muted);margin-top:2px">restant: ${item.stock_restant} grs</div>`:`<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ stock épuisé</div>`):'';
     return`<tr>
-      <td style="font-family:monospace;color:var(--gold-l);font-weight:700">#${item.article.id}${poidsLabel}</td>
+      <td style="font-family:monospace;color:var(--gold-l);font-weight:700">#${item.article.id}${poidsLabel}${restantLabel}</td>
       <td>${item.article.article||'—'}</td>
       <td style="color:var(--gold-l)">${item.au_poids?item.poids_vendu+' grs':(item.article.or_grs?fmt(item.article.or_grs)+' grs':'—')}</td>
-      <td style="color:var(--muted)">${pa?fmt(pa)+' MAD':'—'}</td>
-      <td>${item.au_poids?fmt(item.pv)+' MAD':`<input class="pv-inline" type="number" value="${item.pv}" min="0" onchange="updatePV(${i},this.value)">`}</td>
-      <td class="${b>=0?'pos':'neg'}">${fmt(b)} MAD</td>
+      <td style="color:var(--muted)">${pa?fmt(pa)+'':'—'}</td>
+      <td><input class="pv-inline" type="number" value="${item.pv}" min="0" onchange="updatePV(${i},this.value)"></td>
+      <td class="${b>=0?'pos':'neg'}">${fmt(b)}</td>
       <td><button class="btn-remove" onclick="removeFromPanier(${i})">✕</button></td>
     </tr>`;
   }).join('');
   const totBenef=totPV-totPA;
-  document.getElementById('tot-pa').textContent=fmt(totPA)+' MAD';
-  document.getElementById('tot-pv').textContent=fmt(totPV)+' MAD';
+  document.getElementById('tot-pa').textContent=fmt(totPA)+'';
+  document.getElementById('tot-pv').textContent=fmt(totPV)+'';
   const elB=document.getElementById('tot-benef');
-  elB.textContent=fmt(totBenef)+' MAD';
+  elB.textContent=fmt(totBenef)+'';
   elB.style.color=totBenef>=0?'var(--green)':'var(--red)';
 }
 
@@ -474,10 +543,10 @@ function calcBenef(){
   const pv=parseFloat(document.getElementById('f-pv').value)||0;
   const pa=currentArticle?currentArticle.pa||0:0;
   const benef=pv-pa;
-  document.getElementById('b-pv').textContent=pv?fmt(pv)+' MAD':'—';
+  document.getElementById('b-pv').textContent=pv?fmt(pv)+'':'—';
   const el=document.getElementById('b-benef');
   if(!pv){el.textContent='—';el.className='bv neu';}
-  else{el.textContent=fmt(benef)+' MAD';el.className='bv '+(benef>=0?'pos':'neg');}
+  else{el.textContent=fmt(benef)+'';el.className='bv '+(benef>=0?'pos':'neg');}
 }
 
 function cancelSearch(){
@@ -489,11 +558,15 @@ function cancelSearch(){
 function openConfirm(){
   if(!panier.length){toast('Le panier est vide','error');return;}
   const totPV=panier.reduce((s,i)=>s+i.pv,0);
-  const totPA=panier.reduce((s,i)=>s+(i.article.pa||0),0);
+  const totPA=panier.reduce((s,i)=>s+(i.au_poids?(i.pa_calc||0):(i.article.pa||0)),0);
   const totB=totPV-totPA;
+  const poidsWarnings=panier.filter(i=>i.au_poids&&i.stock_restant<=0.001).map(i=>`#${i.article.id} (${i.poids_vendu} grs — stock épuisé)`);
+  const warnHtml=poidsWarnings.length?`<div style="margin-top:8px;padding:8px 10px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:8px;font-size:12px;color:#e74c3c">⚠️ Stock épuisé après vente : ${poidsWarnings.join(', ')}<br><span style="opacity:.8">Ces articles seront retirés du stock.</span></div>`:'';
+  const poidsRem=panier.filter(i=>i.au_poids&&i.stock_restant>0.001).map(i=>`#${i.article.id}: ${i.stock_restant} grs restants`);
+  const remHtml=poidsRem.length?`<div style="margin-top:6px;font-size:12px;color:var(--muted)">⚖️ Stock restant : ${poidsRem.join(' · ')}</div>`:'';
   document.getElementById('conf-info').innerHTML=
-    `<b>${panier.length} article(s)</b> — Total P.V : ${fmt(totPV)} MAD<br>
-     Bénéfice total : <span style="color:${totB>=0?'#2ecc71':'#e74c3c'}">${fmt(totB)} MAD</span>`;
+    `<b>${panier.length} article(s)</b> — Total P.V : ${fmt(totPV)}<br>
+     Bénéfice total : <span style="color:${totB>=0?'#2ecc71':'#e74c3c'}">${fmt(totB)}</span>${warnHtml}${remHtml}`;
   document.getElementById('conf-ov').classList.add('open');
 }
 
@@ -510,14 +583,18 @@ async function submitVente(){
   const btn=document.getElementById('confirm-btn');
   btn.disabled=true;btn.textContent='⏳ Traitement…';
   const client=document.getElementById('f-client').value.trim();
+  const tel=document.getElementById('f-tel').value.trim();
   const note=document.getElementById('f-note').value.trim();
+  const mode_paiement=document.getElementById('f-mode').value;
+  const paiement_type=document.getElementById('f-paiement-type').value;
+  const avance=paiement_type==='avance'?(parseFloat(document.getElementById('f-avance').value)||0):null;
   const panierCopy=[...panier];
   let ok=0;const errors=[];
   for(const item of panier){
     try{
       const payload = item.au_poids
-        ? {ref:item.article.id, poids_vendu:item.poids_vendu, client, note}
-        : {ref:item.article.id, pv:item.pv, client, note};
+        ? {ref:item.article.id, poids_vendu:item.poids_vendu, pv:item.pv, client, telephone:tel, note, mode_paiement, avance}
+        : {ref:item.article.id, pv:item.pv, client, telephone:tel, note, mode_paiement, avance};
       const res=await fetch('/api/ventes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
       const data=await res.json();
       if(res.ok) ok++;
@@ -528,11 +605,22 @@ async function submitVente(){
     toast(`${ok} vente(s) ok. Erreurs: ${errors.join(', ')}`,'error');
   }else{
     const hadIsmail = panierCopy.some(item=>item.article&&item.article.ismail_pierres);
-    toast(`✅ ${ok} vente(s) enregistrée(s) !`,'success');
+    await creerCreditDepuisVente(client, tel, mode_paiement, paiement_type, avance, panierCopy);
+    const poidsInfo=panierCopy.filter(i=>i.au_poids).map(i=>{
+      const r=i.stock_restant;
+      return r>0.001?`#${i.article.id}: ${r} grs restants`:`#${i.article.id}: stock épuisé`;
+    });
+    const msgSuffix=poidsInfo.length?` — ${poidsInfo.join(', ')}`:''
+    toast(`✅ ${ok} vente(s) enregistrée(s) !${msgSuffix}`,'success');
     panier=[];
     renderPanier();
     document.getElementById('f-client').value='';
+    document.getElementById('f-tel').value='';
     document.getElementById('f-note').value='';
+    document.getElementById('f-mode').value='Espèces';
+    document.getElementById('f-paiement-type').value='total';
+    document.getElementById('f-avance').value='';
+    document.getElementById('f-avance-row').style.display='none';
     loadHist();
     if(hadIsmail) setTimeout(()=>{ document.getElementById('ov-ismail').style.display='flex'; }, 600);
   }
@@ -555,9 +643,9 @@ async function loadHist(){
         <td style="font-family:monospace;color:var(--gold-l)">#${v.ref}</td>
         <td>${v.article||'—'}</td>
         <td style="color:var(--gold-l)">${v.or_grs?fmt(v.or_grs)+' grs':'—'}</td>
-        <td>${v.pa?fmt(v.pa)+' MAD':'—'}</td>
-        <td>${v.pv?fmt(v.pv)+' MAD':'—'}</td>
-        <td class="${b>=0?'pos':'neg'}">${fmt(b)} MAD</td>
+        <td>${v.pa?fmt(v.pa)+'':'—'}</td>
+        <td>${v.pv?fmt(v.pv)+'':'—'}</td>
+        <td class="${b>=0?'pos':'neg'}">${fmt(b)}</td>
         <td>${v.client||'—'}</td>
       </tr>`;
     }).join('');
@@ -602,6 +690,7 @@ function toggleNav(){
     ov.classList.remove('nav-open');
     const btn=document.getElementById('hamburger-btn');
     if(btn)btn.textContent='☰';
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
   };
   document.body.appendChild(ov);
   // Close nav when a link is clicked
@@ -613,7 +702,6 @@ function toggleNav(){
   }));
 })();
 </script>
-<script src="/chatbot.js"></script>
 <script src="/static/mobile.js"></script>
 </body>
 </html>

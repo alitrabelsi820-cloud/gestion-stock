@@ -68,7 +68,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
 .progress-bar{height:6px;border-radius:20px;transition:width .4s;}
 .progress-label{font-size:11px;color:var(--muted);margin-top:3px;}
 
-.tbl-wrap{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden;}
+.tbl-wrap{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow-x:auto;}
 table{width:100%;border-collapse:collapse;}
 thead tr{background:var(--bg3);}
 th{padding:12px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);text-align:left;font-weight:600;position:sticky;top:0;z-index:10;background:var(--bg3);}
@@ -107,7 +107,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
 .toast-item{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;animation:fadeIn .3s;}
 .toast-ok{background:#1a3a2a;border:1px solid var(--green);color:var(--green);}
 .toast-err{background:#3a1a1a;border:1px solid var(--red);color:var(--red);}
-@keyframes fadeIn{
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
 
 
 /* ── MOBILE NAV / HAMBURGER ── */
@@ -123,6 +123,27 @@ tr:hover td{background:rgba(255,255,255,.02);}
   nav > a[href="/logout"]{display:none;}
   .mob-logout{display:block !important;}
 }
+/* ── NAV DROPDOWNS ── */
+.nav-dropdown{position:relative;display:inline-block;}
+.nav-drop-btn{padding:8px 14px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;}
+.nav-drop-btn:hover,.nav-drop-btn.active{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-drop-btn.active{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+.nav-drop-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e8e0d4;border-radius:10px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;overflow:hidden;}
+.nav-dropdown.open .nav-drop-menu{display:block;}
+.nav-drop-menu a{display:block;padding:10px 16px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:background .15s;white-space:nowrap;}
+.nav-drop-menu a:hover{background:rgba(201,168,76,.08);color:var(--gold);}
+.nav-search-btn{padding:8px 12px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:16px;cursor:pointer;transition:all .2s;}
+.nav-search-btn:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-search-wrap{position:relative;display:none;}
+.nav-search-wrap.open{display:block;}
+@media(max-width:860px){
+  .nav-dropdown{display:block;width:100%;}
+  .nav-drop-btn{width:100%;text-align:left;padding:11px 16px;font-size:14px;border-radius:10px;}
+  .nav-drop-menu{display:none;position:static;box-shadow:none;border:none;background:rgba(201,168,76,.04);border-radius:0;border-left:2px solid rgba(201,168,76,.25);margin:0 0 4px 16px;}
+  .nav-drop-menu a{padding:8px 14px;font-size:13px;}
+  .nav-search-btn{display:none;}
+  .nav-search-wrap{display:none!important;}
+}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -133,16 +154,56 @@ tr:hover td{background:rgba(255,255,255,.02);}
     <div class="nav-logo">♦</div>
     <div class="nav-title">GESTION STOCK</div>
   </a>
-  <div class="nav-links">
-    <a href="/accueil">Accueil</a>
+  <!-- Global search bar -->
+  <div class="nav-search-wrap" id="nav-search-wrap" style="display:none;">
+    <input type="text" id="nav-search-input" placeholder="🔍 Rechercher article, client, vente…" autocomplete="off"
+      style="width:260px;padding:7px 12px;border:1px solid rgba(201,168,76,.4);border-radius:8px;font-size:13px;background:#fff;outline:none;color:#1a1612;">
+    <div id="nav-search-results" style="position:absolute;top:60px;left:0;right:0;background:#fff;border:1px solid #e8e0d4;border-radius:0 0 10px 10px;max-height:320px;overflow-y:auto;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,.12);"></div>
+  </div>
+
+  <div class="nav-links" id="nav-links">
     <a href="/dashboard">Dashboard</a>
-    <a href="/stock">Stock</a>
-    <a href="/vendu">Ventes</a>
-    <a href="/credit">Crédits Clients</a>
-    <a href="/cheques">Chèques</a>
-    <a href="/facture">Facture</a>
-    <a href="/fournisseurs" class="active">Fournisseurs</a>
-    <a href="/fiche">Fiche</a>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">💍 Stock ▾</button>
+      <div class="nav-drop-menu">
+        
+        <a href="/stock">Voir le stock</a>
+        <a href="/ajouter">Ajouter un article</a>
+        <a href="/vendu">Articles vendus</a>
+        <a href="/fiche">Fiche référence</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/catalogue">Catalogue</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">💰 Ventes ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/vendu">Ventes</a>
+        <a href="/facture">Factures</a>
+        <a href="/facture-libre">📝 Facture Libre</a>
+                <a href="/devis">📋 Devis</a>
+                <a href="/historique-devis">🗂 Historique Devis</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">👥 Clients ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/clients">Dossier Clients</a>
+        <a href="/credit">Crédits</a>
+        <a href="/cheques">Chèques</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn active">⚙️ Gestion ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/fournisseurs">Fournisseurs</a>
+        <a href="/fiche">Fiche</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/historique-activite">📅 Historique</a>
+      </div>
+    </div>
+    <button class="nav-search-btn" onclick="toggleNavSearch()" title="Rechercher">🔍</button>
+    <a href="/logout" style="color:#c0392b;font-weight:600;" class="mob-logout">⎋ Déco</a>
   </div>
   <button class="hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
 
@@ -235,11 +296,11 @@ tr:hover td{background:rgba(255,255,255,.02);}
         <input id="n-article" placeholder="Description de la commande">
       </div>
       <div class="form-row">
-        <label>Montant total (MAD) *</label>
+        <label>Montant total *</label>
         <input type="number" id="n-total" placeholder="0">
       </div>
       <div class="form-row">
-        <label>Acompte versé (MAD)</label>
+        <label>Acompte versé</label>
         <input type="number" id="n-avance" placeholder="0" oninput="calcNew()">
       </div>
       <div class="form-row">
@@ -300,7 +361,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
         <input id="e-article" placeholder="Description de la commande">
       </div>
       <div class="form-row">
-        <label>Montant total (MAD) *</label>
+        <label>Montant total *</label>
         <input type="number" id="e-total" placeholder="0">
       </div>
     </div>
@@ -329,7 +390,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
       <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;">Enregistrer un paiement</div>
       <div class="form-grid">
         <div class="form-row">
-          <label>Montant (MAD) *</label>
+          <label>Montant *</label>
           <input type="number" id="p-montant" placeholder="0">
         </div>
         <div class="form-row">
@@ -360,7 +421,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
 <script>
 let ALL = [], currentStatut = 'all', currentId = null;
 
-const fmtN = v => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0})+' MAD';
+const fmtN = v => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0})+'';
 const fmtD = d => { if(!d) return '—'; const p=d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -626,6 +687,7 @@ function toggleNav(){
     ov.classList.remove('nav-open');
     const btn=document.getElementById('hamburger-btn');
     if(btn)btn.textContent='☰';
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
   };
   document.body.appendChild(ov);
   // Close nav when a link is clicked
@@ -637,7 +699,126 @@ function toggleNav(){
   }));
 })();
 </script>
-<script src="/chatbot.js"></script>
 <script src="/static/mobile.js"></script>
+<script>
+/* ── GLOBAL SEARCH ── */
+function toggleNavSearch(){
+  const w=document.getElementById('nav-search-wrap');
+  if(!w) return;
+  const open=w.classList.toggle('open');
+  w.style.display=open?'block':'none';
+  if(open) setTimeout(()=>document.getElementById('nav-search-input')?.focus(),50);
+}
+let _searchData=null;
+async function loadSearchData(){
+  if(_searchData) return _searchData;
+  const [arts,ventes,clients]=await Promise.all([
+    fetch('/api/articles').then(r=>r.json()).catch(()=>[]),
+    fetch('/api/ventes').then(r=>r.json()).catch(()=>[]),
+    fetch('/api/clients').then(r=>r.json()).catch(()=>[]),
+  ]);
+  _searchData={arts,ventes,clients};
+  return _searchData;
+}
+document.getElementById('nav-search-input')?.addEventListener('input',async function(){
+  const q=this.value.trim().toLowerCase();
+  const res=document.getElementById('nav-search-results');
+  if(!res) return;
+  if(q.length<2){res.style.display='none';return;}
+  const {arts,ventes,clients}=await loadSearchData();
+  const hits=[];
+  arts.filter(a=>a.article?.toLowerCase().includes(q)||(a.id+'').includes(q)).slice(0,3).forEach(a=>
+    hits.push(`<a href="/stock" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;" onclick="localStorage.setItem('stockSearch','${a.id}')">
+      <span style="font-size:18px">💍</span><div><div style="font-weight:600">#${a.id} — ${a.article}</div><div style="font-size:11px;color:#9a8e7e">${a.or_grs?a.or_grs+' grs':''} · PA: ${a.pa?Number(a.pa).toLocaleString('fr-FR'):'—'}</div></div></a>`));
+  clients.filter(c=>c.nom?.toLowerCase().includes(q)).slice(0,3).forEach(c=>
+    hits.push(`<a href="/clients" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;" onclick="localStorage.setItem('clientSearch','${c.nom}')">
+      <span style="font-size:18px">👤</span><div><div style="font-weight:600">${c.nom}</div><div style="font-size:11px;color:#9a8e7e">${c.nb_achats} achats · ${Number(c.ca_total).toLocaleString('fr-FR')} CA</div></div></a>`));
+  ventes.filter(v=>(v.client||'').toLowerCase().includes(q)||(v.article||'').toLowerCase().includes(q)).slice(0,3).forEach(v=>
+    hits.push(`<a href="/vendu" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;">
+      <span style="font-size:18px">💰</span><div><div style="font-weight:600">#${v.ref} ${v.article}</div><div style="font-size:11px;color:#9a8e7e">${v.client||'—'} · ${v.date_vente||''}</div></div></a>`));
+  if(!hits.length) hits.push('<div style="padding:16px;color:#9a8e7e;text-align:center;font-size:13px">Aucun résultat</div>');
+  res.innerHTML=hits.join('');
+  res.style.display='block';
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#nav-search-wrap')){
+    const res=document.getElementById('nav-search-results');
+    if(res) res.style.display='none';
+  }
+});
+</script>
+
+<script>
+/* ── NAV DROPDOWNS (click) ── */
+(function(){
+  // Dropdowns au clic
+  document.querySelectorAll('.nav-drop-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = this.closest('.nav-dropdown');
+      var isOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
+      if(!isOpen) dd.classList.add('open');
+    });
+  });
+  // Fermer en cliquant ailleurs
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
+  });
+  // Fermer avec Escape
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); }); });
+
+
+  // Recherche globale
+  var searchBtn = document.querySelector('.nav-search-btn');
+  var searchWrap = document.getElementById('nav-search-wrap');
+  if(searchBtn && searchWrap){
+    searchBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = searchWrap.classList.toggle('open');
+      searchWrap.style.display = open ? 'block' : 'none';
+      if(open){ var inp=document.getElementById('nav-search-input'); if(inp) setTimeout(function(){ inp.focus(); }, 50); }
+    });
+  }
+  var _sd=null;
+  async function loadSD(){
+    if(_sd) return _sd;
+    var [arts,ventes,clients]=await Promise.all([
+      fetch('/api/articles').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/ventes').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/clients').then(r=>r.json()).catch(()=>[]),
+    ]);
+    _sd={arts,ventes,clients}; return _sd;
+  }
+  var si = document.getElementById('nav-search-input');
+  if(si){
+    si.addEventListener('input', async function(){
+      var q=this.value.trim().toLowerCase();
+      var res=document.getElementById('nav-search-results');
+      if(!res) return;
+      if(q.length<2){res.style.display='none';return;}
+      var d=await loadSD();
+      var hits=[];
+      var fmtN=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+      d.arts.filter(a=>a.article?.toLowerCase().includes(q)||(a.id+'').includes(q)).slice(0,3).forEach(a=>
+        hits.push('<a href="/stock" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">💍</span><div><div style="font-weight:600">#'+a.id+' — '+a.article+'</div><div style="font-size:11px;color:#9a8e7e">'+(a.or_grs?a.or_grs+' grs · ':'')+' PA: '+(a.pa?fmtN(a.pa):'—')+'</div></div></a>'));
+      d.clients.filter(c=>c.nom?.toLowerCase().includes(q)).slice(0,3).forEach(c=>
+        hits.push('<a href="/clients" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">👤</span><div><div style="font-weight:600">'+c.nom+'</div><div style="font-size:11px;color:#9a8e7e">'+c.nb_achats+' achats · '+fmtN(c.ca_total)+' CA</div></div></a>'));
+      d.ventes.filter(v=>(v.client||'').toLowerCase().includes(q)||(v.article||'').toLowerCase().includes(q)).slice(0,3).forEach(v=>
+        hits.push('<a href="/vendu" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">💰</span><div><div style="font-weight:600">#'+v.ref+' '+v.article+'</div><div style="font-size:11px;color:#9a8e7e">'+(v.client||'—')+' · '+(v.date_vente||'')+'</div></div></a>'));
+      if(!hits.length) hits.push('<div style="padding:16px;color:#9a8e7e;text-align:center;font-size:13px">Aucun résultat</div>');
+      res.innerHTML=hits.join('');
+      res.style.display='block';
+    });
+    document.addEventListener('click',function(e){
+      if(!e.target.closest('#nav-search-wrap')){
+        var res=document.getElementById('nav-search-results');
+        if(res) res.style.display='none';
+      }
+    });
+  }
+})();
+</script>
+
 </body>
 </html>

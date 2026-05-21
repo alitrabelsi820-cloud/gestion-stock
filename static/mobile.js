@@ -2,6 +2,81 @@
    MOBILE.JS — Hamburger nav + fixes UX mobile
    ═══════════════════════════════════════════════════════════ */
 
+/* ── Variables CSS dark / light ── */
+var _DARK_VARS = {
+  '--bg':       '#0F0F0D',
+  '--bg2':      '#1A1A17',
+  '--bg3':      '#141412',
+  '--card':     '#1A1A17',
+  '--bd':       'rgba(255,255,255,0.08)',
+  '--txt':      '#F0EFE8',
+  '--muted':    '#7A7A72',
+  '--gold-pale':'rgba(196,163,90,0.12)'
+};
+
+function _applyTheme(isDark) {
+  var root = document.documentElement;
+  if (isDark) {
+    root.classList.add('dark');
+    Object.keys(_DARK_VARS).forEach(function(k) {
+      root.style.setProperty(k, _DARK_VARS[k]);
+    });
+  } else {
+    root.classList.remove('dark');
+    Object.keys(_DARK_VARS).forEach(function(k) {
+      root.style.removeProperty(k);
+    });
+  }
+}
+
+/* Appliquer immédiatement au chargement */
+_applyTheme(localStorage.getItem('theme') === 'dark');
+
+/* ── Bouton 🌙 universel — fonctionne sur TOUTES les pages ── */
+(function injectDarkToggleGlobal() {
+  function doInject() {
+    if (document.getElementById('dark-toggle')) return;
+
+    var btn = document.createElement('button');
+    btn.id = 'dark-toggle';
+    btn.setAttribute('aria-label', 'Mode sombre');
+    btn.title = 'Mode sombre / clair';
+    btn.innerHTML = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+
+    btn.addEventListener('click', function () {
+      var isDark = !document.documentElement.classList.contains('dark');
+      _applyTheme(isDark);
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      btn.innerHTML = isDark ? '☀️' : '🌙';
+    });
+
+    /* Cas 1 : page avec nav standard → insérer avant le hamburger */
+    var nav = document.querySelector('nav');
+    if (nav) {
+      var hbg = nav.querySelector('.hamburger');
+      if (hbg) { nav.insertBefore(btn, hbg); }
+      else { nav.appendChild(btn); }
+      return;
+    }
+
+    /* Cas 2 : page accueil (pas de nav) → bouton fixe en haut à gauche */
+    btn.style.cssText = [
+      'position:fixed', 'top:12px', 'left:52px', 'z-index:9999',
+      'background:rgba(30,25,10,.75)', 'backdrop-filter:blur(8px)',
+      'border:1px solid rgba(184,146,60,.35)', 'border-radius:20px',
+      'padding:6px 11px', 'font-size:15px', 'cursor:pointer',
+      'line-height:1', 'transition:border-color .2s'
+    ].join('!important;') + '!important';
+    document.body.appendChild(btn);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', doInject);
+  } else {
+    doInject();
+  }
+})();
+
 (function () {
   'use strict';
 
@@ -83,6 +158,8 @@
       hamburger.innerHTML = '☰';
       hamburger.setAttribute('aria-expanded', 'false');
       document.body.style.overflow = '';
+      /* Fermer aussi les sous-menus dropdown */
+      document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
     }
 
     /* ── 7. Événements ── */
@@ -128,6 +205,7 @@
     }
     fixTableScroll();
     window.addEventListener('resize', fixTableScroll);
+
   }
 
   if (document.readyState === 'loading') {

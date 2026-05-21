@@ -13,168 +13,223 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Trabelsi — Fiche Référence — Gestion Inventaire</title>
 <style>
-:root{--gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;--bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;--txt:#1a1612;--muted:#9a8e7e;--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--purple:#9b59b6;}
+:root{--gold:#b8923c;--gold-l:#c9a84c;--gold-d:#7a5c20;--bg:#f8f4ee;--card:#ffffff;--bd:rgba(184,146,60,.2);--txt:#1a1612;--muted:#9a8e7e;--green:#2ecc71;--red:#e74c3c;--blue:#3498db;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
-nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
-.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;}
-.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
-.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
-.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
-.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
-.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
-.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:80px;}
 
-.page{padding:40px 28px 60px;max-width:900px;margin:0 auto;}
-.page-title{font-size:24px;font-weight:700;color:var(--gold-l);margin-bottom:8px;}
-.page-sub{font-size:13px;color:var(--muted);margin-bottom:32px;}
+/* Fond décoratif */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,8 57,38 87,38 64,56 72,86 50,68 28,86 36,56 13,38 43,38' fill='none' stroke='%23b8923c' stroke-width='0.6' opacity='0.11'/%3E%3C/svg%3E");
+  background-size:100px 100px;}
 
-/* SEARCH BOX */
-.search-box{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:28px;margin-bottom:32px;}
-.search-row{display:flex;gap:12px;align-items:flex-end;}
-.search-field{flex:1;}
-.search-field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:7px;}
-.search-field input{width:100%;padding:12px 16px;background:var(--bg3);border:2px solid var(--bd);border-radius:10px;color:var(--txt);font-size:18px;font-weight:700;outline:none;letter-spacing:2px;transition:border-color .2s;}
-.search-field input:focus{border-color:var(--gold);}
-.btn{padding:12px 24px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;}
-.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
-.btn-gold:hover{filter:brightness(1.15);transform:translateY(-1px);}
-.btn-outline{background:transparent;border:1px solid var(--bd);color:var(--muted);}
-.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+/* Topbar */
+.emp-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;background:#fff;
+  border-bottom:1px solid rgba(184,146,60,.18);
+  position:sticky;top:0;z-index:10;
+  box-shadow:0 1px 8px rgba(0,0,0,.04);
+}
+.emp-topbar-brand{display:flex;align-items:center;gap:10px;}
+.emp-topbar-logo{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,#c9a84c,#7a5c20);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:900;color:#fff;font-family:'Segoe UI',Arial,sans-serif;
+}
+.emp-topbar-name{font-size:13px;font-weight:800;letter-spacing:3px;color:#b8923c;text-transform:uppercase;}
+.emp-topbar-actions{display:flex;align-items:center;gap:8px;}
+.emp-topbar-btn{
+  width:36px;height:36px;border-radius:9px;
+  border:1px solid rgba(184,146,60,.25);background:transparent;
+  color:#9a8e7e;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:17px;position:relative;transition:all .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.emp-topbar-btn:active{background:rgba(184,146,60,.1);color:#b8923c;}
+.emp-badge{
+  position:absolute;top:-4px;right:-4px;
+  background:linear-gradient(135deg,#c9a84c,#7a5c20);
+  color:#fff;border-radius:10px;padding:1px 5px;
+  font-size:10px;font-weight:900;min-width:16px;text-align:center;
+  display:none;border:1.5px solid #fff;
+}
 
-/* RESULT CARD */
-.result{display:none;}
-.result.show{display:block;}
+/* Content */
+.emp-content{display:flex;flex-direction:column;gap:14px;padding:16px;}
 
-.fiche-card{background:var(--bg2);border:1px solid var(--gold-d);border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);}
-.fiche-header{background:linear-gradient(135deg,#1a1200,#2d1f00);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;}
-.fiche-ref{font-size:28px;font-weight:900;color:var(--gold-l);font-family:monospace;}
-.fiche-status{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;}
-.status-stock{background:rgba(46,204,113,.2);border:1px solid var(--green);color:var(--green);}
-.status-vendu{background:rgba(231,76,60,.2);border:1px solid var(--red);color:var(--red);}
+/* Card */
+.emp-card{background:#fff;border:1px solid rgba(184,146,60,.2);border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,146,60,.07);}
+.emp-card-header{padding:14px 18px 12px;border-bottom:1px solid rgba(184,146,60,.1);display:flex;align-items:center;gap:8px;}
+.emp-card-title{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-d);}
 
-.fiche-body{display:grid;grid-template-columns:300px 1fr;gap:0;}
-.fiche-photo-col{background:var(--bg3);display:flex;align-items:center;justify-content:center;padding:24px;border-right:1px solid var(--bd);}
-.fiche-photo{width:100%;max-height:300px;object-fit:contain;border-radius:10px;}
-.no-photo-big{width:100%;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-size:14px;}
-.no-photo-big .ico{font-size:48px;opacity:.3;}
+/* Fiche input */
+.emp-fiche-row{display:flex;gap:8px;padding:14px 18px;}
+.emp-fiche-input{
+  flex:1;padding:12px 14px;background:rgba(184,146,60,.05);
+  border:1px solid rgba(184,146,60,.25);border-radius:10px;
+  font-size:15px;color:var(--txt);outline:none;
+  font-family:'Segoe UI',Arial,sans-serif;transition:border-color .18s;
+}
+.emp-fiche-input:focus{border-color:var(--gold-l);background:#fff;}
+.emp-fiche-input::placeholder{color:var(--muted);}
+.emp-fiche-btn{
+  padding:12px 16px;border-radius:10px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#c9a84c,#7a5c20);color:#fff;font-size:16px;
+  flex-shrink:0;-webkit-tap-highlight-color:transparent;
+}
+.emp-fiche-btn:active{filter:brightness(.88);}
+.emp-keep-btn{
+  padding:12px 14px;border-radius:10px;border:1px solid rgba(184,146,60,.3);
+  background:rgba(184,146,60,.06);color:var(--gold-d);font-size:13px;font-weight:700;
+  cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:all .15s;
+}
+.emp-keep-btn:active{background:rgba(184,146,60,.18);}
+.emp-keep-btn:disabled{opacity:.35;cursor:not-allowed;}
 
-.fiche-info{padding:24px;}
-.fiche-article-name{font-size:20px;font-weight:700;color:var(--txt);margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--bd);}
+/* Résultat fiche */
+.emp-fiche-result{padding:0 14px 14px;}
+.emp-fiche-card{border:1px solid rgba(184,146,60,.3);border-radius:12px;overflow:hidden;}
+.emp-fiche-head{background:linear-gradient(135deg,#1a1200,#2d1f00);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+.emp-fiche-ref{font-size:20px;font-weight:900;color:#c9a84c;font-family:monospace;}
+.emp-fiche-nom{font-size:12px;color:rgba(201,168,76,.7);margin-top:2px;}
+.emp-fiche-badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;}
+.badge-stock{background:rgba(46,204,113,.2);border:1px solid #2ecc71;color:#2ecc71;}
+.badge-vendu{background:rgba(231,76,60,.2);border:1px solid #e74c3c;color:#e74c3c;}
+.badge-credit{background:rgba(230,126,34,.15);border:1px solid rgba(230,126,34,.5);color:#b85c00;}
+.emp-fiche-photo-wrap{background:#f5f0e8;border-bottom:1px solid rgba(184,146,60,.12);display:flex;align-items:center;justify-content:center;padding:14px;min-height:160px;}
+.emp-fiche-photo{max-height:200px;max-width:100%;object-fit:contain;border-radius:8px;}
+.emp-fiche-rows{padding:10px 14px;display:flex;flex-direction:column;}
+.emp-row-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(184,146,60,.07);font-size:13px;}
+.emp-row-item:last-child{border-bottom:none;}
+.pr-hidden,.pr-hidden *{color:#c0c0c0 !important;background:#c0c0c0 !important;border-radius:6px;user-select:none;}
+.emp-row-label{color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.3px;}
+.emp-row-val{font-weight:700;color:var(--txt);}
+.emp-row-val.gold{color:#b8923c;}
+.emp-row-val.green{color:#1a7a40;}
+.emp-row-val.blue{color:#2980b9;}
+.emp-row-val.red{color:#c0392b;}
+.emp-row-val.has{color:#7a5c20;}
+.emp-vente-sep{background:rgba(184,146,60,.06);border-top:1px solid rgba(184,146,60,.15);padding:8px 14px 4px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-d);}
+.emp-fiche-actions{display:flex;gap:8px;padding:10px 14px 14px;}
+.emp-action-btn{flex:1;padding:11px;border-radius:9px;border:none;cursor:pointer;font-size:12px;font-weight:700;-webkit-tap-highlight-color:transparent;}
+.emp-action-btn:active{filter:brightness(.88);}
+.emp-action-gold{background:linear-gradient(135deg,#c9a84c,#7a5c20);color:#fff;}
+.emp-action-outline{background:rgba(184,146,60,.1);color:#7a5c20;border:1px solid rgba(184,146,60,.3)!important;}
 
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.info-item{background:var(--bg3);border-radius:8px;padding:11px 13px;}
-.info-item.full{grid-column:span 2;}
-.info-item label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
-.info-item .val{font-size:15px;font-weight:600;}
-.val.gold{color:var(--gold-l);}
-.val.grn{color:var(--green);}
-.val.blue{color:var(--blue);}
-.val.red{color:var(--red);}
-.val.has{color:#82e0aa;}
+/* Empty / not found */
+.emp-empty{padding:32px 18px;text-align:center;font-size:12px;color:var(--muted);}
+.emp-empty-ico{font-size:36px;opacity:.15;margin-bottom:10px;}
+.emp-notfound{padding:22px 18px;text-align:center;}
 
-/* SECTION VENTE */
-.vente-section{background:rgba(231,76,60,.05);border:1px solid rgba(231,76,60,.2);border-radius:12px;padding:18px;margin-top:16px;}
-.vente-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--red);margin-bottom:12px;}
+/* Bottom bar minimal */
+.emp-bottombar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid rgba(184,146,60,.18);
+  display:flex;align-items:stretch;z-index:500;
+  box-shadow:0 -1px 0 rgba(0,0,0,.06);
+  height:calc(56px + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.emp-bottom-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;background:none;border:none;cursor:pointer;
+  color:#9a8e7e;font-size:10px;font-weight:500;
+  text-decoration:none;-webkit-tap-highlight-color:transparent;
+}
+.emp-bottom-btn:active{opacity:.7;}
+.emp-bottom-ico{font-size:22px;line-height:1;}
+.emp-bottom-btn.emp-logout{color:#c0392b;}
 
-.fiche-actions{padding:20px 28px;border-top:1px solid var(--bd);display:flex;gap:10px;flex-wrap:wrap;background:var(--bg3);}
+/* Basket sheet */
+.emp-sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:498;}
+.emp-sheet-overlay.open{display:block;}
+.emp-sheet{
+  position:fixed;bottom:calc(56px + env(safe-area-inset-bottom));left:0;right:0;
+  background:#fff;border-radius:20px 20px 0 0;border-top:1px solid rgba(184,146,60,.25);
+  z-index:499;max-height:70vh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .26s cubic-bezier(.32,.72,0,1);
+  box-shadow:0 -8px 32px rgba(0,0,0,.14);
+}
+.emp-sheet.open{transform:translateY(0);}
+.emp-sheet-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px 12px;border-bottom:1px solid rgba(184,146,60,.1);flex-shrink:0;
+}
+.emp-sheet-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold-d);}
+.emp-sheet-body{overflow-y:auto;padding:10px 14px 14px;flex:1;}
 
-/* ERROR */
-.not-found{background:var(--bg2);border:1px solid rgba(231,76,60,.3);border-radius:16px;padding:40px;text-align:center;color:var(--red);}
-.not-found .ico{font-size:48px;margin-bottom:14px;}
-.not-found p{font-size:15px;}
-
-/* EMPTY STATE */
-.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
-.empty-state .ico{font-size:60px;margin-bottom:16px;opacity:.3;}
-.empty-state p{font-size:15px;}
-
-@media(max-width:700px){.fiche-body{grid-template-columns:1fr;}.fiche-photo-col{border-right:none;border-bottom:1px solid var(--bd);}.info-grid{grid-template-columns:1fr;}.search-row{flex-direction:column;}}
-
-/* ── HISTORIQUE NAV DROPDOWN ── */
-.basket-item{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:11px 12px;margin-bottom:9px;position:relative;}
-.basket-remove{position:absolute;top:7px;right:7px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:4px;transition:all .15s;}
-.basket-remove:hover{color:var(--red);background:rgba(231,76,60,.1);}
-.basket-ref{font-size:15px;font-weight:800;font-family:monospace;color:var(--gold-l);}
-.basket-name{font-size:11px;color:var(--muted);margin-bottom:6px;}
-#basket-nav-btn{background:none;border:none;cursor:pointer;padding:6px 8px;border-radius:10px;display:flex;align-items:center;gap:7px;transition:background .2s;position:relative;}
-#basket-nav-btn:hover{background:rgba(201,168,76,.1);}
-#basket-nav-btn .bico{font-size:22px;line-height:1;}
-#basket-nav-count{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;border-radius:20px;padding:2px 9px;font-size:13px;font-weight:900;min-width:22px;text-align:center;display:none;box-shadow:0 1px 6px rgba(184,146,60,.4);}
-.basket-dropdown{display:none;position:fixed;top:70px;right:10px;width:320px;max-height:calc(100vh - 88px);background:#fff;border:1px solid var(--bd);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:200;flex-direction:column;overflow:hidden;}
-.basket-dropdown.open{display:flex;}
-.basket-dropdown-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid var(--bd);flex-shrink:0;}
-.basket-dropdown-body{overflow-y:auto;padding:10px 11px 12px;flex:1;}
-.basket-overlay{display:none;position:fixed;inset:0;z-index:199;}
-.basket-overlay.open{display:block;}
-
+/* Basket item */
+.bsk-item{background:var(--bg,#f8f4ee);border:1px solid rgba(184,146,60,.15);border-radius:12px;padding:12px;margin-bottom:10px;position:relative;}
+.bsk-ref{font-size:16px;font-weight:900;font-family:monospace;color:var(--gold-d);}
+.bsk-name{font-size:11px;color:var(--muted);margin-top:2px;margin-bottom:8px;}
+.bsk-remove{position:absolute;top:10px;right:10px;background:transparent;border:none;color:rgba(231,76,60,.4);cursor:pointer;font-size:15px;padding:3px 6px;border-radius:6px;}
+.bsk-remove:active{color:#e74c3c;}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
 </head>
 <body>
 
-<nav>
-  <div class="nav-brand">
-    <div class="nav-logo">✦</div>
-    <div class="nav-title">GESTION STOCK</div>
+<!-- Topbar -->
+<div class="emp-topbar">
+  <div class="emp-topbar-brand">
+    <div class="emp-topbar-logo">T</div>
+    <div class="emp-topbar-name">Trabelsi</div>
   </div>
-  <button id="basket-nav-btn" onclick="toggleBasketDropdown()" title="Historique de session">
-    <span class="bico">🗂️</span>
-    <span id="basket-nav-count">0</span>
-  </button>
-  <button onclick="if(confirm('Fermer la session employé ?')) window.location.href='/logout';" style="margin-left:8px;padding:7px 14px;border-radius:8px;border:1px solid rgba(192,57,43,.3);color:#c0392b;font-size:13px;font-weight:600;cursor:pointer;background:rgba(192,57,43,.07);white-space:nowrap;font-family:inherit;">⎋ Fermer</button>
-</nav>
-
-<!-- ── OVERLAY + DROPDOWN HISTORIQUE ── -->
-<div class="basket-overlay" id="basket-overlay" onclick="closeBasketDropdown()"></div>
-<div class="basket-dropdown" id="basket-dropdown">
-  <div class="basket-dropdown-head">
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold)">🗂️ Session (<span id="basket-count">0</span>)</div>
-    <div style="display:flex;gap:6px">
-      <button onclick="copyBasket(this)" title="Copier" style="padding:4px 9px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--muted);cursor:pointer;font-size:13px">📋</button>
-      <button onclick="clearBasket()" title="Vider" style="padding:4px 9px;border-radius:6px;border:1px solid rgba(231,76,60,.3);background:transparent;color:var(--red);cursor:pointer;font-size:13px">🗑️</button>
-    </div>
+  <div class="emp-topbar-actions">
+    <button class="emp-topbar-btn" onclick="toggleBasketSheet()">
+      🗂️<span class="emp-badge" id="basket-nav-count">0</span>
+    </button>
   </div>
-  <div class="basket-dropdown-body" id="basket-list"></div>
 </div>
 
-<div class="page">
-  <div class="page-title">🔍 Fiche Référence</div>
-  <div class="page-sub">Saisissez le numéro de référence pour voir la fiche complète de l'article avec sa photo.</div>
+<!-- Basket Sheet -->
+<div class="emp-sheet-overlay" id="emp-sheet-overlay" onclick="closeBasketSheet()"></div>
+<div class="emp-sheet" id="emp-basket-sheet">
+  <div class="emp-sheet-head">
+    <div class="emp-sheet-title">🗂️ Session (<span id="emp-basket-count">0</span>)</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="copyBasket(this)" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(184,146,60,.25);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">📋</button>
+      <button onclick="clearBasket()" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(231,76,60,.25);background:transparent;color:#e74c3c;cursor:pointer;font-size:13px;">🗑️</button>
+      <button onclick="closeBasketSheet()" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(184,146,60,.15);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">✕</button>
+    </div>
+  </div>
+  <div class="emp-sheet-body" id="emp-basket-list"></div>
+</div>
 
-  <div class="search-box">
-    <div class="search-row">
-      <div class="search-field">
-        <label>Numéro de référence</label>
-        <input type="text" id="ref-input" placeholder="⌨️  Saisir la référence" inputmode="numeric"
-          style="transition:border-color .2s;"
-          ontouchstart="this.style.borderColor='#1abc9c';openNumpad()"
-          ontouchend="this.style.borderColor=''"
-          ontouchcancel="this.style.borderColor=''"
-          onclick="openNumpad()"
-          onkeydown="if(event.key==='Enter')search()">
+
+<div class="emp-content">
+
+  <!-- Fiche Référence -->
+  <div class="emp-card">
+    <div class="emp-card-header">
+      <span style="font-size:16px">🔍</span>
+      <span class="emp-card-title">Fiche Référence</span>
+    </div>
+    <div class="emp-fiche-row">
+      <input type="text" id="ref-input" inputmode="numeric"
+        class="emp-fiche-input" placeholder="Numéro de référence..."
+        ontouchstart="openNumpad()" onclick="openNumpad()"
+        onkeydown="if(event.key==='Enter')search()">
+      <button class="emp-fiche-btn" onclick="search()">🔍</button>
+      <button class="emp-keep-btn" id="btn-garder" onclick="garder()" disabled>📌</button>
+    </div>
+    <div id="result">
+      <div class="emp-empty">
+        <div class="emp-empty-ico">💎</div>
+        Entrez une référence pour afficher la fiche article
       </div>
-      <button class="btn btn-gold" onclick="search()">🔍 Rechercher</button>
-      <button class="btn btn-garder" id="btn-garder" onclick="garder()" disabled>📌 Garder</button>
-      <button class="btn btn-outline" onclick="clearResult()">✕ Effacer</button>
     </div>
   </div>
 
-  <div id="result" class="result">
-    <div id="result-inner"></div>
-  </div>
-
-  <div id="empty-state" class="empty-state">
-    <div class="ico">💎</div>
-    <p>Entrez une référence pour afficher la fiche article</p>
-  </div>
-</div><!-- /.page -->
+</div>
 
 <script>
 function fmt(v,d=2){return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d});}
 function fmtN(v){return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});}
 function fmtD(d){if(!d)return '—';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function togglePR(el){el.classList.toggle('pr-hidden');}
 
 async function search(){
   const inp=document.getElementById('ref-input');
@@ -183,9 +238,9 @@ async function search(){
   // Reset immédiatement le champ pour saisie suivante
   inp.value='';
   inp.focus();
-  document.getElementById('empty-state').style.display='none';
-  document.getElementById('result-inner').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Chargement…</div>';
-  document.getElementById('result').classList.add('show');
+  // empty state hidden via result content
+  document.getElementById('result').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Chargement…</div>';
+  // result shown inline;
 
   try{
     const [stockRes, ventes, credits] = await Promise.all([
@@ -228,116 +283,78 @@ function renderStock(a, enCredit){
   currentArticle={ref:a.id,article:a.article,or_grs:a.or_grs,pa:a.pa,statut:'stock',d:a.d,em:a.em,r:a.r,s:a.s,em_clb:a.em_clb,rosaces:a.rosaces,p_fines:a.p_fines,perles:a.perles};
   const btnG=document.getElementById('btn-garder');
   if(btnG){btnG.disabled=basket.some(b=>b.ref===a.id);btnG.textContent='📌 Garder';}
-  const imgUrl=`/api/photo/${a.id}`;
-  const photoHtml=`<img src="${imgUrl}" class="fiche-photo" alt="Photo" onerror="this.parentElement.innerHTML='<div class=\\'no-photo-big\\'><div class=\\'ico\\'>📷</div><span>Pas de photo disponible</span></div>'">`;
-
-  document.getElementById('result-inner').innerHTML=`
-  <div class="fiche-card">
-    <div class="fiche-header">
-      <div>
-        <div class="fiche-ref">#${a.id}</div>
-        <div style="color:var(--gold);font-size:13px;margin-top:4px">${a.article||'—'}</div>
-      </div>
-      <span class="fiche-status status-stock">✅ En Stock</span>
+  document.getElementById('result').innerHTML=`
+<div class="emp-fiche-result"><div class="emp-fiche-card">
+    <div class="emp-fiche-head">
+      <div><div class="emp-fiche-ref">#${a.id}</div><div class="emp-fiche-nom">${a.article||'—'}</div></div>
+      <span class="emp-fiche-badge badge-stock">✅ En Stock</span>
     </div>
-    <div class="fiche-body">
-      <div class="fiche-photo-col">${photoHtml}</div>
-      <div class="fiche-info">
-        <div class="fiche-article-name">${a.article||'—'}</div>
-        <div class="info-grid">
-          <div class="info-item"><label>Date d'entrée</label><div class="val">${fmtD(a.date)}</div></div>
-          ${a.pa!=null?`<div class="info-item"><label>Prix de Revient (P.R)</label><div class="val grn">${fmtN(a.pa)} MAD</div></div>`:''}
-          ${a.or_grs!=null?`<div class="info-item"><label>OR (grammes)</label><div class="val gold">${fmt(a.or_grs)} grs</div></div>`:''}
-          ${a.d?`<div class="info-item"><label>Diamants</label><div class="val has">${fmt(a.d)} cts</div></div>`:''}
-          ${a.em?`<div class="info-item"><label>Émeraudes</label><div class="val has">${fmt(a.em)} cts</div></div>`:''}
-          ${a.r?`<div class="info-item"><label>Rubis</label><div class="val has">${fmt(a.r)} cts</div></div>`:''}
-          ${a.s?`<div class="info-item"><label>Saphirs</label><div class="val has">${fmt(a.s)} cts</div></div>`:''}
-          ${a.p_fines?`<div class="info-item"><label>Pierres Fines</label><div class="val has">${fmt(a.p_fines)}</div></div>`:''}
-          ${a.rosaces?`<div class="info-item"><label>Rosaces</label><div class="val has">${fmt(a.rosaces)}</div></div>`:''}
-          ${a.em_clb?`<div class="info-item"><label>Ém. Colombie</label><div class="val has">${fmt(a.em_clb)} cts</div></div>`:''}
-          ${a.perles?`<div class="info-item"><label>Perles</label><div class="val has">${fmt(a.perles)} grs</div></div>`:''}
-        </div>
-      </div>
+    <div class="emp-fiche-photo-wrap"><img src="/api/photo/${a.id}" class="emp-fiche-photo" alt="Photo" onerror="this.parentElement.style.display='none'"></div>
+    <div class="emp-fiche-rows">
+      <div class="emp-row-item"><span class="emp-row-label">Date d'entrée</span><span class="emp-row-val">${fmtD(a.date)}</span></div>
+      ${a.pa!=null?'<div class="emp-row-item" onclick="togglePR(this)" style="cursor:pointer;user-select:none;"><span class="emp-row-label">Prix de Revient</span><span class="emp-row-val green">'+fmtN(a.pa)+' MAD</span></div>':''}
+      ${a.or_grs!=null?'<div class="emp-row-item"><span class="emp-row-label">OR (grs)</span><span class="emp-row-val gold">'+fmt(a.or_grs)+' grs</span></div>':''}
+      ${a.d?'<div class="emp-row-item"><span class="emp-row-label">Diamants</span><span class="emp-row-val has">'+fmt(a.d)+' cts</span></div>':''}
+      ${a.em?'<div class="emp-row-item"><span class="emp-row-label">Émeraudes</span><span class="emp-row-val has">'+fmt(a.em)+' cts</span></div>':''}
+      ${a.r?'<div class="emp-row-item"><span class="emp-row-label">Rubis</span><span class="emp-row-val has">'+fmt(a.r)+' cts</span></div>':''}
+      ${a.s?'<div class="emp-row-item"><span class="emp-row-label">Saphirs</span><span class="emp-row-val has">'+fmt(a.s)+' cts</span></div>':''}
+      ${a.p_fines?'<div class="emp-row-item"><span class="emp-row-label">Pierres Fines</span><span class="emp-row-val has">'+fmt(a.p_fines)+'</span></div>':''}
+      ${a.rosaces?'<div class="emp-row-item"><span class="emp-row-label">Rosaces</span><span class="emp-row-val has">'+fmt(a.rosaces)+'</span></div>':''}
+      ${a.em_clb?'<div class="emp-row-item"><span class="emp-row-label">Ém. Colombie</span><span class="emp-row-val has">'+fmt(a.em_clb)+' cts</span></div>':''}
+      ${a.perles?'<div class="emp-row-item"><span class="emp-row-label">Perles</span><span class="emp-row-val has">'+fmt(a.perles)+' grs</span></div>':''}
     </div>
-    <div class="fiche-actions">
-      <button class="btn btn-gold" onclick="window.location.href='/vente?ref=${a.id}'">💰 Enregistrer une vente</button>
-      <button class="btn btn-outline" onclick="window.location.href='/'">📦 Voir le stock</button>
-    </div>
-  </div>`;
+  </div></div>`;
 }
 
 function renderVendu(v, nb, enCredit){
   currentArticle={ref:v.ref,article:v.article,or_grs:v.or_grs,pa:v.pa,statut:'vendu',d:v.d,em:v.em,r:v.r,s:v.s,em_clb:v.em_clb,rosaces:v.rosaces,p_fines:v.p_fines,perles:v.perles};
   const btnG=document.getElementById('btn-garder');
   if(btnG){btnG.disabled=basket.some(b=>b.ref===v.ref);btnG.textContent='📌 Garder';}
-  const imgUrl=`/api/photo/${v.ref}`;
-  const photoHtml=`<img src="${imgUrl}" class="fiche-photo" alt="Photo" onerror="this.parentElement.innerHTML='<div class=\\'no-photo-big\\'><div class=\\'ico\\'>📷</div><span>Pas de photo disponible</span></div>'">`;
   const b=v.benef||0;
-
-  document.getElementById('result-inner').innerHTML=`
-  <div class="fiche-card">
-    <div class="fiche-header">
-      <div>
-        <div class="fiche-ref">#${v.ref}</div>
-        <div style="color:var(--gold);font-size:13px;margin-top:4px">${v.article||'—'}</div>
-      </div>
-      ${enCredit
-        ? '<span class="fiche-status" style="background:rgba(230,126,34,.15);border:1px solid rgba(230,126,34,.5);color:#b85c00">💳 Vendu — Paiement en cours</span>'
-        : '<span class="fiche-status status-vendu">🔴 Vendu'+(nb>1?' ('+nb+' fois)':'')+'</span>'
-      }
+  const badgeHtml=enCredit
+    ?'<span class="emp-fiche-badge badge-credit">💳 Paiement en cours</span>'
+    :'<span class="emp-fiche-badge badge-vendu">🔴 Vendu'+(nb>1?' ('+nb+'x)':'')+'</span>';
+  document.getElementById('result').innerHTML=`
+<div class="emp-fiche-result"><div class="emp-fiche-card">
+    <div class="emp-fiche-head">
+      <div><div class="emp-fiche-ref">#${v.ref}</div><div class="emp-fiche-nom">${v.article||'—'}</div></div>
+      ${badgeHtml}
     </div>
-    <div class="fiche-body">
-      <div class="fiche-photo-col">${photoHtml}</div>
-      <div class="fiche-info">
-        <div class="fiche-article-name">${v.article||'—'}</div>
-        <div class="info-grid">
-          <div class="info-item"><label>Date d'achat</label><div class="val">${fmtD(v.date_achat)}</div></div>
-          ${v.pa!=null?`<div class="info-item"><label>Prix de Revient (P.R)</label><div class="val grn">${fmtN(v.pa)} MAD</div></div>`:''}
-          ${v.or_grs!=null?`<div class="info-item"><label>OR (grammes)</label><div class="val gold">${fmt(v.or_grs)} grs</div></div>`:''}
-          ${v.d?`<div class="info-item"><label>Diamants</label><div class="val has">${fmt(v.d)} cts</div></div>`:''}
-          ${v.em?`<div class="info-item"><label>Émeraudes</label><div class="val has">${fmt(v.em)} cts</div></div>`:''}
-          ${v.r?`<div class="info-item"><label>Rubis</label><div class="val has">${fmt(v.r)} cts</div></div>`:''}
-          ${v.s?`<div class="info-item"><label>Saphirs</label><div class="val has">${fmt(v.s)} cts</div></div>`:''}
-          ${v.perles?`<div class="info-item"><label>Perles</label><div class="val has">${fmt(v.perles)} grs</div></div>`:''}
-        </div>
-        <div class="vente-section">
-          <div class="vente-section-title">📦 Informations de Vente</div>
-          <div class="info-grid">
-            <div class="info-item"><label>Date de vente</label><div class="val blue">${fmtD(v.date_vente)}</div></div>
-            <div class="info-item"><label>Prix de Vente (P.V)</label><div class="val blue">${v.pv!=null?fmtN(v.pv)+' MAD':'—'}</div></div>
-            <div class="info-item"><label>Bénéfice</label><div class="val ${b>=0?'grn':'red'}">${fmtN(b)} MAD</div></div>
-            <div class="info-item"><label>Client</label><div class="val">${v.client||'—'}</div></div>
-            ${v.commentaire?`<div class="info-item full"><label>Commentaire</label><div class="val">${v.commentaire}</div></div>`:''}
-          </div>
-        </div>
-      </div>
+    <div class="emp-fiche-photo-wrap"><img src="/api/photo/${v.ref}" class="emp-fiche-photo" alt="Photo" onerror="this.parentElement.style.display='none'"></div>
+    <div class="emp-vente-sep">Infos article</div>
+    <div class="emp-fiche-rows">
+      ${v.pa!=null?'<div class="emp-row-item" onclick="togglePR(this)" style="cursor:pointer;user-select:none;"><span class="emp-row-label">Prix de Revient</span><span class="emp-row-val green">'+fmtN(v.pa)+' MAD</span></div>':''}
+      ${v.or_grs!=null?'<div class="emp-row-item"><span class="emp-row-label">OR (grs)</span><span class="emp-row-val gold">'+fmt(v.or_grs)+' grs</span></div>':''}
+      ${v.d?'<div class="emp-row-item"><span class="emp-row-label">Diamants</span><span class="emp-row-val has">'+fmt(v.d)+' cts</span></div>':''}
+      ${v.em?'<div class="emp-row-item"><span class="emp-row-label">Émeraudes</span><span class="emp-row-val has">'+fmt(v.em)+' cts</span></div>':''}
+      ${v.r?'<div class="emp-row-item"><span class="emp-row-label">Rubis</span><span class="emp-row-val has">'+fmt(v.r)+' cts</span></div>':''}
+      ${v.s?'<div class="emp-row-item"><span class="emp-row-label">Saphirs</span><span class="emp-row-val has">'+fmt(v.s)+' cts</span></div>':''}
+      ${v.em_clb?'<div class="emp-row-item"><span class="emp-row-label">Ém. Colombie</span><span class="emp-row-val has">'+fmt(v.em_clb)+' cts</span></div>':''}
+      ${v.perles?'<div class="emp-row-item"><span class="emp-row-label">Perles</span><span class="emp-row-val has">'+fmt(v.perles)+' grs</span></div>':''}
     </div>
-    <div class="fiche-actions">
-      <button class="btn btn-outline" onclick="window.location.href='/vendu'">📋 Voir les ventes</button>
+    <div class="emp-vente-sep">Vente</div>
+    <div class="emp-fiche-rows">
+      <div class="emp-row-item"><span class="emp-row-label">Date de vente</span><span class="emp-row-val blue">${fmtD(v.date_vente)}</span></div>
+      ${v.pv!=null?'<div class="emp-row-item"><span class="emp-row-label">Prix de Vente</span><span class="emp-row-val blue">'+fmtN(v.pv)+' MAD</span></div>':''}
+      <div class="emp-row-item"><span class="emp-row-label">Bénéfice</span><span class="emp-row-val ${b>=0?'green':'red'}">${fmtN(b)} MAD</span></div>
+      ${v.client?'<div class="emp-row-item"><span class="emp-row-label">Client</span><span class="emp-row-val">'+v.client+'</span></div>':''}
     </div>
-  </div>`;
+  </div></div>`;
 }
 
 function renderNotFound(ref){
   currentArticle=null;
   const btnG=document.getElementById('btn-garder');
   if(btnG){btnG.disabled=true;btnG.textContent='📌 Garder';}
-  document.getElementById('result-inner').innerHTML=`
-  <div class="not-found">
-    <div class="ico">🔍</div>
-    <p>Aucun article trouvé pour la référence <strong>#${ref}</strong></p>
-    <p style="margin-top:8px;font-size:13px;color:var(--muted)">Cette référence n'existe ni dans le stock ni dans les ventes.</p>
-  </div>`;
+  document.getElementById('result').innerHTML='<div class="emp-notfound"><div style="font-size:32px;opacity:.2;margin-bottom:10px;">🔍</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Référence introuvable</div><div style="font-size:12px;color:var(--muted)">Aucun article pour la référence <strong>#'+ref+'</strong></div></div>';
 }
 
 function clearResult(){
   document.getElementById('ref-input').value='';
-  document.getElementById('result').classList.remove('show');
-  document.getElementById('result-inner').innerHTML='';
-  document.getElementById('empty-state').style.display='block';
+  document.getElementById('result').innerHTML='<div class="emp-empty"><div class="emp-empty-ico">💎</div>Entrez une référence pour afficher la fiche article</div>';
   currentArticle=null;
   const btnG=document.getElementById('btn-garder');
-  if(btnG){btnG.disabled=true;btnG.textContent='📌 Garder';}
+  if(btnG){btnG.disabled=true;btnG.textContent='📌';}
 }
 
 // Auto-search si ref dans l'URL
@@ -369,11 +386,11 @@ function garder(){
 function renderBasket(){
   // Badge nav
   const badge=document.getElementById('basket-nav-count');
-  const countEl=document.getElementById('basket-count');
+  const countEl=document.getElementById('emp-basket-count');
   if(badge){badge.style.display=basket.length?'block':'none';badge.textContent=basket.length;}
   if(countEl)countEl.textContent=basket.length;
   // Contenu dropdown
-  document.getElementById('basket-list').innerHTML=basket.length===0
+  document.getElementById('emp-basket-list').innerHTML=basket.length===0
     ?'<div style="text-align:center;padding:28px 0;color:var(--muted);font-size:13px">Aucun article gardé</div>'
     :basket.map((item,idx)=>`
     <div class="basket-item">
@@ -417,15 +434,15 @@ function renderBasket(){
     </div>`).join('');
 }
 
-function toggleBasketDropdown(){
-  const dd=document.getElementById('basket-dropdown');
-  const ov=document.getElementById('basket-overlay');
-  const open=dd.classList.toggle('open');
+function toggleBasketSheet(){
+  var sheet=document.getElementById('emp-basket-sheet');
+  var ov=document.getElementById('emp-sheet-overlay');
+  var open=sheet.classList.toggle('open');
   ov.classList.toggle('open',open);
 }
-function closeBasketDropdown(){
-  document.getElementById('basket-dropdown').classList.remove('open');
-  document.getElementById('basket-overlay').classList.remove('open');
+function closeBasketSheet(){
+  document.getElementById('emp-basket-sheet').classList.remove('open');
+  document.getElementById('emp-sheet-overlay').classList.remove('open');
 }
 
 function removeBasket(idx){
@@ -441,7 +458,7 @@ function removeBasket(idx){
 function clearBasket(){
   basket=[];
   renderBasket();
-  closeBasketDropdown();
+  closeBasketSheet();
   const btn=document.getElementById('btn-garder');
   if(btn){btn.disabled=currentArticle===null;btn.textContent='📌 Garder';}
 }
@@ -451,6 +468,16 @@ function togglePA(idx){
   if(el)el.style.display=el.style.display==='none'?'block':'none';
 }
 
+function toggleBasketSheet(){
+  var sheet=document.getElementById('emp-basket-sheet');
+  var ov=document.getElementById('emp-sheet-overlay');
+  var open=sheet.classList.toggle('open');
+  ov.classList.toggle('open',open);
+}
+function closeBasketSheet(){
+  document.getElementById('emp-basket-sheet').classList.remove('open');
+  document.getElementById('emp-sheet-overlay').classList.remove('open');
+}
 function copyBasket(el){
   if(!basket.length)return;
   const lines=basket.map(item=>{
@@ -596,5 +623,13 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 <script src="/static/mobile.js"></script>
+
+<!-- Bottom bar -->
+<div class="emp-bottombar">
+  <button class="emp-bottom-btn emp-logout" onclick="if(confirm('Fermer la session ?')) window.location.href='/logout';">
+    <span class="emp-bottom-ico">⎋</span>
+    <span>Déconnexion</span>
+  </button>
+</div>
 </body>
 </html>

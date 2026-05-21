@@ -62,7 +62,9 @@ CREATE TABLE IF NOT EXISTS articles (
     em_clb        REAL,
     perles        REAL,
     fabricant     TEXT,
-    ismail_pierres INTEGER DEFAULT 0
+    ismail_pierres INTEGER DEFAULT 0,
+    quantite      INTEGER DEFAULT 1,
+    note          TEXT DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS ventes (
@@ -169,6 +171,25 @@ CREATE TABLE IF NOT EXISTS config (
     key   TEXT PRIMARY KEY,
     value REAL
 );
+
+CREATE TABLE IF NOT EXISTS devis (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    client        TEXT,
+    telephone     TEXT,
+    date_devis    TEXT,
+    articles      TEXT DEFAULT '[]',
+    total_initial REAL DEFAULT 0,
+    total_reduit  REAL DEFAULT 0,
+    note          TEXT DEFAULT '',
+    created_at    TEXT
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token      TEXT PRIMARY KEY,
+    role       TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    last_used  TEXT NOT NULL
+);
 """
 
 
@@ -191,23 +212,37 @@ def _migrate_json(conn):
     seen_ids = set()
     max_id = max((a.get("id", 0) for a in arts), default=0)
     inserted = 0
+    # Group duplicates: merge identical ones into quantite, keep different ones
+    from collections import defaultdict
+    seen_first = {}  # id → first article inserted
     for a in arts:
         aid = a.get("id")
-        if aid in seen_ids:
-            max_id += 1
-            aid = max_id
+        fields = ['or_grs','pa','d','em','r','s','p_fines','rosaces','em_clb','perles','article']
+        if aid in seen_first:
+            prev = seen_first[aid]
+            if all(a.get(f) == prev.get(f) for f in fields):
+                # Identical duplicate → increment quantite
+                conn.execute("UPDATE articles SET quantite = quantite + 1 WHERE id = ?", (aid,))
+                inserted += 1
+                continue
+            else:
+                # Different article → new unique ID
+                max_id += 1
+                aid = max_id
+        seen_first.setdefault(a.get("id"), a)
         seen_ids.add(aid)
         conn.execute("""
             INSERT OR IGNORE INTO articles
-            (id,date,article,or_grs,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,fabricant,ismail_pierres)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            (id,date,article,or_grs,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,fabricant,ismail_pierres,quantite)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (aid, a.get("date"), a.get("article"),
               a.get("or_grs"), a.get("pa"), a.get("d"), a.get("em"),
               a.get("r"), a.get("s"), a.get("p_fines"), a.get("rosaces"),
               a.get("em_clb"), a.get("perles"), a.get("fabricant"),
-              1 if a.get("ismail_pierres") else 0))
+              1 if a.get("ismail_pierres") else 0,
+              int(a.get("quantite") or 1)))
         inserted += 1
-    print(f"  articles : {inserted} (dont {inserted - len(set(a.get('id') for a in arts))} doublons résolus)")
+    print(f"  articles : {inserted}")
 
     # Ventes
     ventes = _json_load(VENTES_FILE, [])
@@ -314,6 +349,61 @@ def _migrate_json(conn):
     print("[DB] Migration terminée.")
 
 
+def _fix_quantites(conn):
+    """
+    Migration one-shot : fusionne les doublons identiques créés lors de la migration JSON→SQLite.
+    Les articles 4374-4482 sont des copies d'articles existants (même type, poids, prix).
+    On incrémente la quantité de l'original et on supprime la copie.
+    Ne s'exécute que si nécessaire (présence d'articles > 4372 avec quantite=1).
+    """
+    # Vérifier si la migration est nécessaire
+    row = conn.execute("SELECT COUNT(*) FROM articles WHERE id > 4372 AND (quantite IS NULL OR quantite = 1)").fetchone()
+    if not row or row[0] == 0:
+        return
+    print(f"[DB] Fusion des doublons quantité ({row[0]} articles parasites détectés)...")
+
+    # Articles parasites : id > 4372, pas de ventes associées
+    parasites = conn.execute("""
+        SELECT a.id, a.article, a.or_grs, a.pa, a.d, a.em, a.r, a.s, a.p_fines, a.rosaces, a.em_clb, a.perles
+        FROM articles a
+        WHERE a.id > 4372
+          AND NOT EXISTS (SELECT 1 FROM ventes v WHERE v.ref = a.id)
+    """).fetchall()
+
+    deleted = 0
+    for p in parasites:
+        pid = p[0]
+        # 1er essai : article identique (même poids, même prix)
+        orig = conn.execute("""
+            SELECT id FROM articles
+            WHERE id < ? AND article = ? AND or_grs = ? AND pa = ?
+              AND (d IS ? OR d = ?) AND (em IS ? OR em = ?)
+              AND (r IS ? OR r = ?) AND (s IS ? OR s = ?)
+        """, (pid, p[1], p[2], p[3], p[4], p[4], p[5], p[5], p[6], p[6], p[7], p[7])).fetchone()
+        if not orig:
+            # 2e essai : même type + même prix (poids peut différer légèrement)
+            orig = conn.execute("""
+                SELECT id FROM articles
+                WHERE id < ? AND article = ? AND pa = ?
+                  AND (d IS ? OR d = ?) AND (em IS ? OR em = ?)
+                  AND (r IS ? OR r = ?) AND (s IS ? OR s = ?)
+                ORDER BY id
+                LIMIT 1
+            """, (pid, p[1], p[3], p[4], p[4], p[5], p[5], p[6], p[6], p[7], p[7])).fetchone()
+        if not orig:
+            # 3e essai : même type seulement — forcer la fusion sous la ref la plus proche
+            orig = conn.execute("""
+                SELECT id FROM articles WHERE id < ? AND article = ?
+                ORDER BY ABS(id - ?) LIMIT 1
+            """, (pid, p[1], pid)).fetchone()
+        if orig:
+            conn.execute("UPDATE articles SET quantite = COALESCE(quantite,1) + 1 WHERE id = ?", (orig[0],))
+            conn.execute("DELETE FROM articles WHERE id = ?", (pid,))
+            deleted += 1
+
+    print(f"[DB] Fusion terminée : {deleted} doublons supprimés, quantités mises à jour.")
+
+
 def init_db():
     """Crée la base de données et migre les JSON si c'est la première fois."""
     DATA_DIR.mkdir(exist_ok=True)
@@ -322,6 +412,51 @@ def init_db():
         conn.executescript(SCHEMA)
         if first_run:
             _migrate_json(conn)
+        # Migration 1 : ajouter colonne quantite si absente
+        try:
+            conn.execute("ALTER TABLE articles ADD COLUMN quantite INTEGER DEFAULT 1")
+            print("[DB] Colonne 'quantite' ajoutée aux articles.")
+        except Exception:
+            pass  # Colonne déjà présente
+        # Migration 2 : désactivée (bug corrigé, ne plus supprimer les articles > 4372)
+        # _fix_quantites(conn)
+        # Migration 3 : ajouter colonne note si absente
+        try:
+            conn.execute("ALTER TABLE articles ADD COLUMN note TEXT DEFAULT ''")
+            print("[DB] Colonne 'note' ajoutée aux articles.")
+        except Exception:
+            pass
+        # Migration 4 : source et telephone sur les ventes
+        try:
+            conn.execute("ALTER TABLE ventes ADD COLUMN source TEXT DEFAULT 'stock'")
+            print("[DB] Colonne 'source' ajoutée aux ventes.")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE ventes ADD COLUMN telephone TEXT DEFAULT ''")
+            print("[DB] Colonne 'telephone' ajoutée aux ventes.")
+        except Exception:
+            pass
+        # Migration 5 : mode prix global sur les factures
+        try:
+            conn.execute("ALTER TABLE factures ADD COLUMN prix_global INTEGER DEFAULT 0")
+            print("[DB] Colonne 'prix_global' ajoutée aux factures.")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE factures ADD COLUMN total_global REAL DEFAULT 0")
+            print("[DB] Colonne 'total_global' ajoutée aux factures.")
+        except Exception:
+            pass
+        # Migration 6 : table sessions persistantes
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                token      TEXT PRIMARY KEY,
+                role       TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                last_used  TEXT NOT NULL
+            );
+        """)
 
 
 # ─── ARTICLES ─────────────────────────────────────────────────────────────────
@@ -335,6 +470,8 @@ def _row_to_article(row):
         "em_clb": row["em_clb"], "perles": row["perles"],
         "fabricant": row["fabricant"],
         "ismail_pierres": bool(row["ismail_pierres"]),
+        "quantite": row["quantite"] if row["quantite"] else 1,
+        "note": row["note"] or "",
     }
 
 def load_articles():
@@ -348,18 +485,21 @@ def save_articles(articles):
         conn.execute("DELETE FROM articles")
         conn.executemany("""
             INSERT INTO articles
-            (id,date,article,or_grs,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,fabricant,ismail_pierres)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            (id,date,article,or_grs,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,fabricant,ismail_pierres,quantite,note)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, [(a["id"], a.get("date"), a.get("article"),
                a.get("or_grs"), a.get("pa"), a.get("d"), a.get("em"),
                a.get("r"), a.get("s"), a.get("p_fines"), a.get("rosaces"),
                a.get("em_clb"), a.get("perles"), a.get("fabricant"),
-               1 if a.get("ismail_pierres") else 0) for a in articles])
+               1 if a.get("ismail_pierres") else 0,
+               int(a.get("quantite") or 1),
+               str(a.get("note") or "")) for a in articles])
 
 
 # ─── VENTES ───────────────────────────────────────────────────────────────────
 
 def _row_to_vente(row):
+    keys = row.keys()
     return {
         "id_vente": row["id_vente"], "date_achat": row["date_achat"],
         "date_vente": row["date_vente"], "ref": row["ref"],
@@ -370,7 +510,9 @@ def _row_to_vente(row):
         "r": row["r"], "s": row["s"], "p_fines": row["p_fines"],
         "rosaces": row["rosaces"], "em_clb": row["em_clb"], "perles": row["perles"],
         "pv": row["pv"], "benef": row["benef"], "client": row["client"],
+        "telephone": row["telephone"] if "telephone" in keys else "",
         "mode_paiement": row["mode_paiement"], "commentaire": row["commentaire"],
+        "source": row["source"] if "source" in keys else "stock",
     }
 
 def load_ventes():
@@ -385,15 +527,16 @@ def save_ventes(ventes):
             INSERT INTO ventes
             (id_vente,date_achat,date_vente,ref,article,or_grs,vente_au_poids,
              prix_or_achat,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,
-             pv,benef,client,mode_paiement,commentaire)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             pv,benef,client,telephone,mode_paiement,commentaire,source)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, [(v["id_vente"], v.get("date_achat"), v.get("date_vente"),
                v.get("ref"), v.get("article"), v.get("or_grs"),
                1 if v.get("vente_au_poids") else 0, v.get("prix_or_achat"),
                v.get("pa"), v.get("d"), v.get("em"), v.get("r"), v.get("s"),
                v.get("p_fines"), v.get("rosaces"), v.get("em_clb"), v.get("perles"),
                v.get("pv"), v.get("benef"), v.get("client"),
-               v.get("mode_paiement"), v.get("commentaire")) for v in ventes])
+               v.get("telephone",""), v.get("mode_paiement"), v.get("commentaire"),
+               v.get("source","stock")) for v in ventes])
 
 
 # ─── CRÉDITS ──────────────────────────────────────────────────────────────────
@@ -515,6 +658,8 @@ def _row_to_facture(row):
         "mode_paiement": row["mode_paiement"],
         "note": row["note"] or "", "date": row["date"],
         "created_at": row["created_at"],
+        "prix_global": int(row["prix_global"]) if row["prix_global"] else 0,
+        "total_global": float(row["total_global"]) if row["total_global"] else 0,
     }
 
 def load_factures():
@@ -528,14 +673,15 @@ def save_factures(factures):
         conn.executemany("""
             INSERT INTO factures
             (id,numero,client,telephone,email,ville,articles,
-             total,avance,mode_paiement,note,date,created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+             total,avance,mode_paiement,note,date,created_at,prix_global,total_global)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, [(fac["id"], fac.get("numero"), fac.get("client"),
                fac.get("telephone"), fac.get("email"), fac.get("ville"),
                json.dumps(fac.get("articles",[]), ensure_ascii=False),
                fac.get("total"), fac.get("avance",0),
                fac.get("mode_paiement"), fac.get("note",""),
-               fac.get("date"), fac.get("created_at")) for fac in factures])
+               fac.get("date"), fac.get("created_at"),
+               int(fac.get("prix_global", 0)), float(fac.get("total_global", 0))) for fac in factures])
 
 
 # ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
@@ -592,12 +738,13 @@ def seed_all(payload):
 
         for a in payload.get("articles", []):
             conn.execute("""INSERT OR REPLACE INTO articles
-                (id,date,article,or_grs,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,fabricant,ismail_pierres)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                (id,date,article,or_grs,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,fabricant,ismail_pierres,quantite,note)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
                 a.get("id"), a.get("date"), a.get("article"), a.get("or_grs"),
                 a.get("pa"), a.get("d"), a.get("em"), a.get("r"), a.get("s"),
                 a.get("p_fines"), a.get("rosaces"), a.get("em_clb"), a.get("perles"),
-                a.get("fabricant"), int(bool(a.get("ismail_pierres", 0)))
+                a.get("fabricant"), int(bool(a.get("ismail_pierres", 0))),
+                int(a.get("quantite") or 1), str(a.get("note") or "")
             ))
 
         for v in payload.get("ventes", []):
@@ -665,6 +812,44 @@ def seed_all(payload):
             conn.execute("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)", (k, v))
 
 
+# ─── SESSIONS ─────────────────────────────────────────────────────────────────
+
+def create_session(token: str, role: str):
+    """Crée ou remplace une session dans la base."""
+    now = datetime.now().isoformat()
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO sessions (token, role, created_at, last_used) VALUES (?,?,?,?)",
+            (token, role, now, now)
+        )
+
+def get_session_role(token: str):
+    """Retourne le rôle associé au token, ou None si inexistant/expiré."""
+    if not token:
+        return None
+    with get_conn() as conn:
+        row = conn.execute("SELECT role FROM sessions WHERE token=?", (token,)).fetchone()
+        if row:
+            conn.execute("UPDATE sessions SET last_used=? WHERE token=?",
+                         (datetime.now().isoformat(), token))
+            return row["role"]
+    return None
+
+def delete_session(token: str):
+    """Supprime une session (logout)."""
+    if not token:
+        return
+    with get_conn() as conn:
+        conn.execute("DELETE FROM sessions WHERE token=?", (token,))
+
+def cleanup_old_sessions(max_age_hours: int = 72):
+    """Supprime les sessions inactives depuis plus de max_age_hours."""
+    from datetime import timedelta
+    cutoff = (datetime.now() - timedelta(hours=max_age_hours)).isoformat()
+    with get_conn() as conn:
+        conn.execute("DELETE FROM sessions WHERE last_used < ?", (cutoff,))
+
+
 # ─── Point d'entrée ───────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -677,4 +862,35 @@ if __name__ == "__main__":
     print(f"  Chèques   : {len(load_cheques())}")
     print(f"  Factures  : {len(load_factures())}")
     print(f"  Notifs    : {len(load_notifs())}")
+
+
+# ─── DEVIS ────────────────────────────────────────────────────────────────────
+
+def _row_to_devis(row):
+    d = dict(row)
+    d['articles'] = json.loads(d.get('articles') or '[]')
+    return d
+
+def load_devis():
+    with get_conn() as conn:
+        rows = conn.execute("SELECT * FROM devis ORDER BY id DESC").fetchall()
+    return [_row_to_devis(r) for r in rows]
+
+def insert_devis(item):
+    with get_conn() as conn:
+        cur = conn.execute("""
+            INSERT INTO devis (client, telephone, date_devis, articles, total_initial, total_reduit, note, created_at)
+            VALUES (?,?,?,?,?,?,?,?)
+        """, (
+            item.get('client',''), item.get('telephone',''),
+            item.get('date_devis',''),
+            json.dumps(item.get('articles',[]), ensure_ascii=False),
+            float(item.get('total_initial',0)), float(item.get('total_reduit',0)),
+            item.get('note',''), item.get('created_at','')
+        ))
+        return cur.lastrowid
+
+def delete_devis(devis_id):
+    with get_conn() as conn:
+        conn.execute("DELETE FROM devis WHERE id=?", (int(devis_id),))
     print(f"  Config    : {load_config()}")

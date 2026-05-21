@@ -82,6 +82,11 @@
 
   .nav-links.nav-open { display: flex !important; }
 
+  /* Masquer les sous-menus dropdown quand la nav mobile est fermée */
+  .nav-links:not(.nav-open) .nav-drop-menu { display: none !important; }
+  /* Afficher le sous-menu uniquement si dropdown a .open ET nav est ouverte */
+  .nav-links.nav-open .nav-dropdown.open .nav-drop-menu { display: block !important; }
+
   .nav-links a {
     padding: 13px 16px !important;
     font-size: 15px !important;
@@ -234,7 +239,7 @@
     overflow-x: auto;
     flex-wrap: nowrap !important;
     padding-bottom: 6px;
-    padding-right: 70px !important; /* espace pour la bulle chatbot */
+    padding-right: 12px !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 6px !important;

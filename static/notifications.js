@@ -298,6 +298,14 @@ async function computeNotifs(){
         sub:`${f.numero||'—'} · Reste: ${fmtM(reste)} · Émise le ${fmtD(f.date||f.created_at)}` });
     }
 
+    // ── 5. STOCK FAIBLE (quantite = 1) ──────────────────────────────────────
+    const stockFaible = (ismail||[]).filter(n => n.type === 'stock_faible');
+    for(const n of stockFaible){
+      notifs.push({ g:'stock', p:4, icon:'⚠️', badge:'Stock faible', bc:'b-orange',
+        title:`Dernier article — #${n.ref} · ${n.article||'—'}`,
+        sub:`Il ne reste qu'une seule pièce en stock` });
+    }
+
   }catch(e){ console.warn('[Notifs]',e); }
 
   notifs.sort((a,b)=>a.p-b.p);
@@ -308,7 +316,8 @@ async function computeNotifs(){
 const G_LABELS = {
   ismail: '💎 Ismail — À régler',
   cheques:'📋 Chèques',
-  fournisseurs:'🏭 Fournisseurs', factures:'🧾 Factures'
+  fournisseurs:'🏭 Fournisseurs', factures:'🧾 Factures',
+  stock:'📦 Stock faible'
 };
 
 function render(notifs){

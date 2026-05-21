@@ -162,6 +162,27 @@ nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 28px;display:fle
   nav > a[href="/logout"]{display:none;}
   .mob-logout{display:block !important;}
 }
+/* ── NAV DROPDOWNS ── */
+.nav-dropdown{position:relative;display:inline-block;}
+.nav-drop-btn{padding:8px 14px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;}
+.nav-drop-btn:hover,.nav-drop-btn.active{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-drop-btn.active{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+.nav-drop-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e8e0d4;border-radius:10px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;overflow:hidden;}
+.nav-dropdown.open .nav-drop-menu{display:block;}
+.nav-drop-menu a{display:block;padding:10px 16px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:background .15s;white-space:nowrap;}
+.nav-drop-menu a:hover{background:rgba(201,168,76,.08);color:var(--gold);}
+.nav-search-btn{padding:8px 12px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:16px;cursor:pointer;transition:all .2s;}
+.nav-search-btn:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-search-wrap{position:relative;display:none;}
+.nav-search-wrap.open{display:block;}
+@media(max-width:860px){
+  .nav-dropdown{display:block;width:100%;}
+  .nav-drop-btn{width:100%;text-align:left;padding:11px 16px;font-size:14px;border-radius:10px;}
+  .nav-drop-menu{display:none;position:static;box-shadow:none;border:none;background:rgba(201,168,76,.04);border-radius:0;border-left:2px solid rgba(201,168,76,.25);margin:0 0 4px 16px;}
+  .nav-drop-menu a{padding:8px 14px;font-size:13px;}
+  .nav-search-btn{display:none;}
+  .nav-search-wrap{display:none!important;}
+}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -173,16 +194,56 @@ nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 28px;display:fle
     <div class="nav-logo">✦</div>
     <div class="nav-title">GESTION STOCK</div>
   </a>
-  <div class="nav-links">
-    <a href="/accueil">Accueil</a>
+  <!-- Global search bar -->
+  <div class="nav-search-wrap" id="nav-search-wrap" style="display:none;">
+    <input type="text" id="nav-search-input" placeholder="🔍 Rechercher article, client, vente…" autocomplete="off"
+      style="width:260px;padding:7px 12px;border:1px solid rgba(201,168,76,.4);border-radius:8px;font-size:13px;background:#fff;outline:none;color:#1a1612;">
+    <div id="nav-search-results" style="position:absolute;top:60px;left:0;right:0;background:#fff;border:1px solid #e8e0d4;border-radius:0 0 10px 10px;max-height:320px;overflow-y:auto;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,.12);"></div>
+  </div>
+
+  <div class="nav-links" id="nav-links">
     <a href="/dashboard">Dashboard</a>
-    <a href="/stock">Stock</a>
-    <a href="/vendu">Ventes</a>
-    <a href="/credit">Crédits Clients</a>
-    <a href="/cheques">Chèques</a>
-    <a href="/facture" class="active">Facture</a>
-    <a href="/fournisseurs">Fournisseurs</a>
-    <a href="/fiche">Fiche</a>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">💍 Stock ▾</button>
+      <div class="nav-drop-menu">
+        
+        <a href="/stock">Voir le stock</a>
+        <a href="/ajouter">Ajouter un article</a>
+        <a href="/vendu">Articles vendus</a>
+        <a href="/fiche">Fiche référence</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/catalogue">Catalogue</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn active">💰 Ventes ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/vendu">Ventes</a>
+        <a href="/facture">Factures</a>
+        <a href="/facture-libre">📝 Facture Libre</a>
+                <a href="/devis">📋 Devis</a>
+                <a href="/historique-devis">🗂 Historique Devis</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">👥 Clients ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/clients">Dossier Clients</a>
+        <a href="/credit">Crédits</a>
+        <a href="/cheques">Chèques</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">⚙️ Gestion ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/fournisseurs">Fournisseurs</a>
+        <a href="/fiche">Fiche</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/historique-activite">📅 Historique</a>
+      </div>
+    </div>
+    <button class="nav-search-btn" onclick="toggleNavSearch()" title="Rechercher">🔍</button>
+    <a href="/logout" style="color:#c0392b;font-weight:600;" class="mob-logout">⎋ Déco</a>
   </div>
   <button class="hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
 
@@ -231,7 +292,7 @@ nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 28px;display:fle
     <div>
       <div class="section-label">Paiement</div>
       <div class="pay-grid">
-        <div class="field"><label>Avance reçue (MAD)</label><input type="number" id="pay-avance" placeholder="0" oninput="updatePreview()" /></div>
+        <div class="field"><label>Avance reçue</label><input type="number" id="pay-avance" placeholder="0" oninput="updatePreview()" /></div>
         <div class="field"><label>Mode de paiement</label>
           <select id="pay-mode" onchange="updatePreview()">
             <option value="">—</option>
@@ -346,7 +407,7 @@ function renderArticlesList(){
         <div class="art-item-ref">#${a.ref}</div>
         <div class="art-item-name">${a.article}</div>
         <div class="art-item-price">${fmt(a.or_grs)} grs OR</div>
-        <div class="art-item-pr">P.R : <span>${fmtN(a.pa)} MAD</span></div>
+        <div class="art-item-pr">P.R : <span>${fmtN(a.pa)}</span></div>
         <div class="art-item-pv">
           <label>Prix de vente</label>
           <input type="number" value="${a.pv||''}" placeholder="0"
@@ -405,7 +466,7 @@ function updatePreview(){
         </td>
         <td style="vertical-align:middle">${pierres.map(p=>`<span class="inv-pierre">${p}</span>`).join('')}</td>
         <td style="vertical-align:middle;text-align:right"><div style="font-size:11px;color:#9a8060;margin-bottom:2px">${fmt(a.or_grs)} grs OR</div></td>
-        <td class="inv-price">${fmtN(a.pv)} MAD</td>
+        <td class="inv-price">${fmtN(a.pv)}</td>
       </tr>`;
   }).join('');
 
@@ -414,7 +475,7 @@ function updatePreview(){
   if(avance>0 && avance>=total){
     badgeHtml = `<div class="inv-badge" style="border-color:#27ae60;color:#1e8449;background:#eafaf1">✓ Soldé</div>`;
   } else if(avance>0){
-    badgeHtml = `<div class="inv-badge">Avance versée</div>${mode?`<div class="inv-badge-sub">${mode} · ${fmtN(avance)} MAD</div>`:''}`;
+    badgeHtml = `<div class="inv-badge">Avance versée</div>${mode?`<div class="inv-badge-sub">${mode} · ${fmtN(avance)}</div>`:''}`;
   } else {
     badgeHtml = `<div class="inv-badge" style="border-color:#e74c3c;color:#c0392b;background:#fdf0ef">Aucun règlement</div>`;
   }
@@ -422,10 +483,10 @@ function updatePreview(){
   // Totaux
   let totauxHtml = `
     <div class="inv-t-row"><span>OR total</span><span>${fmt(orTotal)} grs</span></div>
-    <div class="inv-t-total"><span>Total TTC</span><span>${fmtN(total)} MAD</span></div>`;
+    <div class="inv-t-total"><span>Total TTC</span><span>${fmtN(total)}</span></div>`;
   if(avance>0){
-    totauxHtml += `<div class="inv-t-row"><span>Avance${mode?' ('+mode+')':''}</span><span>− ${fmtN(avance)} MAD</span></div>`;
-    if(reste>0) totauxHtml += `<div class="inv-t-reste"><span>Reste dû</span><span>${fmtN(reste)} MAD</span></div>`;
+    totauxHtml += `<div class="inv-t-row"><span>Avance${mode?' ('+mode+')':''}</span><span>− ${fmtN(avance)}</span></div>`;
+    if(reste>0) totauxHtml += `<div class="inv-t-reste"><span>Reste dû</span><span>${fmtN(reste)}</span></div>`;
     else totauxHtml += `<div class="inv-t-row" style="color:#27ae60;font-weight:600"><span>Soldé</span><span>✓</span></div>`;
   }
 
@@ -571,10 +632,10 @@ function shareWhatsApp(){
   msg += `*Facture #${invNum}*\n`;
   msg += `Client : ${clientName}\n\n`;
   msg += `*Articles :*\n`;
-  ARTICLES.forEach(a=>{ msg += `• #${a.ref} ${a.article} — ${fmtN(a.pv)} MAD\n`; });
-  msg += `\n*Total : ${fmtN(total)} MAD*\n`;
-  if(avance>0){ msg += `Avance${mode?' ('+mode+')':''} : ${fmtN(avance)} MAD\n`; }
-  if(reste>0){ msg += `💰 Reste dû : *${fmtN(reste)} MAD*\n`; }
+  ARTICLES.forEach(a=>{ msg += `• #${a.ref} ${a.article} — ${fmtN(a.pv)}\n`; });
+  msg += `\n*Total : ${fmtN(total)}*\n`;
+  if(avance>0){ msg += `Avance${mode?' ('+mode+')':''} : ${fmtN(avance)}\n`; }
+  if(reste>0){ msg += `💰 Reste dû : *${fmtN(reste)}*\n`; }
   else { msg += `✅ Soldé\n`; }
   msg += `\nMerci de votre confiance 🙏`;
 
@@ -601,10 +662,10 @@ function shareEmail(){
   let body = `Madame, Monsieur ${clientName},\n\nVeuillez trouver ci-dessous le détail de votre facture.\n\n`;
   body += `FACTURE #${invNum}\n${'─'.repeat(40)}\n\n`;
   body += `ARTICLES :\n`;
-  ARTICLES.forEach(a=>{ body += `  • #${a.ref} ${a.article} — ${fmtN(a.pv)} MAD\n`; });
-  body += `\nTOTAL : ${fmtN(total)} MAD\n`;
-  if(avance>0){ body += `Avance${mode?' ('+mode+')':''} : ${fmtN(avance)} MAD\n`; }
-  if(reste>0){ body += `Reste dû : ${fmtN(reste)} MAD\n`; }
+  ARTICLES.forEach(a=>{ body += `  • #${a.ref} ${a.article} — ${fmtN(a.pv)}\n`; });
+  body += `\nTOTAL : ${fmtN(total)}\n`;
+  if(avance>0){ body += `Avance${mode?' ('+mode+')':''} : ${fmtN(avance)}\n`; }
+  if(reste>0){ body += `Reste dû : ${fmtN(reste)}\n`; }
   else { body += `Statut : Soldé ✓\n`; }
   body += `\nCordialement,\nTRABELSI Bijouterie & Joaillerie\nMega Mall · Rabat\n+212 661 195 773`;
 
@@ -659,6 +720,7 @@ function toggleNav(){
     ov.classList.remove('nav-open');
     const btn=document.getElementById('hamburger-btn');
     if(btn)btn.textContent='☰';
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
   };
   document.body.appendChild(ov);
   // Close nav when a link is clicked
@@ -670,7 +732,126 @@ function toggleNav(){
   }));
 })();
 </script>
-<script src="/chatbot.js"></script>
 <script src="/static/mobile.js"></script>
+<script>
+/* ── GLOBAL SEARCH ── */
+function toggleNavSearch(){
+  const w=document.getElementById('nav-search-wrap');
+  if(!w) return;
+  const open=w.classList.toggle('open');
+  w.style.display=open?'block':'none';
+  if(open) setTimeout(()=>document.getElementById('nav-search-input')?.focus(),50);
+}
+let _searchData=null;
+async function loadSearchData(){
+  if(_searchData) return _searchData;
+  const [arts,ventes,clients]=await Promise.all([
+    fetch('/api/articles').then(r=>r.json()).catch(()=>[]),
+    fetch('/api/ventes').then(r=>r.json()).catch(()=>[]),
+    fetch('/api/clients').then(r=>r.json()).catch(()=>[]),
+  ]);
+  _searchData={arts,ventes,clients};
+  return _searchData;
+}
+document.getElementById('nav-search-input')?.addEventListener('input',async function(){
+  const q=this.value.trim().toLowerCase();
+  const res=document.getElementById('nav-search-results');
+  if(!res) return;
+  if(q.length<2){res.style.display='none';return;}
+  const {arts,ventes,clients}=await loadSearchData();
+  const hits=[];
+  arts.filter(a=>a.article?.toLowerCase().includes(q)||(a.id+'').includes(q)).slice(0,3).forEach(a=>
+    hits.push(`<a href="/stock" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;" onclick="localStorage.setItem('stockSearch','${a.id}')">
+      <span style="font-size:18px">💍</span><div><div style="font-weight:600">#${a.id} — ${a.article}</div><div style="font-size:11px;color:#9a8e7e">${a.or_grs?a.or_grs+' grs':''} · PA: ${a.pa?Number(a.pa).toLocaleString('fr-FR'):'—'}</div></div></a>`));
+  clients.filter(c=>c.nom?.toLowerCase().includes(q)).slice(0,3).forEach(c=>
+    hits.push(`<a href="/clients" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;" onclick="localStorage.setItem('clientSearch','${c.nom}')">
+      <span style="font-size:18px">👤</span><div><div style="font-weight:600">${c.nom}</div><div style="font-size:11px;color:#9a8e7e">${c.nb_achats} achats · ${Number(c.ca_total).toLocaleString('fr-FR')} CA</div></div></a>`));
+  ventes.filter(v=>(v.client||'').toLowerCase().includes(q)||(v.article||'').toLowerCase().includes(q)).slice(0,3).forEach(v=>
+    hits.push(`<a href="/vendu" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;">
+      <span style="font-size:18px">💰</span><div><div style="font-weight:600">#${v.ref} ${v.article}</div><div style="font-size:11px;color:#9a8e7e">${v.client||'—'} · ${v.date_vente||''}</div></div></a>`));
+  if(!hits.length) hits.push('<div style="padding:16px;color:#9a8e7e;text-align:center;font-size:13px">Aucun résultat</div>');
+  res.innerHTML=hits.join('');
+  res.style.display='block';
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#nav-search-wrap')){
+    const res=document.getElementById('nav-search-results');
+    if(res) res.style.display='none';
+  }
+});
+</script>
+
+<script>
+/* ── NAV DROPDOWNS (click) ── */
+(function(){
+  // Dropdowns au clic
+  document.querySelectorAll('.nav-drop-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = this.closest('.nav-dropdown');
+      var isOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
+      if(!isOpen) dd.classList.add('open');
+    });
+  });
+  // Fermer en cliquant ailleurs
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
+  });
+  // Fermer avec Escape
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); }); });
+
+
+  // Recherche globale
+  var searchBtn = document.querySelector('.nav-search-btn');
+  var searchWrap = document.getElementById('nav-search-wrap');
+  if(searchBtn && searchWrap){
+    searchBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = searchWrap.classList.toggle('open');
+      searchWrap.style.display = open ? 'block' : 'none';
+      if(open){ var inp=document.getElementById('nav-search-input'); if(inp) setTimeout(function(){ inp.focus(); }, 50); }
+    });
+  }
+  var _sd=null;
+  async function loadSD(){
+    if(_sd) return _sd;
+    var [arts,ventes,clients]=await Promise.all([
+      fetch('/api/articles').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/ventes').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/clients').then(r=>r.json()).catch(()=>[]),
+    ]);
+    _sd={arts,ventes,clients}; return _sd;
+  }
+  var si = document.getElementById('nav-search-input');
+  if(si){
+    si.addEventListener('input', async function(){
+      var q=this.value.trim().toLowerCase();
+      var res=document.getElementById('nav-search-results');
+      if(!res) return;
+      if(q.length<2){res.style.display='none';return;}
+      var d=await loadSD();
+      var hits=[];
+      var fmtN=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+      d.arts.filter(a=>a.article?.toLowerCase().includes(q)||(a.id+'').includes(q)).slice(0,3).forEach(a=>
+        hits.push('<a href="/stock" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">💍</span><div><div style="font-weight:600">#'+a.id+' — '+a.article+'</div><div style="font-size:11px;color:#9a8e7e">'+(a.or_grs?a.or_grs+' grs · ':'')+' PA: '+(a.pa?fmtN(a.pa):'—')+'</div></div></a>'));
+      d.clients.filter(c=>c.nom?.toLowerCase().includes(q)).slice(0,3).forEach(c=>
+        hits.push('<a href="/clients" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">👤</span><div><div style="font-weight:600">'+c.nom+'</div><div style="font-size:11px;color:#9a8e7e">'+c.nb_achats+' achats · '+fmtN(c.ca_total)+' CA</div></div></a>'));
+      d.ventes.filter(v=>(v.client||'').toLowerCase().includes(q)||(v.article||'').toLowerCase().includes(q)).slice(0,3).forEach(v=>
+        hits.push('<a href="/vendu" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">💰</span><div><div style="font-weight:600">#'+v.ref+' '+v.article+'</div><div style="font-size:11px;color:#9a8e7e">'+(v.client||'—')+' · '+(v.date_vente||'')+'</div></div></a>'));
+      if(!hits.length) hits.push('<div style="padding:16px;color:#9a8e7e;text-align:center;font-size:13px">Aucun résultat</div>');
+      res.innerHTML=hits.join('');
+      res.style.display='block';
+    });
+    document.addEventListener('click',function(e){
+      if(!e.target.closest('#nav-search-wrap')){
+        var res=document.getElementById('nav-search-results');
+        if(res) res.style.display='none';
+      }
+    });
+  }
+})();
+</script>
+
 </body>
 </html>

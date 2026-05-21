@@ -47,6 +47,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
 @media(max-width:1100px){.grid4{grid-template-columns:repeat(2,1fr);}.grid3{grid-template-columns:1fr 1fr;}}
 @media(max-width:700px){.grid4,.grid2,.grid3{grid-template-columns:1fr;}}
+@media(max-width:760px){#dashboard-main{grid-template-columns:1fr!important;}}
 
 /* CARDS KPI */
 .kpi{background:#ffffff;border:1px solid #e8e0d4;border-radius:14px;padding:20px 22px;position:relative;overflow:hidden;transition:transform .18s,border-color .18s,box-shadow .18s;}
@@ -188,6 +189,27 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
   nav > a[href="/logout"]{display:none;}
   .mob-logout{display:block !important;}
 }
+/* ── NAV DROPDOWNS ── */
+.nav-dropdown{position:relative;display:inline-block;}
+.nav-drop-btn{padding:8px 14px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;}
+.nav-drop-btn:hover,.nav-drop-btn.active{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-drop-btn.active{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+.nav-drop-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e8e0d4;border-radius:10px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;overflow:hidden;}
+.nav-dropdown.open .nav-drop-menu{display:block;}
+.nav-drop-menu a{display:block;padding:10px 16px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:background .15s;white-space:nowrap;}
+.nav-drop-menu a:hover{background:rgba(201,168,76,.08);color:var(--gold);}
+.nav-search-btn{padding:8px 12px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:16px;cursor:pointer;transition:all .2s;}
+.nav-search-btn:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-search-wrap{position:relative;display:none;}
+.nav-search-wrap.open{display:block;}
+@media(max-width:860px){
+  .nav-dropdown{display:block;width:100%;}
+  .nav-drop-btn{width:100%;text-align:left;padding:11px 16px;font-size:14px;border-radius:10px;}
+  .nav-drop-menu{display:none;position:static;box-shadow:none;border:none;background:rgba(201,168,76,.04);border-radius:0;border-left:2px solid rgba(201,168,76,.25);margin:0 0 4px 16px;}
+  .nav-drop-menu a{padding:8px 14px;font-size:13px;}
+  .nav-search-btn{display:none;}
+  .nav-search-wrap{display:none!important;}
+}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -199,16 +221,55 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     <div class="nav-logo">♦</div>
     <div class="nav-title">GESTION STOCK</div>
   </a>
-  <div class="nav-links">
-    <a href="/accueil">Accueil</a>
+  <!-- Global search bar -->
+  <div class="nav-search-wrap" id="nav-search-wrap" style="display:none;">
+    <input type="text" id="nav-search-input" placeholder="🔍 Rechercher article, client, vente…" autocomplete="off"
+      style="width:260px;padding:7px 12px;border:1px solid rgba(201,168,76,.4);border-radius:8px;font-size:13px;background:#fff;outline:none;color:#1a1612;">
+    <div id="nav-search-results" style="position:absolute;top:60px;left:0;right:0;background:#fff;border:1px solid #e8e0d4;border-radius:0 0 10px 10px;max-height:320px;overflow-y:auto;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,.12);"></div>
+  </div>
+
+  <div class="nav-links" id="nav-links">
     <a href="/dashboard" class="active">Dashboard</a>
-    <a href="/stock">Stock</a>
-    <a href="/vendu">Ventes</a>
-    <a href="/credit">Crédits Clients</a>
-    <a href="/cheques">Chèques</a>
-    <a href="/facture">Facture</a>
-    <a href="/fournisseurs">Fournisseurs</a>
-    <a href="/fiche">Fiche</a>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">💍 Stock ▾</button>
+      <div class="nav-drop-menu">
+        
+        <a href="/stock">Voir le stock</a>
+        <a href="/ajouter">Ajouter un article</a>
+        <a href="/vendu">Articles vendus</a>
+        <a href="/fiche">Fiche référence</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/catalogue">Catalogue</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">💰 Ventes ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/vendu">Ventes</a>
+        <a href="/facture">Factures</a>
+        <a href="/facture-libre">📝 Facture Libre</a>
+                <a href="/devis">📋 Devis</a>
+                <a href="/historique-devis">🗂 Historique Devis</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">👥 Clients ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/clients">Dossier Clients</a>
+        <a href="/credit">Crédits</a>
+        <a href="/cheques">Chèques</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">⚙️ Gestion ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/fournisseurs">Fournisseurs</a>
+        <a href="/fiche">Fiche référence</a>
+        <a href="/historique-activite">📅 Historique</a>
+      </div>
+    </div>
+    <button class="nav-search-btn" onclick="toggleNavSearch()" title="Rechercher">🔍</button>
+    <a href="/logout" style="color:#c0392b;font-weight:600;" class="mob-logout">⎋ Déco</a>
   </div>
   <button class="hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
 
@@ -226,166 +287,232 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     </div>
   </div>
 
-  <!-- ══ SECTION 1 : 3 CHIFFRES CLÉS ══ -->
-  <div class="hero-grid">
+  <!-- ══ SECTION 1+3 : VUE PRINCIPALE (deux colonnes) ══ -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" id="dashboard-main">
 
-    <!-- CA du mois -->
-    <div class="hero-kpi hero-gold">
-      <div class="hero-label">📈 Chiffre d'Affaires — Ce Mois</div>
-      <div class="hero-val" id="v-ca-month">—</div>
-      <div class="hero-footer">
-        <span class="trend trend-flat" id="hero-ca-trend">—</span>
-        <span class="hero-sub" id="hero-ca-sub">—</span>
-      </div>
-    </div>
-
-    <!-- Bénéfice du mois -->
-    <div class="hero-kpi hero-green">
-      <div class="hero-label">💵 Bénéfice Net — Ce Mois</div>
-      <div class="hero-val" id="v-b-month">—</div>
-      <div class="hero-footer">
-        <span class="trend trend-flat" id="hero-b-trend">—</span>
-        <span class="marge-badge" id="v-marge-month">—</span>
-      </div>
-    </div>
-
-    <!-- Créances clients -->
-    <div class="hero-kpi hero-red">
-      <div class="hero-label">⚠️ Total Dû Clients</div>
-      <div class="hero-val" id="c-du">—</div>
-      <div class="hero-footer">
-        <span class="credit-badge"><span id="c-nb-ouverts">—</span> créances ouvertes</span>
-        <a href="/credit" style="color:#c0392b;font-size:12px;text-decoration:none;font-weight:600;margin-left:auto;">Voir tout →</a>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ══ SECTION 2 : MÉTRIQUES SECONDAIRES ══ -->
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
-    <div class="kpi2">
-      <div class="kpi-lbl">Articles en Stock</div>
-      <div class="kpi-val" id="s-nb">—</div>
-      <div class="kpi-sub" id="s-date">—</div>
-    </div>
-    <div class="kpi2">
-      <div class="kpi-lbl">Valeur Stock (P.R)</div>
-      <div class="kpi-val" id="s-val">—</div>
-      <div class="kpi-sub">Prix de revient</div>
-    </div>
-    <div class="kpi2">
-      <div class="kpi-lbl">OR en Stock</div>
-      <div class="kpi-val" id="s-or">—</div>
-      <div class="kpi-sub">grammes</div>
-    </div>
-    <div class="kpi2">
-      <div class="kpi-lbl">OR Vendu ce Mois</div>
-      <div class="kpi-val" id="v-or-month">—</div>
-      <div class="kpi-sub">grammes</div>
-    </div>
-    <div class="kpi2">
-      <div class="kpi-lbl">Ventes Aujourd'hui</div>
-      <div class="kpi-val" id="v-nb-day">—</div>
-      <div class="kpi-sub" id="v-ca-day">—</div>
-    </div>
-  </div>
-
-  <!-- ══ SECTION 3 : STOCK + CRÉANCES ══ -->
-  <div class="grid2" style="margin-bottom:20px;">
-
-    <!-- Composition du stock -->
+    <!-- ── Gauche : Stock & Pierres ── -->
     <div class="panel">
-      <div class="panel-title">💎 Composition du Stock</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-        <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center;">
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Total OR</div>
-          <div style="font-size:20px;font-weight:800;color:var(--gold-l)" id="big-or">—</div>
-          <div style="font-size:11px;color:var(--muted)">grammes</div>
-        </div>
-        <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center;">
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Articles</div>
-          <div style="font-size:20px;font-weight:800;color:var(--txt)" id="big-nb">—</div>
-          <div style="font-size:11px;color:var(--muted)">en stock</div>
-        </div>
-      </div>
-      <div class="pierre-grid">
-        <div class="pierre-card"><div class="pierre-dot" style="background:#f7dc6f"></div><div class="pierre-info"><div class="pierre-name">Diamants</div><div><span class="pierre-val" id="p-d">—</span> <span class="pierre-unit">cts</span></div></div></div>
-        <div class="pierre-card"><div class="pierre-dot" style="background:#2ecc71"></div><div class="pierre-info"><div class="pierre-name">Émeraudes</div><div><span class="pierre-val" id="p-em">—</span> <span class="pierre-unit">cts</span></div></div></div>
-        <div class="pierre-card"><div class="pierre-dot" style="background:#e74c3c"></div><div class="pierre-info"><div class="pierre-name">Rubis</div><div><span class="pierre-val" id="p-r">—</span> <span class="pierre-unit">cts</span></div></div></div>
-        <div class="pierre-card"><div class="pierre-dot" style="background:#3498db"></div><div class="pierre-info"><div class="pierre-name">Saphirs</div><div><span class="pierre-val" id="p-s">—</span> <span class="pierre-unit">cts</span></div></div></div>
-        <div class="pierre-card"><div class="pierre-dot" style="background:#9b59b6"></div><div class="pierre-info"><div class="pierre-name">Rosaces</div><div><span class="pierre-val" id="p-ros">—</span> <span class="pierre-unit">cts</span></div></div></div>
-        <div class="pierre-card"><div class="pierre-dot" style="background:#1abc9c"></div><div class="pierre-info"><div class="pierre-name">Ém. Colombie</div><div><span class="pierre-val" id="p-ec">—</span> <span class="pierre-unit">cts</span></div></div></div>
-        <div class="pierre-card"><div class="pierre-dot" style="background:#e67e22"></div><div class="pierre-info"><div class="pierre-name">Perles</div><div><span class="pierre-val" id="p-per">—</span> <span class="pierre-unit">grs</span></div></div></div>
-      </div>
-    </div>
-
-    <!-- Droite : Top créances + Comparaison -->
-    <div style="display:flex;flex-direction:column;gap:16px;">
-
-      <div class="panel" style="flex:1;">
-        <div class="panel-title">
-          <span>💳 Top Créances Ouvertes</span>
-          <a href="/credit" style="font-size:11px;color:var(--gold);text-decoration:none;font-weight:600;">Voir tout →</a>
-        </div>
-        <div id="top-credits">
-          <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Chargement…</div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title">📊 Ce mois vs Mois précédent</div>
-        <div class="compare-row">
-          <div class="compare-lbl">C.A</div>
-          <div class="compare-vals">
-            <span class="compare-prev" id="cmp-ca-prev">—</span>
-            <span class="compare-cur" id="cmp-ca-cur" style="color:var(--gold-l)">—</span>
-            <span class="trend" id="cmp-ca-trend">—</span>
-          </div>
-        </div>
-        <div class="compare-row">
-          <div class="compare-lbl">Bénéfice</div>
-          <div class="compare-vals">
-            <span class="compare-prev" id="cmp-b-prev">—</span>
-            <span class="compare-cur" id="cmp-b-cur" style="color:var(--gold-l)">—</span>
-            <span class="trend" id="cmp-b-trend">—</span>
-          </div>
-        </div>
-        <div class="compare-row">
-          <div class="compare-lbl">Ventes (nb)</div>
-          <div class="compare-vals">
-            <span class="compare-prev" id="cmp-nb-prev">—</span>
-            <span class="compare-cur" id="cmp-nb-cur">—</span>
-            <span class="trend" id="cmp-nb-trend">—</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ══ SECTION 4 : DERNIÈRES VENTES + ARTICLES ══ -->
-  <div class="grid2" style="margin-bottom:20px;">
-    <div class="panel">
-      <div class="panel-title">
-        <span>🕐 Dernières Ventes</span>
-        <a href="/vendu" style="font-size:11px;color:var(--gold);text-decoration:none;font-weight:600;">Voir tout →</a>
-      </div>
-      <table class="v-table">
-        <thead><tr><th>Réf</th><th>Article</th><th>P.V</th><th>Bénéfice</th><th>Client</th></tr></thead>
-        <tbody id="last-ventes"></tbody>
+      <div class="panel-title">📦 Stock &amp; Pierres — <span id="s-date" style="font-weight:400;font-size:10px;text-transform:none;letter-spacing:0;color:var(--muted);"></span></div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tbody>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:12px 8px 12px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">💰 Valeur Stock (P.R)</td>
+            <td style="padding:12px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:21px;font-weight:900;color:var(--gold-l);" id="s-val">—</span>
+              <span style="font-size:12px;color:var(--muted);margin-left:5px;">MAD</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:12px 8px 12px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">🥇 OR en Stock</td>
+            <td style="padding:12px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:21px;font-weight:900;color:var(--gold-l);" id="s-or">—</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:2px solid rgba(201,168,76,.3);">
+            <td style="padding:12px 8px 12px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">💍 Articles en Stock</td>
+            <td style="padding:12px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:21px;font-weight:900;color:var(--txt);" id="s-nb">—</span>
+              <span style="font-size:12px;color:var(--muted);margin-left:5px;">articles</span>
+            </td>
+          </tr>
+          <!-- ─ Pierres ─ -->
+          <tr>
+            <td colspan="2" style="padding:9px 0 3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);">💎 Pierres &amp; Matières</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:7px 8px 7px 0;font-size:12px;color:var(--muted);"><span style="color:#f7dc6f">●</span> Diamants</td>
+            <td style="padding:7px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:16px;font-weight:800;color:var(--txt);" id="p-d">—</span>
+              <span style="font-size:11px;color:var(--muted);margin-left:4px;">cts</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:7px 8px 7px 0;font-size:12px;color:var(--muted);"><span style="color:#2ecc71">●</span> Émeraudes</td>
+            <td style="padding:7px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:16px;font-weight:800;color:var(--txt);" id="p-em">—</span>
+              <span style="font-size:11px;color:var(--muted);margin-left:4px;">cts</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:7px 8px 7px 0;font-size:12px;color:var(--muted);"><span style="color:#e74c3c">●</span> Rubis</td>
+            <td style="padding:7px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:16px;font-weight:800;color:var(--txt);" id="p-r">—</span>
+              <span style="font-size:11px;color:var(--muted);margin-left:4px;">cts</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:7px 8px 7px 0;font-size:12px;color:var(--muted);"><span style="color:#3498db">●</span> Saphirs</td>
+            <td style="padding:7px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:16px;font-weight:800;color:var(--txt);" id="p-s">—</span>
+              <span style="font-size:11px;color:var(--muted);margin-left:4px;">cts</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:7px 8px 7px 0;font-size:12px;color:var(--muted);"><span style="color:#9b59b6">●</span> Rosaces</td>
+            <td style="padding:7px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:16px;font-weight:800;color:var(--txt);" id="p-ros">—</span>
+              <span style="font-size:11px;color:var(--muted);margin-left:4px;">cts</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:7px 8px 7px 0;font-size:12px;color:var(--muted);"><span style="color:#1abc9c">●</span> Ém. Colombie</td>
+            <td style="padding:7px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:16px;font-weight:800;color:var(--txt);" id="p-ec">—</span>
+              <span style="font-size:11px;color:var(--muted);margin-left:4px;">cts</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:7px 8px 7px 0;font-size:12px;color:var(--muted);"><span style="color:#e67e22">●</span> Perles</td>
+            <td style="padding:7px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:16px;font-weight:800;color:var(--txt);" id="p-per">—</span>
+              <span style="font-size:11px;color:var(--muted);margin-left:4px;">grs</span>
+            </td>
+          </tr>
+        </tbody>
       </table>
-      <div id="no-ventes" style="display:none;text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucune vente enregistrée.</div>
+      <!-- Hidden for JS compatibility -->
+      <span id="big-or" style="display:none"></span>
+      <span id="big-nb" style="display:none"></span>
+    </div>
+
+    <!-- ── Droite : Finances ── -->
+    <div class="panel">
+      <div class="panel-title">💰 Finances — Ce Mois</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tbody>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:11px 8px 11px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">📈 Chiffre d'Affaires</td>
+            <td style="padding:11px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:21px;font-weight:900;color:var(--gold-l);" id="v-ca-month">—</span>
+              <span style="font-size:12px;color:var(--muted);margin-left:5px;">MAD</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:11px 8px 11px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">💵 Bénéfice Net</td>
+            <td style="padding:11px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:21px;font-weight:900;color:#1a7a40;" id="v-b-month">—</span>
+              <span style="font-size:12px;color:var(--muted);margin-left:5px;">MAD</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:11px 8px 11px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;"><a href="/credit" style="color:inherit;text-decoration:none;">⚠️ Total Dû Clients</a></td>
+            <td style="padding:11px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:21px;font-weight:900;color:#c0392b;" id="c-du">—</span>
+              <span style="font-size:12px;color:var(--muted);margin-left:5px;">MAD</span>
+              <span style="font-size:10px;color:#c0392b;font-weight:700;display:block;margin-top:2px;"><span id="c-nb-ouverts">—</span> créances ouvertes</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:11px 8px 11px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;"><a href="/fournisseurs" style="color:inherit;text-decoration:none;">🏭 Total Dû Fournisseurs</a></td>
+            <td style="padding:11px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:21px;font-weight:900;color:var(--orange);" id="f-total-du">—</span>
+              <span style="font-size:12px;color:var(--muted);margin-left:5px;">MAD</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:11px 8px 11px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">🥇 OR Vendu ce Mois</td>
+            <td style="padding:11px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:21px;font-weight:900;color:var(--gold-l);" id="v-or-month">—</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bd);">
+            <td style="padding:10px 8px 10px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">🛒 Activité du Mois</td>
+            <td style="padding:10px 0;font-size:12px;color:var(--muted);text-align:right;line-height:1.5;" id="hero-ca-sub">—</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 8px 10px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">📅 Ventes Aujourd'hui</td>
+            <td style="padding:10px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:18px;font-weight:800;color:var(--txt);" id="v-nb-day">—</span>
+              <span style="font-size:11px;color:var(--muted);margin-left:6px;" id="v-ca-day">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ COMPARAISON M vs M-1 ══ -->
+  <div class="panel" style="margin-bottom:16px;">
+    <div class="panel-title">📊 Ce mois vs Mois précédent</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;">
+      <div style="padding:4px 16px 4px 0;border-right:1px solid var(--bd);">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;">C.A</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:13px;color:var(--muted);" id="cmp-ca-prev">—</span>
+          <span style="color:var(--muted);font-size:11px;">→</span>
+          <span style="font-size:14px;font-weight:700;color:var(--gold-l);" id="cmp-ca-cur">—</span>
+          <span class="trend trend-flat" id="cmp-ca-trend">—</span>
+        </div>
+      </div>
+      <div style="padding:4px 16px;border-right:1px solid var(--bd);">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;">Bénéfice</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:13px;color:var(--muted);" id="cmp-b-prev">—</span>
+          <span style="color:var(--muted);font-size:11px;">→</span>
+          <span style="font-size:14px;font-weight:700;color:var(--gold-l);" id="cmp-b-cur">—</span>
+          <span class="trend trend-flat" id="cmp-b-trend">—</span>
+        </div>
+      </div>
+      <div style="padding:4px 0 4px 16px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;">Ventes (nb)</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:13px;color:var(--muted);" id="cmp-nb-prev">—</span>
+          <span style="color:var(--muted);font-size:11px;">→</span>
+          <span style="font-size:14px;font-weight:700;" id="cmp-nb-cur">—</span>
+          <span class="trend trend-flat" id="cmp-nb-trend">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden for JS compatibility -->
+  <div id="top-credits" style="display:none;"></div>
+
+  <!-- ══ SECTION 4 : TOP MARGES + TOP VENDUS ══ -->
+  <div class="grid2" style="margin-bottom:20px;">
+    <div class="panel">
+      <div class="panel-title">
+        <span>💰 Top 5 Meilleures Marges</span>
+        <button onclick="openModal('marges')" style="font-size:11px;color:var(--gold);background:none;border:none;cursor:pointer;font-weight:600;padding:0;">Voir tout →</button>
+      </div>
+      <table class="v-table">
+        <thead><tr><th></th><th>Type</th><th>Marge %</th><th>CA Total</th><th>Bénéfice</th></tr></thead>
+        <tbody id="top-marges"></tbody>
+      </table>
+      <div id="no-marges" style="display:none;text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucune vente.</div>
     </div>
     <div class="panel">
       <div class="panel-title">
-        <span>📦 Derniers Articles Ajoutés</span>
-        <a href="/stock" style="font-size:11px;color:var(--gold);text-decoration:none;font-weight:600;">Voir tout →</a>
+        <span>🏆 Top 5 Articles les Plus Vendus</span>
+        <button onclick="openModal('vendus')" style="font-size:11px;color:var(--gold);background:none;border:none;cursor:pointer;font-weight:600;padding:0;">Voir tout →</button>
       </div>
       <table class="v-table">
-        <thead><tr><th>Réf</th><th>Type</th><th>OR</th><th>P.R</th><th>Date</th></tr></thead>
+        <thead><tr><th></th><th>Type</th><th>Ventes</th><th>CA Total</th><th>Dernière vente</th></tr></thead>
         <tbody id="last-articles"></tbody>
       </table>
-      <div id="no-articles" style="display:none;text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucun article.</div>
+      <div id="no-articles" style="display:none;text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucune vente.</div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL DÉTAIL ══ -->
+  <div id="detail-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);overflow-y:auto;padding:20px;" onclick="if(event.target===this)closeModal()">
+    <div style="background:#fff;border-radius:16px;max-width:780px;margin:40px auto;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.25);">
+      <div style="padding:20px 24px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);">
+        <div id="modal-title" style="font-size:16px;font-weight:800;color:var(--gold-l)"></div>
+        <button onclick="closeModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;">✕</button>
+      </div>
+      <div style="padding:16px 24px 24px;">
+        <div id="modal-search-wrap" style="margin-bottom:12px;">
+          <input id="modal-search" type="text" placeholder="🔍 Filtrer par type…" oninput="filterModal()" style="width:100%;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;font-size:13px;outline:none;background:var(--bg3);">
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="v-table" id="modal-table" style="font-size:13px;">
+            <thead id="modal-thead"></thead>
+            <tbody id="modal-tbody"></tbody>
+          </table>
+        </div>
+        <div id="modal-count" style="margin-top:10px;font-size:11px;color:var(--muted);text-align:right;"></div>
+      </div>
     </div>
   </div>
 
@@ -429,7 +556,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
       <div class="bar-chart" id="bar-chart" style="margin-bottom:20px;overflow-x:auto;min-height:160px;"></div>
       <div style="overflow-x:auto">
         <table class="monthly-table">
-          <thead><tr><th>Mois</th><th>Ventes</th><th>C.A (MAD)</th><th>Bénéfice (MAD)</th><th>OR vendu (grs)</th><th>Marge</th></tr></thead>
+          <thead><tr><th>Mois</th><th>Ventes</th><th>C.A</th><th>Bénéfice</th><th>OR vendu (grs)</th><th>Marge</th></tr></thead>
           <tbody id="monthly-body"></tbody>
         </table>
         <div id="no-monthly" style="display:none;text-align:center;padding:30px;color:var(--muted)">Aucune donnée.</div>
@@ -440,7 +567,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     <div id="tab-annuel" style="display:none">
       <div style="overflow-x:auto">
         <table class="monthly-table">
-          <thead><tr><th>Année</th><th>Ventes</th><th>C.A (MAD)</th><th>Bénéfice (MAD)</th><th>Marge</th></tr></thead>
+          <thead><tr><th>Année</th><th>Ventes</th><th>C.A</th><th>Bénéfice</th><th>Marge</th></tr></thead>
           <tbody id="annual-body"></tbody>
         </table>
         <div id="no-annual" style="display:none;text-align:center;padding:30px;color:var(--muted)">Aucune donnée.</div>
@@ -465,25 +592,32 @@ async function load(){
     document.getElementById('now').textContent = now.toLocaleString('fr-FR');
     document.getElementById('s-date').textContent = 'Au ' + now.toLocaleDateString('fr-FR');
 
-    const [stats, ventes, advanced, articles, creditStats] = await Promise.all([
+    const [stats, ventes, advanced, articles, creditStats, fournisseurs] = await Promise.all([
       fetch('/api/stats').then(r=>r.json()),
       fetch('/api/ventes').then(r=>r.json()),
       fetch('/api/stats/advanced').then(r=>r.json()),
       fetch('/api/articles').then(r=>r.json()),
       fetch('/api/credits/stats').then(r=>r.json()),
+      fetch('/api/fournisseurs').then(r=>r.json()).catch(()=>[]),
     ]);
     advancedData = advanced;
 
     // ── KPIs Stock ──
     document.getElementById('s-nb').textContent    = stats.nb_articles;
     document.getElementById('s-or').textContent    = fmt(stats.total_or) + ' grs';
-    document.getElementById('s-val').textContent   = fmtN(stats.valeur_stock) + ' MAD';
+    document.getElementById('s-val').textContent   = fmtN(stats.valeur_stock) +'';
     document.getElementById('big-or').textContent  = fmt(stats.total_or);
     document.getElementById('big-nb').textContent  = stats.nb_articles;
 
     // ── Crédits KPI ──
-    document.getElementById('c-du').textContent        = fmtN(creditStats.total_du) + ' MAD';
+    document.getElementById('c-du').textContent        = fmtN(creditStats.total_du) +'';
     document.getElementById('c-nb-ouverts').textContent = creditStats.nb_ouverts;
+
+    // ── Total Fournisseurs ──
+    const totalFourn = (Array.isArray(fournisseurs) ? fournisseurs : [])
+      .filter(f => f.statut !== 'solde' && (f.reste||0) > 0)
+      .reduce((s, f) => s + (f.reste||0), 0);
+    document.getElementById('f-total-du').textContent = fmtN(totalFourn);
 
     // ── Pierres ──
     document.getElementById('p-d').textContent   = fmt(stats.diamants);
@@ -504,16 +638,16 @@ async function load(){
     const moisPrev = advanced.monthly.find(m=>m.mois===moisPrevKey) || {nb:0,ca:0,benef:0};
     const nomMois  = NOMS_MOIS_L[now.getMonth()] + ' ' + now.getFullYear();
 
-    document.getElementById('v-ca-month').textContent  = fmtN(moisCur.ca) + ' MAD';
-    document.getElementById('v-b-month').textContent   = fmtN(moisCur.benef) + ' MAD';
+    document.getElementById('v-ca-month').textContent  = fmtN(moisCur.ca) +'';
+    document.getElementById('v-b-month').textContent   = fmtN(moisCur.benef) +'';
     document.getElementById('v-or-month').textContent  = fmt(moisCur.or_vendu||0) + ' grs';
-    const marge = moisCur.ca > 0 ? Math.round((moisCur.benef/moisCur.ca)*100) : 0;
-    document.getElementById('v-marge-month').textContent = `Marge : ${marge}%`;
+    const nbV = moisCur.nb || 0;
+    const nbA = moisCur.nb_articles || 0;
     document.getElementById('hero-ca-sub').textContent =
-      `${moisCur.nb} vente${moisCur.nb>1?'s':''} ce mois · Aujourd'hui : ${fmtN(stats.ca_today||0)} MAD`;
+      `${nbV} vente${nbV>1?'s':''} · ${nbA} article${nbA>1?'s':''} vendus ce mois · Aujourd'hui : ${fmtN(stats.ca_today||0)}`;
 
-    document.getElementById('v-nb-day').textContent  = stats.nb_ventes_today;
-    document.getElementById('v-ca-day').textContent  = 'CA : ' + fmtN(stats.ca_today) + ' MAD';
+    document.getElementById('v-nb-day').textContent  = stats.nb_ventes_today + (stats.nb_articles_vendus_today > stats.nb_ventes_today ? ' ('+stats.nb_articles_vendus_today+' art.)' : '');
+    document.getElementById('v-ca-day').textContent  = 'CA : ' + fmtN(stats.ca_today) +'';
 
     // ── Comparaison M vs M-1 ──
     renderComparison(moisCur, moisPrev);
@@ -521,36 +655,58 @@ async function load(){
     // ── Top créances ──
     renderTopCredits();
 
-    // ── Dernières ventes ──
-    const lastV = [...ventes].reverse().slice(0, 6);
-    const bodyV = document.getElementById('last-ventes');
-    if(!lastV.length){ bodyV.innerHTML=''; document.getElementById('no-ventes').style.display='block'; }
+    // ── Construire typeMap une seule fois pour les deux panels ──
+    const allVentes = await fetch('/api/ventes').then(r=>r.json());
+    const typeMap = {};
+    allVentes.forEach(v => {
+      const t = (v.article||'').trim();
+      if(!t) return;
+      if(/cha[iî]ne/i.test(t)) return; // exclure chaînes
+      if(!typeMap[t]) typeMap[t] = {type:t, nb:0, ca:0, benef:0, lastDate:''};
+      typeMap[t].nb++;
+      typeMap[t].ca    += v.pv    || 0;
+      typeMap[t].benef += v.benef || 0;
+      if((v.date_vente||'') > typeMap[t].lastDate) typeMap[t].lastDate = v.date_vente||'';
+    });
+    const allTypes = Object.values(typeMap);
+
+    // ── Sauvegarder pour les modals ──
+    _allTypesMarges = allTypes
+      .filter(t => t.nb >= 2 && t.ca > 0)
+      .map(t => ({ ...t, marge: Math.round((t.benef / t.ca) * 100) }))
+      .sort((a,b) => b.marge - a.marge);
+    _allTypesVendus = [...allTypes].sort((a,b) => b.nb - a.nb);
+
+    // ── Panel gauche : Top 5 meilleures marges % (min 2 ventes) ──
+    const top5Marges = _allTypesMarges.slice(0, 5);
+    const bodyM = document.getElementById('top-marges');
+    if(!top5Marges.length){ bodyM.innerHTML=''; document.getElementById('no-marges').style.display='block'; }
     else {
-      document.getElementById('no-ventes').style.display='none';
-      bodyV.innerHTML = lastV.map(v => {
-        const b = v.benef||0;
+      document.getElementById('no-marges').style.display='none';
+      bodyM.innerHTML = top5Marges.map((t,i) => {
+        const margeColor = t.marge>=40?'var(--green)':t.marge>=20?'var(--orange)':'var(--red)';
         return `<tr>
-          <td style="font-family:monospace;color:var(--gold-l);font-weight:700">#${v.ref}</td>
-          <td style="color:var(--muted);font-size:12px">${v.article||'—'}</td>
-          <td style="font-weight:600">${v.pv?fmtN(v.pv)+' MAD':'—'}</td>
-          <td class="${b>=0?'pos':'neg'}">${fmtN(b)} MAD</td>
-          <td style="font-size:12px">${v.client||'—'}</td>
+          <td style="font-size:16px">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</td>
+          <td style="font-weight:600">${t.type}</td>
+          <td><span style="background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.25);color:${margeColor};padding:2px 9px;border-radius:20px;font-size:12px;font-weight:700">${t.marge}%</span></td>
+          <td style="font-weight:600;color:var(--gold-l)">${fmtN(Math.round(t.ca))}</td>
+          <td style="color:var(--green);font-weight:700">${fmtN(Math.round(t.benef))}</td>
         </tr>`;
       }).join('');
     }
 
-    // ── Derniers articles ajoutés ──
-    const lastA = [...articles].slice(-6).reverse();
+    // ── Panel droit : Top 5 les plus vendus (par nb) ──
+    const top5Vendus = _allTypesVendus.slice(0, 5);
     const bodyA = document.getElementById('last-articles');
-    if(!lastA.length){ bodyA.innerHTML=''; document.getElementById('no-articles').style.display='block'; }
+    if(!top5Vendus.length){ bodyA.innerHTML=''; document.getElementById('no-articles').style.display='block'; }
     else {
       document.getElementById('no-articles').style.display='none';
-      bodyA.innerHTML = lastA.map(a => `<tr>
-        <td style="font-family:monospace;color:var(--gold-l);font-weight:700">#${a.id}</td>
-        <td style="color:var(--muted);font-size:12px">${a.article||'—'}</td>
-        <td>${a.or_grs?fmt(a.or_grs)+' g':'—'}</td>
-        <td style="font-weight:600">${a.pa?fmtN(a.pa)+' MAD':'—'}</td>
-        <td style="font-size:11px;color:var(--muted)">${fmtD(a.date)}</td>
+      bodyA.innerHTML = top5Vendus.map((t,i) => `<tr>
+        <td style="font-size:16px">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</td>
+        <td style="font-weight:600">${t.type}</td>
+        <td style="color:var(--green);font-weight:700">${t.nb} art.</td>
+        <td style="font-weight:600;color:var(--gold-l)">${fmtN(Math.round(t.ca))}</td>
+        <td style="font-size:11px;color:var(--muted)">${fmtD(t.lastDate)}</td>
       </tr>`).join('');
     }
 
@@ -571,12 +727,12 @@ function renderComparison(cur, prev){
     else if(pct < 0){ el.textContent='▼ '+pct+'%'; el.className='trend trend-down'; }
     else { el.textContent='→ 0%'; el.className='trend trend-flat'; }
   };
-  document.getElementById('cmp-ca-prev').textContent  = fmtN(prev.ca)+' MAD';
-  document.getElementById('cmp-ca-cur').textContent   = fmtN(cur.ca)+' MAD';
-  document.getElementById('cmp-b-prev').textContent   = fmtN(prev.benef)+' MAD';
-  document.getElementById('cmp-b-cur').textContent    = fmtN(cur.benef)+' MAD';
-  document.getElementById('cmp-nb-prev').textContent  = prev.nb+' ventes';
-  document.getElementById('cmp-nb-cur').textContent   = cur.nb+' ventes';
+  document.getElementById('cmp-ca-prev').textContent  = fmtN(prev.ca)+'';
+  document.getElementById('cmp-ca-cur').textContent   = fmtN(cur.ca)+'';
+  document.getElementById('cmp-b-prev').textContent   = fmtN(prev.benef)+'';
+  document.getElementById('cmp-b-cur').textContent    = fmtN(cur.benef)+'';
+  document.getElementById('cmp-nb-prev').textContent  = prev.nb+' ventes · '+(prev.nb_articles||prev.nb)+' articles';
+  document.getElementById('cmp-nb-cur').textContent   = cur.nb+' ventes · '+(cur.nb_articles||cur.nb)+' articles';
   trend(cur.ca, prev.ca, 'cmp-ca');
   trend(cur.benef, prev.benef, 'cmp-b');
   trend(cur.nb, prev.nb, 'cmp-nb');
@@ -606,7 +762,7 @@ async function renderTopCredits(){
         <div style="flex:1;min-width:0;">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <span class="credit-name">${c.client}</span>
-            <span class="credit-amount">${fmtN(c.reste)} MAD</span>
+            <span class="credit-amount">${fmtN(c.reste)}</span>
           </div>
           <div class="credit-bar-wrap"><div class="credit-bar" style="width:${pct}%"></div></div>
         </div>
@@ -617,8 +773,8 @@ async function renderTopCredits(){
 
 function renderPeriodStats(p, label){
   document.getElementById('p-nb').textContent    = p.nb;
-  document.getElementById('p-ca').textContent    = fmtN(p.ca)+' MAD';
-  document.getElementById('p-benef').textContent = fmtN(p.benef)+' MAD';
+  document.getElementById('p-ca').textContent    = fmtN(p.ca)+'';
+  document.getElementById('p-benef').textContent = fmtN(p.benef)+'';
   document.getElementById('p-or').textContent    = fmt(p.or_vendu||0)+' grs';
   const lbl = document.getElementById('period-label');
   if(label){ lbl.textContent='📊 '+label; lbl.style.display='block'; }
@@ -673,8 +829,8 @@ function renderMonthly(monthly){
     const hB  = m.ca>0 ? Math.max(Math.round((m.benef/maxCA)*140), 2) : 2;
     return `<div class="bar-group">
       <div class="bar-pair" style="height:${hCA}px;align-items:flex-end">
-        <div class="bar-ca" style="height:${hCA}px" title="CA: ${fmtN(m.ca)} MAD"></div>
-        <div class="bar-b"  style="height:${hB}px"  title="Bénéf: ${fmtN(m.benef)} MAD"></div>
+        <div class="bar-ca" style="height:${hCA}px" title="CA: ${fmtN(m.ca)}"></div>
+        <div class="bar-b"  style="height:${hB}px"  title="Bénéf: ${fmtN(m.benef)}"></div>
       </div>
       <div class="bar-lbl">${NOMS_MOIS[parseInt(mo)-1]}<br><span style="font-size:8px">${y}</span></div>
     </div>`;
@@ -689,8 +845,8 @@ function renderMonthly(monthly){
     return `<tr>
       <td style="font-weight:700;color:var(--gold)">${nomMois}</td>
       <td style="color:var(--muted)">${m.nb}</td>
-      <td style="color:var(--blue);font-weight:600">${fmtN(m.ca)} MAD</td>
-      <td style="color:var(--green);font-weight:600">${fmtN(m.benef)} MAD</td>
+      <td style="color:var(--blue);font-weight:600">${fmtN(m.ca)}</td>
+      <td style="color:var(--green);font-weight:600">${fmtN(m.benef)}</td>
       <td style="color:var(--muted)">${fmt(m.or_vendu||0)} grs</td>
       <td><span style="padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,.05);color:${margeColor}">${marge}%</span></td>
     </tr>`;
@@ -707,8 +863,8 @@ function renderAnnual(annual){
     return `<tr>
       <td style="font-size:20px;font-weight:900;color:var(--gold-l)">${a.annee}</td>
       <td style="font-weight:600;color:var(--muted)">${a.nb}</td>
-      <td style="color:var(--blue);font-weight:700;font-size:15px">${fmtN(a.ca)} MAD</td>
-      <td style="color:var(--green);font-weight:700;font-size:15px">${fmtN(a.benef)} MAD</td>
+      <td style="color:var(--blue);font-weight:700;font-size:15px">${fmtN(a.ca)}</td>
+      <td style="color:var(--green);font-weight:700;font-size:15px">${fmtN(a.benef)}</td>
       <td><span style="background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.25);color:var(--green);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700">${marge}%</span></td>
     </tr>`;
   }).join('');
@@ -722,6 +878,76 @@ function switchTab(tab){
     el.classList.toggle('active', ['periode','mensuel','annuel'][i]===tab);
   });
 }
+
+// ── Stockage global pour les modals ──
+let _allTypesMarges = [];
+let _allTypesVendus = [];
+let _currentModal   = '';
+
+function openModal(type){
+  _currentModal = type;
+  const modal = document.getElementById('detail-modal');
+  const title  = document.getElementById('modal-title');
+  const thead  = document.getElementById('modal-thead');
+  const tbody  = document.getElementById('modal-tbody');
+  document.getElementById('modal-search').value = '';
+
+  if(type === 'marges'){
+    title.textContent = '💰 Toutes les Marges par Type d\'Article';
+    thead.innerHTML = `<tr><th>#</th><th>Type</th><th>Marge %</th><th>Ventes</th><th>CA Total</th><th>Bénéfice</th></tr>`;
+    tbody.innerHTML = _allTypesMarges.map((t,i) => {
+      const margeColor = t.marge>=40?'var(--green)':t.marge>=20?'var(--orange)':'var(--red)';
+      return `<tr>
+        <td style="color:var(--muted);font-size:12px">${i+1}</td>
+        <td style="font-weight:600">${t.type}</td>
+        <td><span style="background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.25);color:${margeColor};padding:2px 9px;border-radius:20px;font-size:12px;font-weight:700">${t.marge}%</span></td>
+        <td style="color:var(--muted)">${t.nb} art.</td>
+        <td style="color:var(--gold-l);font-weight:600">${fmtN(Math.round(t.ca))}</td>
+        <td style="color:var(--green);font-weight:700">${fmtN(Math.round(t.benef))}</td>
+      </tr>`;
+    }).join('');
+  } else {
+    title.textContent = '🏆 Tous les Types d\'Articles Vendus';
+    thead.innerHTML = `<tr><th>#</th><th>Type</th><th>Ventes</th><th>CA Total</th><th>Bénéfice</th><th>Marge %</th><th>Dernière vente</th></tr>`;
+    tbody.innerHTML = _allTypesVendus.map((t,i) => {
+      const marge = t.ca>0?Math.round((t.benef/t.ca)*100):0;
+      const margeColor = marge>=40?'var(--green)':marge>=20?'var(--orange)':'var(--red)';
+      return `<tr>
+        <td style="color:var(--muted);font-size:12px">${i+1}</td>
+        <td style="font-weight:600">${t.type}</td>
+        <td style="color:var(--green);font-weight:700">${t.nb} art.</td>
+        <td style="color:var(--gold-l);font-weight:600">${fmtN(Math.round(t.ca))}</td>
+        <td style="color:var(--green);font-weight:600">${fmtN(Math.round(t.benef))}</td>
+        <td><span style="background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.25);color:${margeColor};padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700">${marge}%</span></td>
+        <td style="font-size:11px;color:var(--muted)">${fmtD(t.lastDate)}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('modal-count').textContent =
+    (type==='marges'?_allTypesMarges.length:_allTypesVendus.length) + ' types d\'articles';
+  modal.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(){
+  document.getElementById('detail-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function filterModal(){
+  const q = document.getElementById('modal-search').value.toLowerCase().trim();
+  const rows = document.querySelectorAll('#modal-tbody tr');
+  let visible = 0;
+  rows.forEach(r => {
+    const txt = r.textContent.toLowerCase();
+    const show = !q || txt.includes(q);
+    r.style.display = show ? '' : 'none';
+    if(show) visible++;
+  });
+  document.getElementById('modal-count').textContent = visible + ' type(s) affiché(s)';
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
 load();
 setInterval(load, 60000);
@@ -747,6 +973,7 @@ function toggleNav(){
     ov.classList.remove('nav-open');
     const btn=document.getElementById('hamburger-btn');
     if(btn)btn.textContent='☰';
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
   };
   document.body.appendChild(ov);
   // Close nav when a link is clicked
@@ -758,7 +985,126 @@ function toggleNav(){
   }));
 })();
 </script>
-<script src="/chatbot.js"></script>
 <script src="/static/mobile.js"></script>
+<script>
+/* ── GLOBAL SEARCH ── */
+function toggleNavSearch(){
+  const w=document.getElementById('nav-search-wrap');
+  if(!w) return;
+  const open=w.classList.toggle('open');
+  w.style.display=open?'block':'none';
+  if(open) setTimeout(()=>document.getElementById('nav-search-input')?.focus(),50);
+}
+let _searchData=null;
+async function loadSearchData(){
+  if(_searchData) return _searchData;
+  const [arts,ventes,clients]=await Promise.all([
+    fetch('/api/articles').then(r=>r.json()).catch(()=>[]),
+    fetch('/api/ventes').then(r=>r.json()).catch(()=>[]),
+    fetch('/api/clients').then(r=>r.json()).catch(()=>[]),
+  ]);
+  _searchData={arts,ventes,clients};
+  return _searchData;
+}
+document.getElementById('nav-search-input')?.addEventListener('input',async function(){
+  const q=this.value.trim().toLowerCase();
+  const res=document.getElementById('nav-search-results');
+  if(!res) return;
+  if(q.length<2){res.style.display='none';return;}
+  const {arts,ventes,clients}=await loadSearchData();
+  const hits=[];
+  arts.filter(a=>a.article?.toLowerCase().includes(q)||(a.id+'').includes(q)).slice(0,3).forEach(a=>
+    hits.push(`<a href="/stock" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;" onclick="localStorage.setItem('stockSearch','${a.id}')">
+      <span style="font-size:18px">💍</span><div><div style="font-weight:600">#${a.id} — ${a.article}</div><div style="font-size:11px;color:#9a8e7e">${a.or_grs?a.or_grs+' grs':''} · PA: ${a.pa?Number(a.pa).toLocaleString('fr-FR'):'—'}</div></div></a>`));
+  clients.filter(c=>c.nom?.toLowerCase().includes(q)).slice(0,3).forEach(c=>
+    hits.push(`<a href="/clients" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;" onclick="localStorage.setItem('clientSearch','${c.nom}')">
+      <span style="font-size:18px">👤</span><div><div style="font-weight:600">${c.nom}</div><div style="font-size:11px;color:#9a8e7e">${c.nb_achats} achats · ${Number(c.ca_total).toLocaleString('fr-FR')} CA</div></div></a>`));
+  ventes.filter(v=>(v.client||'').toLowerCase().includes(q)||(v.article||'').toLowerCase().includes(q)).slice(0,3).forEach(v=>
+    hits.push(`<a href="/vendu" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;">
+      <span style="font-size:18px">💰</span><div><div style="font-weight:600">#${v.ref} ${v.article}</div><div style="font-size:11px;color:#9a8e7e">${v.client||'—'} · ${v.date_vente||''}</div></div></a>`));
+  if(!hits.length) hits.push('<div style="padding:16px;color:#9a8e7e;text-align:center;font-size:13px">Aucun résultat</div>');
+  res.innerHTML=hits.join('');
+  res.style.display='block';
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#nav-search-wrap')){
+    const res=document.getElementById('nav-search-results');
+    if(res) res.style.display='none';
+  }
+});
+</script>
+
+<script>
+/* ── NAV DROPDOWNS (click) ── */
+(function(){
+  // Dropdowns au clic
+  document.querySelectorAll('.nav-drop-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = this.closest('.nav-dropdown');
+      var isOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
+      if(!isOpen) dd.classList.add('open');
+    });
+  });
+  // Fermer en cliquant ailleurs
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
+  });
+  // Fermer avec Escape
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); }); });
+
+
+  // Recherche globale
+  var searchBtn = document.querySelector('.nav-search-btn');
+  var searchWrap = document.getElementById('nav-search-wrap');
+  if(searchBtn && searchWrap){
+    searchBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = searchWrap.classList.toggle('open');
+      searchWrap.style.display = open ? 'block' : 'none';
+      if(open){ var inp=document.getElementById('nav-search-input'); if(inp) setTimeout(function(){ inp.focus(); }, 50); }
+    });
+  }
+  var _sd=null;
+  async function loadSD(){
+    if(_sd) return _sd;
+    var [arts,ventes,clients]=await Promise.all([
+      fetch('/api/articles').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/ventes').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/clients').then(r=>r.json()).catch(()=>[]),
+    ]);
+    _sd={arts,ventes,clients}; return _sd;
+  }
+  var si = document.getElementById('nav-search-input');
+  if(si){
+    si.addEventListener('input', async function(){
+      var q=this.value.trim().toLowerCase();
+      var res=document.getElementById('nav-search-results');
+      if(!res) return;
+      if(q.length<2){res.style.display='none';return;}
+      var d=await loadSD();
+      var hits=[];
+      var fmtN=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+      d.arts.filter(a=>a.article?.toLowerCase().includes(q)||(a.id+'').includes(q)).slice(0,3).forEach(a=>
+        hits.push('<a href="/stock" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">💍</span><div><div style="font-weight:600">#'+a.id+' — '+a.article+'</div><div style="font-size:11px;color:#9a8e7e">'+(a.or_grs?a.or_grs+' grs · ':'')+' PA: '+(a.pa?fmtN(a.pa):'—')+'</div></div></a>'));
+      d.clients.filter(c=>c.nom?.toLowerCase().includes(q)).slice(0,3).forEach(c=>
+        hits.push('<a href="/clients" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">👤</span><div><div style="font-weight:600">'+c.nom+'</div><div style="font-size:11px;color:#9a8e7e">'+c.nb_achats+' achats · '+fmtN(c.ca_total)+' CA</div></div></a>'));
+      d.ventes.filter(v=>(v.client||'').toLowerCase().includes(q)||(v.article||'').toLowerCase().includes(q)).slice(0,3).forEach(v=>
+        hits.push('<a href="/vendu" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">💰</span><div><div style="font-weight:600">#'+v.ref+' '+v.article+'</div><div style="font-size:11px;color:#9a8e7e">'+(v.client||'—')+' · '+(v.date_vente||'')+'</div></div></a>'));
+      if(!hits.length) hits.push('<div style="padding:16px;color:#9a8e7e;text-align:center;font-size:13px">Aucun résultat</div>');
+      res.innerHTML=hits.join('');
+      res.style.display='block';
+    });
+    document.addEventListener('click',function(e){
+      if(!e.target.closest('#nav-search-wrap')){
+        var res=document.getElementById('nav-search-results');
+        if(res) res.style.display='none';
+      }
+    });
+  }
+})();
+</script>
+
 </body>
 </html>

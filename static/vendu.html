@@ -163,7 +163,81 @@ td.has{color:#82e0aa;}
   nav > a[href="/logout"]{display:none;}
   .mob-logout{display:block !important;}
 }
+/* ── NAV DROPDOWNS ── */
+.nav-dropdown{position:relative;display:inline-block;}
+.nav-drop-btn{padding:8px 14px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;}
+.nav-drop-btn:hover,.nav-drop-btn.active{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-drop-btn.active{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+.nav-drop-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e8e0d4;border-radius:10px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;overflow:hidden;}
+.nav-dropdown.open .nav-drop-menu{display:block;}
+.nav-drop-menu a{display:block;padding:10px 16px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:background .15s;white-space:nowrap;}
+.nav-drop-menu a:hover{background:rgba(201,168,76,.08);color:var(--gold);}
+.nav-search-btn{padding:8px 12px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:16px;cursor:pointer;transition:all .2s;}
+.nav-search-btn:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-search-wrap{position:relative;display:none;}
+.nav-search-wrap.open{display:block;}
+@media(max-width:860px){
+  .nav-dropdown{display:block;width:100%;}
+  .nav-drop-btn{width:100%;text-align:left;padding:11px 16px;font-size:14px;border-radius:10px;}
+  .nav-drop-menu{display:none;position:static;box-shadow:none;border:none;background:rgba(201,168,76,.04);border-radius:0;border-left:2px solid rgba(201,168,76,.25);margin:0 0 4px 16px;}
+  .nav-drop-menu a{padding:8px 14px;font-size:13px;}
+  .nav-search-btn{display:none;}
+  .nav-search-wrap{display:none!important;}
+}
+
+/* ── FACTURE MODAL ── */
+.fac-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.fac-overlay.open{display:flex;}
+.fac-shell{background:#f8f5f0;border-radius:14px;width:min(820px,96vw);max-height:94vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.fac-toolbar{padding:13px 18px;display:flex;align-items:center;gap:8px;background:#fff;border-bottom:1px solid #e8e0d4;flex-wrap:wrap;}
+.fac-toolbar-title{flex:1;font-size:14px;font-weight:700;color:#7a5c20;min-width:120px;}
+.fac-body{overflow-y:auto;padding:20px;flex:1;}
+.btn-print-fac{background:linear-gradient(135deg,#b8923c,#9a7530);color:#1a1200;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.btn-wa-fac{background:#25d366;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.btn-email-fac{background:#fff;color:#1a1612;border:1px solid #e8e0d4;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.btn-close-fac{background:none;border:1px solid #e8e0d4;color:#9a8e7e;border-radius:8px;padding:8px 13px;font-size:13px;cursor:pointer;white-space:nowrap;}
+/* ── Invoice styles (repris de facture.html) ── */
+.invoice{background:#fff;width:100%;border:1px solid #e8dfc8;position:relative;overflow:hidden;}
+.invoice::before{content:'';position:absolute;top:0;right:0;width:220px;height:220px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Ccircle cx='110' cy='110' r='85' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.12'/%3E%3Ccircle cx='110' cy='110' r='60' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.09'/%3E%3Ccircle cx='110' cy='110' r='35' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.06'/%3E%3Cpath d='M110,25 L195,110 L110,195 L25,110 Z' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.1'/%3E%3Cpath d='M110,55 L165,110 L110,165 L55,110 Z' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.08'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+.inv-header{background:#f9f4e8;border-bottom:2px solid #c9a84c;position:relative;z-index:1;}
+.inv-header-inner{padding:28px 40px 22px;display:flex;justify-content:space-between;align-items:flex-start;}
+.inv-brand-name{font-family:'Playfair Display',serif;font-size:26px;color:#2a1f0a;letter-spacing:4px;text-transform:uppercase;}
+.inv-brand-sub{font-size:7px;color:#c9a84c;letter-spacing:3px;text-transform:uppercase;margin-top:4px;}
+.inv-brand-addr{font-size:10px;color:#9a8060;margin-top:12px;line-height:1.9;}
+.inv-meta{text-align:right;}.inv-meta-word{font-family:'Playfair Display',serif;font-size:22px;color:#2a1f0a;font-style:italic;}
+.inv-meta-num{font-size:14px;color:#c9a84c;letter-spacing:2px;margin-top:4px;}.inv-meta-date{font-size:11px;color:#9a8060;margin-top:4px;}
+.zellige{height:14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='14'%3E%3Cpolygon points='18,1 35,7 18,13 1,7' fill='none' stroke='%23c9a84c' stroke-width='0.8'/%3E%3Cpolygon points='18,4 29,7 18,10 7,7' fill='none' stroke='%23c9a84c' stroke-width='0.4' opacity='0.5'/%3E%3C/svg%3E");background-repeat:repeat-x;background-size:36px 14px;}
+.inv-body{padding:28px 40px;position:relative;z-index:1;}
+.inv-client-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #f0e8d8;}
+.inv-lbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#c9a84c;margin-bottom:6px;}
+.inv-client-name{font-size:18px;font-family:'Playfair Display',serif;color:#1a1208;}
+.inv-client-sub{font-size:11px;color:#9a8060;margin-top:4px;line-height:1.6;}
+.inv-badge-fac{display:inline-block;padding:4px 12px;border-radius:20px;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:600;border:1px solid #d0c8b8;color:#1a1208;background:transparent;}
+.inv-tbl{width:100%;border-collapse:collapse;margin-bottom:20px;}
+.inv-tbl th{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#c9a84c;padding:0 10px 8px;text-align:left;border-bottom:1px solid #e8dfc8;}
+.inv-tbl th:last-child{text-align:right;}
+.inv-tbl td{padding:10px;vertical-align:top;border-bottom:1px solid #f5f0e8;font-size:12px;}
+.inv-tbl tr:last-child td{border-bottom:none;}
+.inv-ref{font-size:11px;font-weight:600;color:#c9a84c;margin-right:8px;}
+.inv-art{font-size:13px;color:#1a1208;}
+.inv-price{text-align:right;font-size:13px;font-weight:600;color:#1a1208;white-space:nowrap;}
+.inv-totaux{display:flex;justify-content:flex-end;margin-top:8px;}
+.inv-totaux-box{min-width:260px;border:1px solid #e8dfc8;border-radius:8px;overflow:hidden;}
+.inv-t-row{display:flex;justify-content:space-between;padding:7px 14px;font-size:12px;color:#6b5c4a;border-bottom:1px solid #f0e8d8;}
+.inv-t-row:last-child{border-bottom:none;}
+.inv-t-total{display:flex;justify-content:space-between;padding:10px 14px;font-size:14px;font-weight:700;color:#1a1208;background:#f9f4e8;border-bottom:1px solid #e8dfc8;}
+.inv-t-reste{display:flex;justify-content:space-between;padding:8px 14px;font-size:13px;font-weight:600;color:#b85c00;background:rgba(230,126,34,.06);border-bottom:1px solid rgba(230,126,34,.15);}
+.inv-footer{border-top:2px solid #c9a84c;padding:14px 40px;background:#f9f4e8;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}
+.inv-footer-brand{font-family:'Playfair Display',serif;font-size:12px;color:#9a8060;font-style:italic;}
+.inv-footer-note{font-size:9px;color:#b8a898;letter-spacing:1px;text-transform:uppercase;}
+/* ── Print : affiche seulement la zone facture ── */
+@media print{
+  body>*{display:none!important;}
+  #fac-print-zone{display:block!important;position:fixed;inset:0;background:#fff;z-index:9999;}
+  #fac-print-zone .invoice{box-shadow:none;border:none;}
+}
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap">
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
 </head>
@@ -174,16 +248,56 @@ td.has{color:#82e0aa;}
     <div class="nav-logo">✦</div>
     <div class="nav-title">GESTION STOCK</div>
   </a>
-  <div class="nav-links">
-    <a href="/accueil">Accueil</a>
+  <!-- Global search bar -->
+  <div class="nav-search-wrap" id="nav-search-wrap" style="display:none;">
+    <input type="text" id="nav-search-input" placeholder="🔍 Rechercher article, client, vente…" autocomplete="off"
+      style="width:260px;padding:7px 12px;border:1px solid rgba(201,168,76,.4);border-radius:8px;font-size:13px;background:#fff;outline:none;color:#1a1612;">
+    <div id="nav-search-results" style="position:absolute;top:60px;left:0;right:0;background:#fff;border:1px solid #e8e0d4;border-radius:0 0 10px 10px;max-height:320px;overflow-y:auto;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,.12);"></div>
+  </div>
+
+  <div class="nav-links" id="nav-links">
     <a href="/dashboard">Dashboard</a>
-    <a href="/stock">Stock</a>
-    <a href="/vendu" class="active">Ventes</a>
-    <a href="/credit">Crédits Clients</a>
-    <a href="/cheques">Chèques</a>
-    <a href="/facture">Facture</a>
-    <a href="/fournisseurs">Fournisseurs</a>
-    <a href="/fiche">Fiche</a>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">💍 Stock ▾</button>
+      <div class="nav-drop-menu">
+        
+        <a href="/stock">Voir le stock</a>
+        <a href="/ajouter">Ajouter un article</a>
+        <a href="/vendu">Articles vendus</a>
+        <a href="/fiche">Fiche référence</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/catalogue">Catalogue</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn active">💰 Ventes ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/vendu">Ventes</a>
+        <a href="/facture">Factures</a>
+        <a href="/facture-libre">📝 Facture Libre</a>
+                <a href="/devis">📋 Devis</a>
+                <a href="/historique-devis">🗂 Historique Devis</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">👥 Clients ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/clients">Dossier Clients</a>
+        <a href="/credit">Crédits</a>
+        <a href="/cheques">Chèques</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">⚙️ Gestion ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/fournisseurs">Fournisseurs</a>
+        <a href="/fiche">Fiche</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/historique-activite">📅 Historique</a>
+      </div>
+    </div>
+    <button class="nav-search-btn" onclick="toggleNavSearch()" title="Rechercher">🔍</button>
+    <a href="/logout" style="color:#c0392b;font-weight:600;" class="mob-logout">⎋ Déco</a>
   </div>
   <button class="hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
 
@@ -194,17 +308,10 @@ td.has{color:#82e0aa;}
   <div class="card c1"><div class="card-ico">📋</div><div class="card-lbl">Ventes du Mois</div><div class="card-val" id="s-nb">—</div><div class="card-sub" id="s-mois-lbl" style="font-size:10px;color:var(--muted);margin-top:3px">—</div></div>
   <div class="card c2"><div class="card-ico">💰</div><div class="card-lbl" id="ca-lbl">CA du Mois</div><div class="card-val" id="s-ca">—</div></div>
   <div class="card c3"><div class="card-ico">📈</div><div class="card-lbl" id="benef-lbl">Bénéfice du Mois</div><div class="card-val" id="s-benef">—</div></div>
-  <div class="card c4" style="cursor:default">
+  <div class="card c4" style="cursor:pointer" onclick="openNVModal()">
     <div class="card-ico">💰</div>
-    <div class="card-lbl">Nouvelle Vente Rapide</div>
-    <div style="display:flex;gap:6px;margin-top:8px">
-      <input type="number" id="nv-ref-input" placeholder="Réf. article…"
-        style="flex:1;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:6px;color:var(--txt);font-size:13px;outline:none;min-width:0"
-        onkeydown="if(event.key==='Enter')searchNV()" onclick="event.stopPropagation()">
-      <button onclick="event.stopPropagation();searchNV()" style="padding:7px 12px;border-radius:6px;border:none;background:linear-gradient(135deg,#1a5c8a,var(--blue));color:#fff;cursor:pointer;font-size:13px;font-weight:700">🔍</button>
-    </div>
-    <div id="nv-status" style="font-size:11px;color:var(--muted);margin-top:7px;min-height:18px"></div>
-    <button id="nv-sell-btn" onclick="event.stopPropagation();openNVModal()" style="display:none;margin-top:8px;width:100%;padding:7px;border-radius:6px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;cursor:pointer;font-size:12px;font-weight:700">✅ Enregistrer la vente →</button>
+    <div class="card-lbl">Nouvelle Vente</div>
+    <button onclick="event.stopPropagation();openNVModal()" style="margin-top:14px;width:100%;padding:10px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;cursor:pointer;font-size:13px;font-weight:700">✚ Enregistrer une vente</button>
   </div>
 </div>
 
@@ -278,8 +385,18 @@ td.has{color:#82e0aa;}
           <input type="date" id="ev-date">
         </div>
         <div class="form-group">
-          <label>Prix de Vente (MAD)</label>
-          <input type="number" id="ev-pv" step="1" placeholder="0">
+          <label>Prix de Vente (PV)</label>
+          <input type="number" id="ev-pv" step="1" placeholder="0" oninput="calcEVBenef()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prix de Revient (PA)</label>
+          <input type="number" id="ev-pa" step="1" placeholder="0" oninput="calcEVBenef()">
+        </div>
+        <div class="form-group">
+          <label>Bénéfice estimé</label>
+          <div id="ev-benef" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;font-size:14px;font-weight:700;color:var(--green)">—</div>
         </div>
       </div>
       <div class="form-group">
@@ -298,128 +415,158 @@ td.has{color:#82e0aa;}
   </div>
 </div>
 
-<!-- MODAL NOUVELLE VENTE RAPIDE -->
+<!-- MODAL NOUVELLE VENTE -->
 <div class="overlay" id="ov-nv" onclick="closeNVModal(event)">
-  <div class="modal" style="width:600px">
+  <div class="modal" style="width:680px">
     <button class="close-btn" onclick="closeNVModal()">✕</button>
-    <h2>💰 Enregistrer une Vente — <span id="nv-modal-ref" style="color:var(--gold)"></span></h2>
-    <!-- Info article -->
-    <div id="nv-art-info" style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px"></div>
-    <!-- Formulaire -->
-    <!-- BLOC POIDS (articles or pur, sans pierres) -->
-    <div id="nv-poids-bloc" style="display:none;background:rgba(184,146,60,.06);border:1px solid rgba(184,146,60,.25);border-radius:10px;padding:14px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;color:var(--gold-l);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">⚖️ Vente au poids</div>
+    <h2>💰 Nouvelle Vente</h2>
+
+    <!-- SECTION 1 — CLIENT -->
+    <div style="border:1px solid rgba(184,146,60,.3);border-radius:10px;padding:14px;margin-bottom:14px;background:rgba(184,146,60,.04)">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">👤 Coordonnées Client</div>
       <div class="form-row" style="margin-bottom:10px">
         <div class="form-group">
-          <label>Poids à vendre (grs) *</label>
-          <input type="number" id="nv-poids" placeholder="ex: 5.5" min="0.001" step="0.001" oninput="calcNVPoidsValues()" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
+          <label>Nom du Client</label>
+          <input type="text" id="nv-client" placeholder="ex: Mohamed Alami" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
         </div>
         <div class="form-group">
-          <label>Stock disponible</label>
-          <div id="nv-stock-dispo" style="padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;font-size:14px;font-weight:700;color:var(--gold-l)">—</div>
+          <label>Téléphone</label>
+          <input type="text" id="nv-contact" placeholder="0661…" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px">
-        <div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center">
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Prix achat / gr</div>
-          <div id="nv-prix-achat-gr" style="font-size:15px;font-weight:700;color:var(--muted)">—</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:8px">Statut du paiement *</label>
+        <div style="display:flex;gap:8px">
+          <label style="flex:1;cursor:pointer">
+            <input type="radio" name="nv-statut" id="nv-st-total" value="totalite" checked onchange="onNVStatutChange()" style="display:none">
+            <div id="nv-st-total-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--green);background:rgba(46,204,113,.12);color:var(--green);transition:all .2s">✅ Totalité</div>
+          </label>
+          <label style="flex:1;cursor:pointer">
+            <input type="radio" name="nv-statut" id="nv-st-avance" value="avance" onchange="onNVStatutChange()" style="display:none">
+            <div id="nv-st-avance-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);transition:all .2s">💰 Avance</div>
+          </label>
+          <label style="flex:1;cursor:pointer">
+            <input type="radio" name="nv-statut" id="nv-st-rien" value="rien" onchange="onNVStatutChange()" style="display:none">
+            <div id="nv-st-rien-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);transition:all .2s">❌ Rien</div>
+          </label>
         </div>
-        <div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center">
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">P.Revient calculé</div>
-          <div id="nv-poids-pa" style="font-size:15px;font-weight:700;color:var(--muted)">—</div>
+      </div>
+      <div id="nv-avance-bloc" style="display:none;background:rgba(230,126,34,.06);border:1px solid rgba(230,126,34,.25);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--orange);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:10px">💰 Détails de l'avance</div>
+        <div class="form-row" style="margin-bottom:8px">
+          <div class="form-group">
+            <label>Montant avance *</label>
+            <input type="number" id="nv-avance" placeholder="ex: 5000" min="0" oninput="calcNVReste()" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+          </div>
+          <div class="form-group">
+            <label>Mode de paiement (avance)</label>
+            <select id="nv-mode" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+              <option value="">—</option><option>cash</option><option>chèque</option><option>TPE</option><option>virement</option><option>TPE et cash</option><option>cash et chèque</option>
+            </select>
+          </div>
         </div>
+        <div style="font-size:13px;color:var(--muted)">Reste dû : <strong id="nv-reste-display" style="color:var(--orange)">—</strong></div>
       </div>
-    </div>
-
-    <div class="form-row" style="margin-bottom:12px">
-      <div class="form-group" id="nv-pv-bloc">
-        <label>Prix de Vente (MAD) *</label>
-        <input type="number" id="nv-pv" placeholder="ex: 35000" min="0" oninput="calcNVBenef()" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
-      </div>
-      <div class="form-group">
-        <label>Nom du Client</label>
-        <input type="text" id="nv-client" placeholder="ex: Mohamed Alami" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
-      </div>
-    </div>
-
-    <!-- STATUT PAIEMENT -->
-    <div class="form-group" style="margin-bottom:14px">
-      <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:8px">Statut du paiement *</label>
-      <div style="display:flex;gap:8px">
-        <label id="nv-st-total-lbl" style="flex:1;cursor:pointer">
-          <input type="radio" name="nv-statut" id="nv-st-total" value="totalite" checked onchange="onNVStatutChange()" style="display:none">
-          <div class="nv-st-btn nv-st-active" id="nv-st-total-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--green);background:rgba(46,204,113,.12);color:var(--green);transition:all .2s">✅ Totalité</div>
-        </label>
-        <label id="nv-st-avance-lbl" style="flex:1;cursor:pointer">
-          <input type="radio" name="nv-statut" id="nv-st-avance" value="avance" onchange="onNVStatutChange()" style="display:none">
-          <div id="nv-st-avance-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);transition:all .2s">💰 Avance</div>
-        </label>
-        <label id="nv-st-rien-lbl" style="flex:1;cursor:pointer">
-          <input type="radio" name="nv-statut" id="nv-st-rien" value="rien" onchange="onNVStatutChange()" style="display:none">
-          <div id="nv-st-rien-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);transition:all .2s">❌ Rien</div>
-        </label>
-      </div>
-    </div>
-
-    <!-- BLOC AVANCE (conditionnel) -->
-    <div id="nv-avance-bloc" style="display:none;background:rgba(230,126,34,.06);border:1px solid rgba(230,126,34,.25);border-radius:10px;padding:14px;margin-bottom:14px">
-      <div style="font-size:11px;color:var(--orange);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:12px">💰 Détails de l'avance</div>
       <div class="form-row" style="margin-bottom:10px">
         <div class="form-group">
-          <label>Montant avance (MAD) *</label>
-          <input type="number" id="nv-avance" placeholder="ex: 5000" min="0" oninput="calcNVReste()" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+          <label>Date de vente</label>
+          <input type="date" id="nv-date" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
         </div>
         <div class="form-group">
           <label>Mode de paiement</label>
-          <select id="nv-mode" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
-            <option value="">—</option>
-            <option>cash</option>
-            <option>chèque</option>
-            <option>TPE</option>
-            <option>virement</option>
-            <option>TPE et cash</option>
-            <option>cash et chèque</option>
+          <select id="nv-mode-global" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+            <option value="">—</option><option>cash</option><option>chèque</option><option>TPE</option><option>virement</option><option>TPE et cash</option><option>cash et chèque</option>
           </select>
         </div>
       </div>
-      <div style="font-size:13px;color:var(--muted)">Reste dû : <strong id="nv-reste-display" style="color:var(--orange)">—</strong></div>
-    </div>
-
-    <!-- CONTACT (conditionnel — Avance ou Rien) -->
-    <div id="nv-contact-bloc" style="display:none;margin-bottom:14px">
       <div class="form-group">
-        <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Contact client (pour le crédit)</label>
-        <input type="text" id="nv-contact" placeholder="0661…" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+        <label>Note / Remarque</label>
+        <input type="text" id="nv-note" placeholder="Informations complémentaires…" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+      </div>
+      <div id="nv-credit-alert" style="display:none;background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.3);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--orange)">
+        ⚠️ Cette vente sera automatiquement ajoutée dans <strong>Crédits Clients</strong> avec le montant restant dû.
       </div>
     </div>
 
-    <div class="form-group" style="margin-bottom:14px">
-      <label>Mode de paiement</label>
-      <select id="nv-mode-global" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
-        <option value="">—</option>
-        <option>cash</option>
-        <option>chèque</option>
-        <option>TPE</option>
-        <option>virement</option>
-        <option>TPE et cash</option>
-        <option>cash et chèque</option>
-      </select>
+    <!-- SECTION 2 — ARTICLES -->
+    <div style="border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">🛍️ Ajouter des Articles</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="number" id="nv-ref-input" placeholder="Référence article…" min="1"
+          onkeydown="if(event.key==='Enter')searchNV()"
+          style="flex:1;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none">
+        <button onclick="searchNV()" style="padding:8px 16px;border-radius:7px;border:none;background:linear-gradient(135deg,#1a5c8a,var(--blue));color:#fff;cursor:pointer;font-size:13px;font-weight:700">🔍 Rechercher</button>
+      </div>
+      <div id="nv-status" style="font-size:12px;margin-bottom:8px;min-height:16px"></div>
+      <!-- Article trouvé -->
+      <div id="nv-art-found" style="display:none;background:var(--bg3);border:1px solid rgba(184,146,60,.3);border-radius:10px;padding:14px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span id="nv-art-badge" style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(184,146,60,.2);color:var(--gold-l);border:1px solid rgba(184,146,60,.3)"></span>
+          <span id="nv-modal-ref" style="font-size:16px;font-weight:700;color:var(--gold-l)"></span>
+        </div>
+        <div id="nv-art-info" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px"></div>
+        <div id="nv-poids-bloc" style="display:none;background:rgba(184,146,60,.06);border:1px solid rgba(184,146,60,.25);border-radius:10px;padding:12px;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--gold-l);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">⚖️ Vente au poids — Stock : <span id="nv-stock-dispo">—</span></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Poids à vendre (grs) *</label>
+              <input type="number" id="nv-poids" placeholder="ex: 5.5" min="0.001" step="0.001" oninput="calcNVPoidsValues()" style="padding:8px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
+            </div>
+            <div class="form-group">
+              <label>P.Revient calculé</label>
+              <div id="nv-poids-pa" style="padding:8px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;font-size:14px;font-weight:700;color:var(--muted)">—</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap">
+          <div class="form-group" id="nv-pv-bloc" style="flex:1;min-width:150px">
+            <label>Prix de Vente *</label>
+            <input type="number" id="nv-pv" placeholder="ex: 35000" min="0" oninput="calcNVBenef()" style="padding:8px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
+          </div>
+          <div style="display:flex;gap:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px">
+            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">P.Revient</div><div style="font-weight:700;color:var(--muted)" id="nv-b-pa">—</div></div>
+            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">P.Vente</div><div style="font-weight:700" id="nv-b-pv">—</div></div>
+            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Bénéfice</div><div style="font-weight:700" id="nv-b-benef">—</div></div>
+          </div>
+        </div>
+        <button onclick="addNVToPanier()" style="padding:9px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;cursor:pointer;font-size:13px;font-weight:700">🛒 Ajouter au panier</button>
+      </div>
     </div>
 
-    <div class="form-group" style="margin-bottom:14px">
-      <label>Note / Remarque</label>
-      <input type="text" id="nv-note" placeholder="Informations complémentaires…" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px;outline:none;width:100%">
+    <!-- PANIER NV -->
+    <div id="nv-panier-card" style="display:none;border:1px solid rgba(46,204,113,.3);border-radius:10px;padding:14px;margin-bottom:14px;background:rgba(46,204,113,.03)">
+      <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🛒 Panier — <span id="nv-panier-count" style="font-weight:400;color:var(--muted)"></span></div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr>
+            <th style="background:var(--bg3);padding:8px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd)">Réf</th>
+            <th style="background:var(--bg3);padding:8px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd)">Article</th>
+            <th style="background:var(--bg3);padding:8px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd)">P.R</th>
+            <th style="background:var(--bg3);padding:8px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd)">P.V</th>
+            <th style="background:var(--bg3);padding:8px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--bd)">Bénéfice</th>
+            <th style="background:var(--bg3);padding:8px 10px;border-bottom:1px solid var(--bd)"></th>
+          </tr></thead>
+          <tbody id="nv-panier-body"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:20px;background:var(--bg3);border-radius:8px;padding:10px 14px;margin-top:10px">
+        <div><span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block">Total P.R</span><span style="font-weight:700;color:var(--muted)" id="nv-tot-pa">—</span></div>
+        <div><span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block">Total P.V</span><span style="font-weight:700;color:var(--blue)" id="nv-tot-pv">—</span></div>
+        <div><span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block">Bénéfice Total</span><span style="font-weight:700" id="nv-tot-benef">—</span></div>
+      </div>
+      <!-- Prix Global -->
+      <div style="margin-top:12px;padding:12px 14px;background:#fffbf0;border:1px solid rgba(201,168,76,.35);border-radius:9px;">
+        <div style="font-size:11px;font-weight:700;color:var(--gold-l);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">💰 Prix Global (facultatif)</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <input type="number" id="nv-prix-global" min="0" step="100" placeholder="Ex: 250 000 — total pour tous les articles"
+            style="flex:1;min-width:200px;padding:8px 12px;border:1px solid rgba(201,168,76,.5);border-radius:8px;font-size:14px;font-weight:600;color:var(--txt);background:#fff;outline:none;">
+          <button onclick="repartirPrixGlobal()" style="padding:8px 16px;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">↔ Répartir</button>
+          <button onclick="clearPrixGlobalPanier()" style="padding:8px 12px;background:#fff;border:1px solid var(--bd);border-radius:8px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">✕ Effacer</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">Saisir un montant total → les prix sont répartis automatiquement au prorata du coût de chaque article. Tu peux ajuster les prix individuels dans le tableau.</div>
+      </div>
     </div>
-    <!-- Calcul bénéfice -->
-    <div style="background:var(--bg3);border-radius:10px;padding:14px;display:flex;gap:24px;margin-bottom:16px">
-      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Prix de Revient</div><div style="font-size:18px;font-weight:700;color:var(--muted)" id="nv-b-pa">—</div></div>
-      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Prix de Vente</div><div style="font-size:18px;font-weight:700" id="nv-b-pv">—</div></div>
-      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Bénéfice</div><div style="font-size:20px;font-weight:700" id="nv-b-benef">—</div></div>
-    </div>
-    <!-- ALERTE crédit auto -->
-    <div id="nv-credit-alert" style="display:none;background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--orange)">
-      ⚠️ Cette vente sera automatiquement ajoutée dans <strong>Crédits Clients</strong> avec le montant restant dû.
-    </div>
+
     <div class="modal-actions">
       <button class="btn btn-gold" id="nv-confirm-btn" onclick="submitNV()">✅ Confirmer la vente</button>
       <button class="btn btn-outline" onclick="closeNVModal()">Annuler</button>
@@ -541,14 +688,39 @@ async function load(){
         window.CREDIT_MAP.get(ref).add(clientKey);
       });
     });
-    // Map ref → dernière facture associée
-    window.FACTURE_MAP = new Map();
+    // Map "clientKey|dateVente" → facture
+    // Construit depuis les factures : pour chaque facture on cherche les ventes
+    // correspondantes (même client normalisé + au moins un ref en commun)
+    // → si plusieurs factures matchent la même session, on garde celle avec le plus d'articles
+    window.SESSION_FAC = new Map();
     facturesData.forEach(f=>{
-      (f.articles||[]).forEach(a=>{
-        const ref=parseInt(a.ref);
-        if(!window.FACTURE_MAP.has(ref)) window.FACTURE_MAP.set(ref, f);
+      const ck=(f.client||'').trim().toLowerCase();
+      const articleRefs=new Set((f.articles||[]).map(a=>parseInt(a.ref)));
+      if(!ck||!articleRefs.size) return;
+      const matchingVentes=ALL.filter(v=>
+        (v.client||'').trim().toLowerCase()===ck && articleRefs.has(v.ref)
+      );
+      matchingVentes.forEach(mv=>{
+        const dk=(mv.date_vente||'').substring(0,10);
+        const sk=`${ck}|${dk}`;
+        const existing=window.SESSION_FAC.get(sk);
+        const newCount=(f.articles||[]).length;
+        const oldCount=(existing?.articles||[]).length;
+        if(!existing||newCount>oldCount||(newCount===oldCount&&(f.id||0)>(existing.id||0))){
+          window.SESSION_FAC.set(sk,f);
+        }
       });
     });
+    // Garder FACTURE_MAP pour compatibilité (maj après génération)
+    window.FACTURE_MAP = new Map();
+    facturesData.forEach(f=>{
+      const ck=(f.client||'').trim().toLowerCase();
+      (f.articles||[]).forEach(a=>{
+        const key=`${parseInt(a.ref)}|${ck}`;
+        if(!window.FACTURE_MAP.has(key)) window.FACTURE_MAP.set(key, f);
+      });
+    });
+
     advancedDataV = advanced;
 
     const types=[...new Set(ALL.map(v=>v.article).filter(Boolean))].sort();
@@ -574,10 +746,12 @@ async function load(){
     const nomMois=nomsM[now.getMonth()]+' '+now.getFullYear();
     const moisData=advanced.monthly.find(m=>m.mois===moisKey)||{nb:0,ca:0,benef:0};
 
-    document.getElementById('s-nb').textContent=moisData.nb;
+    const moisVentes=ALL.filter(v=>(v.date_vente||'').startsWith(moisKey));
+    const moisSessions=new Set(moisVentes.map(v=>`${(v.client||'').trim().toLowerCase()}|${(v.date_vente||'').substring(0,10)}`));
+    document.getElementById('s-nb').textContent=moisSessions.size;
     document.getElementById('s-mois-lbl').textContent=nomMois;
-    document.getElementById('s-ca').textContent=fmtN(moisData.ca)+' MAD';
-    document.getElementById('s-benef').textContent=fmtN(moisData.benef)+' MAD';
+    document.getElementById('s-ca').textContent=fmtN(moisData.ca)+'';
+    document.getElementById('s-benef').textContent=fmtN(moisData.benef)+'';
 
     // Analyses financières — initialiser sur mois courant
     renderMonthlyV(advanced.monthly);
@@ -614,7 +788,8 @@ function filter(){
   // Stats filtrées
   const caF=filtered.reduce((s,v)=>s+(v.pv||0),0);
   const benefF=filtered.reduce((s,v)=>s+(v.benef||0),0);
-  document.getElementById('cnt').textContent=filtered.length;
+  const sessions=new Set(filtered.map(v=>`${(v.client||'').trim().toLowerCase()}|${(v.date_vente||'').substring(0,10)}`));
+  document.getElementById('cnt').textContent=sessions.size;
   page=1;
   render();
   renderPag();
@@ -637,16 +812,16 @@ function render(){
       <td>${fmtD(v.date_vente)}</td>
       <td><span class="badge ${badge(v.article)}">${v.article||'—'}</span></td>
       <td class="or-col">${v.or_grs!=null?fmt(v.or_grs)+' grs':'—'}</td>
-      <td class="pa-col">${v.pa!=null?fmtN(v.pa)+' MAD':'—'}</td>
-      <td class="pv-col">${v.pv!=null?fmtN(v.pv)+' MAD':'—'}</td>
-      <td class="${b>=0?'benef-pos':'benef-neg'}">${fmtN(b)} MAD</td>
+      <td class="pa-col">${v.pa!=null?fmtN(v.pa)+'':'—'}</td>
+      <td class="pv-col">${v.pv!=null?fmtN(v.pv)+'':'—'}</td>
+      <td class="${b>=0?'benef-pos':'benef-neg'}">${fmtN(b)}</td>
       <td class="${v.d?'has':'nil'}">${v.d?fmt(v.d):'—'}</td>
       <td class="${v.em?'has':'nil'}">${v.em?fmt(v.em):'—'}</td>
       <td class="${v.r?'has':'nil'}">${v.r?fmt(v.r):'—'}</td>
       <td class="${v.s?'has':'nil'}">${v.s?fmt(v.s):'—'}</td>
       <td class="${v.em_clb?'has':'nil'}">${v.em_clb?fmt(v.em_clb):'—'}</td>
       <td>${v.client||'—'}</td>
-      <td>${(()=>{const f=window.FACTURE_MAP?.get(v.ref);return f?`<a href="/historique-factures" onclick="event.stopPropagation()" title="Facture #${f.numero} — ${f.client}" style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(184,146,60,.15);color:var(--gold-l);border:1px solid rgba(184,146,60,.3);text-decoration:none">🧾 ${f.numero}</a>`:'<span style="color:var(--bd);font-size:12px">—</span>';})()}</td>
+      <td onclick="event.stopPropagation()">${(()=>{const ck=(v.client||'').trim().toLowerCase();const dk=(v.date_vente||'').substring(0,10);const f=window.SESSION_FAC?.get(`${ck}|${dk}`);if(f)return`<button onclick="openFactureModal(${start+i})" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(184,146,60,.15);color:var(--gold-l);border:1px solid rgba(184,146,60,.3);cursor:pointer">🧾 ${f.numero}</button>`;return`<button onclick="openFactureModal(${start+i})" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(52,152,219,.08);color:var(--blue);border:1px solid rgba(52,152,219,.3);cursor:pointer">📄 Générer</button>`;})()}</td>
       <td style="display:flex;gap:5px">
         <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();showDetail(${start+i})">Voir</button>
         <button class="btn btn-blue" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();openEditVente(${start+i})">✏️</button>
@@ -689,9 +864,9 @@ function showDetail(idx){
     ['Date d\'achat',fmtD(v.date_achat),'',false],
     ['Date de vente',fmtD(v.date_vente),'blue',false],
     ['OR (grammes)',v.or_grs!=null?fmt(v.or_grs)+' grs':'—','gold',false],
-    ['Prix d\'Achat (P.R)',v.pa!=null?fmtN(v.pa)+' MAD':'—','',false],
-    ['Prix de Vente (P.V)',v.pv!=null?fmtN(v.pv)+' MAD':'—','blue',false],
-    ['Bénéfice',fmtN(b)+' MAD',b>=0?'grn':'red',false],
+    ['Prix d\'Achat (P.R)',v.pa!=null?fmtN(v.pa)+'':'—','',false],
+    ['Prix de Vente (P.V)',v.pv!=null?fmtN(v.pv)+'':'—','blue',false],
+    ['Bénéfice',fmtN(b)+'',b>=0?'grn':'red',false],
     ['Diamants (cts)',v.d?fmt(v.d):'—','',false],
     ['Émeraudes (cts)',v.em?fmt(v.em):'—','',false],
     ['Rubis (cts)',v.r?fmt(v.r):'—','',false],
@@ -721,14 +896,26 @@ function showDetail(idx){
 
 function closeModal(e){if(!e||e.target===document.getElementById('ov'))document.getElementById('ov').classList.remove('open');}
 
+function calcEVBenef(){
+  const pv=parseFloat(document.getElementById('ev-pv').value)||0;
+  const pa=parseFloat(document.getElementById('ev-pa').value)||0;
+  const benef=pv-pa;
+  const el=document.getElementById('ev-benef');
+  if(pv===0&&pa===0){el.textContent='—';el.style.color='var(--muted)';return;}
+  el.textContent=(benef>=0?'+':'')+benef.toLocaleString('fr-FR')+' MAD';
+  el.style.color=benef>=0?'var(--green)':'var(--red)';
+}
+
 function openEditVente(idx){
   const v=filtered[idx];
   currentVente=v;
   document.getElementById('edit-vente-title').textContent='#'+v.ref;
   document.getElementById('ev-date').value=v.date_vente||'';
   document.getElementById('ev-pv').value=v.pv!=null?v.pv:'';
+  document.getElementById('ev-pa').value=v.pa!=null?v.pa:'';
   document.getElementById('ev-client').value=v.client||'';
   document.getElementById('ev-comment').value=v.commentaire||'';
+  calcEVBenef();
   document.getElementById('ov-edit').classList.add('open');
 }
 
@@ -740,6 +927,7 @@ async function submitEditVente(e){
   const payload={
     date_vente: document.getElementById('ev-date').value,
     pv: document.getElementById('ev-pv').value,
+    pa: document.getElementById('ev-pa').value,
     client: document.getElementById('ev-client').value,
     commentaire: document.getElementById('ev-comment').value,
   };
@@ -781,8 +969,9 @@ function toast(msg,type='success'){
   setTimeout(()=>t.className='toast',3500);
 }
 
-// ── VENTE RAPIDE ────────────────────────────────────────
+// ── NOUVELLE VENTE ────────────────────────────────────────
 let nvArticle = null;
+let nvPanier = [];
 let nvConfig = {prix_or_achat: 1000, prix_or_vente: 1100};
 let nvEstPoids = false;
 
@@ -799,17 +988,21 @@ function isPoidsArticle(a){
 function calcNVPoidsValues(){
   const poids = parseFloat(document.getElementById('nv-poids').value)||0;
   const pa = poids * nvConfig.prix_or_achat;
-  document.getElementById('nv-poids-pa').textContent = poids>0 ? Math.round(pa).toLocaleString('fr-FR')+' MAD' : '—';
-  document.getElementById('nv-b-pa').textContent = poids>0 ? Math.round(pa).toLocaleString('fr-FR')+' MAD' : '—';
-  // Recalculer le bénéfice avec le PV saisi manuellement
+  document.getElementById('nv-poids-pa').textContent = poids>0 ? Math.round(pa).toLocaleString('fr-FR')+'' : '—';
+  document.getElementById('nv-b-pa').textContent = poids>0 ? Math.round(pa).toLocaleString('fr-FR')+'' : '—';
   calcNVBenef();
 }
 
 async function searchNV(){
   const ref = document.getElementById('nv-ref-input').value.trim();
-  if(!ref){document.getElementById('nv-status').textContent='⚠️ Entrez une référence';return;}
+  if(!ref){
+    document.getElementById('nv-status').style.color='var(--red)';
+    document.getElementById('nv-status').textContent='⚠️ Entrez une référence';
+    return;
+  }
+  document.getElementById('nv-status').style.color='var(--muted)';
   document.getElementById('nv-status').textContent='Recherche…';
-  document.getElementById('nv-sell-btn').style.display='none';
+  document.getElementById('nv-art-found').style.display='none';
   try{
     const res = await fetch('/api/article/'+ref);
     if(!res.ok){
@@ -820,64 +1013,158 @@ async function searchNV(){
     }
     nvArticle = await res.json();
     document.getElementById('nv-status').style.color='var(--green)';
-    document.getElementById('nv-status').textContent='✓ '+nvArticle.article+' — '+( nvArticle.pa?Number(nvArticle.pa).toLocaleString('fr-FR')+'MAD PA':'');
-    document.getElementById('nv-sell-btn').style.display='block';
+    document.getElementById('nv-status').textContent='✓ '+nvArticle.article+(nvArticle.pa?' — PA: '+Number(nvArticle.pa).toLocaleString('fr-FR')+'':'');
+    displayNVArticle(nvArticle);
   }catch(e){document.getElementById('nv-status').textContent='Erreur connexion';}
 }
 
-function openNVModal(){
-  if(!nvArticle) return;
-  const a=nvArticle;
+function displayNVArticle(a){
   const fmtA=v=>v!=null?Number(v).toLocaleString('fr-FR',{maximumFractionDigits:2}):null;
-  document.getElementById('nv-modal-ref').textContent='#'+a.id+' — '+a.article;
-  // Info article
+  document.getElementById('nv-art-badge').textContent=a.article||'Article';
+  document.getElementById('nv-modal-ref').textContent='Référence #'+a.id;
   const fields=[
     ['Date entrée', a.date?a.date.substring(0,10):'—'],
     ['OR (grs)', a.or_grs?fmtA(a.or_grs)+' grs':'—'],
-    ['Prix de Revient', a.pa?fmtA(a.pa)+' MAD':'—'],
+    ['Prix de Revient', a.pa?fmtA(a.pa)+'':'—'],
     ['Diamants', a.d?fmtA(a.d)+' cts':'—'],
   ];
   document.getElementById('nv-art-info').innerHTML=fields.map(([l,v])=>
-    `<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">${l}</div><div style="font-size:14px;font-weight:600;color:var(--gold-l)">${v}</div></div>`
+    `<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">${l}</div><div style="font-size:13px;font-weight:600;color:var(--gold-l)">${v}</div></div>`
   ).join('');
-  document.getElementById('nv-client').value='';
-  document.getElementById('nv-contact').value='';
-  document.getElementById('nv-avance').value='';
-  document.getElementById('nv-mode').value='';
-  document.getElementById('nv-mode-global').value='';
-  document.getElementById('nv-note').value='';
-  document.getElementById('nv-b-benef').style.color='var(--muted)';
-  document.getElementById('nv-reste-display').textContent='—';
-
-  // Détecter article au poids
-  nvEstPoids = isPoidsArticle(a);
-  document.getElementById('nv-pv-bloc').style.display='block';
   document.getElementById('nv-pv').value='';
+  document.getElementById('nv-b-pv').textContent='—';
+  document.getElementById('nv-b-benef').textContent='—';
+  document.getElementById('nv-b-benef').style.color='var(--muted)';
+  nvEstPoids = isPoidsArticle(a);
   if(nvEstPoids){
     document.getElementById('nv-poids-bloc').style.display='block';
     document.getElementById('nv-poids').value='';
     document.getElementById('nv-stock-dispo').textContent=(a.or_grs||0)+' grs';
-    document.getElementById('nv-prix-achat-gr').textContent=nvConfig.prix_or_achat.toLocaleString('fr-FR')+' MAD/gr';
     document.getElementById('nv-poids-pa').textContent='—';
     document.getElementById('nv-b-pa').textContent='—';
   } else {
     document.getElementById('nv-poids-bloc').style.display='none';
-    document.getElementById('nv-b-pa').textContent=a.pa?fmtA(a.pa)+' MAD':'—';
+    document.getElementById('nv-b-pa').textContent=a.pa?fmtA(a.pa)+'':'—';
   }
-  document.getElementById('nv-b-pv').textContent='—';
-  document.getElementById('nv-b-benef').textContent='—';
-  // Reset statut to Totalité
+  document.getElementById('nv-art-found').style.display='block';
+}
+
+function addNVToPanier(){
+  if(!nvArticle){toast('Aucun article sélectionné','error');return;}
+  if(nvEstPoids){
+    const poids=parseFloat(document.getElementById('nv-poids').value);
+    if(isNaN(poids)||poids<=0){toast('Entrez le poids à vendre','error');return;}
+    const stock=parseFloat(nvArticle.or_grs)||0;
+    if(poids>stock+0.001){toast(`Stock insuffisant : ${stock} grs`,'error');return;}
+    const pa=Math.round(poids*nvConfig.prix_or_achat);
+    const pvRaw=parseFloat(document.getElementById('nv-pv').value);
+    const pv=isNaN(pvRaw)||pvRaw<=0 ? Math.round(poids*nvConfig.prix_or_vente) : pvRaw;
+    nvPanier.push({article:nvArticle, pv, poids_vendu:poids, pa_calc:pa, au_poids:true});
+  } else {
+    const pv=parseFloat(document.getElementById('nv-pv').value)||0;
+    if(pv<0){toast('Le prix ne peut pas être négatif','error');return;}
+    nvPanier.push({article:nvArticle, pv});
+  }
+  toast(`Article #${nvArticle.id} ajouté au panier ✓`,'success');
+  nvArticle=null;
+  document.getElementById('nv-ref-input').value='';
+  document.getElementById('nv-status').textContent='';
+  document.getElementById('nv-art-found').style.display='none';
+  renderNVPanier();
+}
+
+function repartirPrixGlobal(){
+  const total = parseFloat(document.getElementById('nv-prix-global').value);
+  if(!total || total <= 0){ toast('Entrez un montant global valide','error'); return; }
+  if(!nvPanier.length) return;
+  // Répartir au prorata du PA (coût d'achat), ou également si tous les PA=0
+  const totalPA = nvPanier.reduce((s,item) => s + (item.article.pa || 0), 0);
+  nvPanier.forEach(item => {
+    if(totalPA > 0){
+      const ratio = (item.article.pa || 0) / totalPA;
+      item.pv = Math.round(total * ratio);
+    } else {
+      item.pv = Math.round(total / nvPanier.length);
+    }
+  });
+  // S'assurer que la somme est exactement égale au total (ajuster le dernier article)
+  const somme = nvPanier.reduce((s,item) => s + item.pv, 0);
+  if(somme !== total) nvPanier[nvPanier.length-1].pv += (total - somme);
+  renderNVPanier();
+  toast(`Prix réparti : ${Number(total).toLocaleString('fr-FR')}`, 'success');
+}
+
+function clearPrixGlobalPanier(){
+  document.getElementById('nv-prix-global').value = '';
+  nvPanier.forEach(item => { item.pv = 0; });
+  renderNVPanier();
+}
+
+function renderNVPanier(){
+  const card=document.getElementById('nv-panier-card');
+  if(!nvPanier.length){card.style.display='none';return;}
+  card.style.display='block';
+  document.getElementById('nv-panier-count').textContent=nvPanier.length+' article(s)';
+  const fmtN=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+  let totPA=0,totPV=0;
+  document.getElementById('nv-panier-body').innerHTML=nvPanier.map((item,i)=>{
+    const pa=item.au_poids?(item.pa_calc||0):(item.article.pa||0);
+    const b=item.pv-pa;
+    totPA+=pa;totPV+=item.pv;
+    const poidsTag=item.au_poids?`<span style="font-size:11px;background:rgba(184,146,60,.15);color:var(--gold-l);padding:1px 6px;border-radius:8px;margin-left:4px">⚖️ ${item.poids_vendu}grs</span>`:'';
+    return`<tr>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--bd);font-family:monospace;color:var(--gold-l);font-weight:700">#${item.article.id}${poidsTag}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--bd)">${item.article.article||'—'}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--bd);color:var(--muted)">${pa?fmtN(pa)+'':'—'}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--bd)">${item.au_poids?fmtN(item.pv)+'':`<input type="number" value="${item.pv}" min="0" onchange="updateNVPV(${i},this.value)" style="width:100px;padding:5px 8px;background:var(--bg3);border:1px solid var(--bd);border-radius:6px;color:var(--txt);font-size:13px;outline:none">`}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--bd);font-weight:700;color:${b>=0?'var(--green)':'var(--red)'}">${fmtN(b)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--bd)"><button onclick="removeNVFromPanier(${i})" style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);color:var(--red);padding:3px 8px;border-radius:6px;cursor:pointer;font-size:12px">✕</button></td>
+    </tr>`;
+  }).join('');
+  const totBenef=totPV-totPA;
+  document.getElementById('nv-tot-pa').textContent=fmtN(totPA)+'';
+  document.getElementById('nv-tot-pv').textContent=fmtN(totPV)+'';
+  const elB=document.getElementById('nv-tot-benef');
+  elB.textContent=fmtN(totBenef)+'';
+  elB.style.color=totBenef>=0?'var(--green)':'var(--red)';
+  calcNVReste();
+}
+
+function updateNVPV(idx,val){
+  nvPanier[idx].pv=parseFloat(val)||0;
+  renderNVPanier();
+}
+
+function removeNVFromPanier(idx){
+  nvPanier.splice(idx,1);
+  renderNVPanier();
+}
+
+function openNVModal(preRef){
+  nvArticle=null;
+  nvPanier=[];
+  document.getElementById('nv-ref-input').value=preRef||'';
+  document.getElementById('nv-status').textContent='';
+  document.getElementById('nv-art-found').style.display='none';
+  document.getElementById('nv-panier-card').style.display='none';
+  const pg=document.getElementById('nv-prix-global'); if(pg) pg.value='';
+  document.getElementById('nv-client').value='';
+  document.getElementById('nv-contact').value='';
+  document.getElementById('nv-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('nv-avance').value='';
+  document.getElementById('nv-mode').value='';
+  document.getElementById('nv-mode-global').value='';
+  document.getElementById('nv-note').value='';
+  document.getElementById('nv-reste-display').textContent='—';
   document.getElementById('nv-st-total').checked=true;
   onNVStatutChange();
   document.getElementById('ov-nv').classList.add('open');
+  if(preRef) setTimeout(searchNV, 100);
 }
 
 function closeNVModal(e){
   if(!e||e.target===document.getElementById('ov-nv')){
     document.getElementById('ov-nv').classList.remove('open');
-    // Reset statut to Totalité
-    document.getElementById('nv-st-total').checked=true;
-    onNVStatutChange();
   }
 }
 
@@ -888,7 +1175,6 @@ function closeIsmailAlert(e){
 
 function onNVStatutChange(){
   const val = document.querySelector('input[name="nv-statut"]:checked').value;
-  // Style des boutons
   const styles = {
     totalite: {btn:'nv-st-total-btn', border:'var(--green)', bg:'rgba(46,204,113,.12)', color:'var(--green)'},
     avance:   {btn:'nv-st-avance-btn', border:'var(--orange)', bg:'rgba(230,126,34,.12)', color:'var(--orange)'},
@@ -908,14 +1194,12 @@ function onNVStatutChange(){
     }
   });
   document.getElementById('nv-avance-bloc').style.display  = val==='avance'?'block':'none';
-  document.getElementById('nv-contact-bloc').style.display = val!=='totalite'?'block':'none';
   document.getElementById('nv-credit-alert').style.display = val!=='totalite'?'block':'none';
   if(val!=='avance'){document.getElementById('nv-avance').value='';document.getElementById('nv-reste-display').textContent='—';}
 }
 
 function calcNVBenef(){
   const pv=parseFloat(document.getElementById('nv-pv').value)||0;
-  // Pour articles au poids : PA = poids × prix_achat, sinon PA de la fiche
   let pa;
   if(nvEstPoids){
     const poids=parseFloat(document.getElementById('nv-poids').value)||0;
@@ -925,87 +1209,69 @@ function calcNVBenef(){
   }
   const benef=pv-pa;
   const fmtA=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
-  document.getElementById('nv-b-pv').textContent=pv?fmtA(pv)+' MAD':'—';
+  document.getElementById('nv-b-pv').textContent=pv?fmtA(pv)+'':'—';
   const el=document.getElementById('nv-b-benef');
   if(!pv){el.textContent='—';el.style.color='var(--muted)';}
-  else{el.textContent=fmtA(benef)+' MAD';el.style.color=benef>=0?'var(--green)':'var(--red)';}
-  calcNVReste();
+  else{el.textContent=fmtA(benef)+'';el.style.color=benef>=0?'var(--green)':'var(--red)';}
 }
 
 function calcNVReste(){
-  const pv=parseFloat(document.getElementById('nv-pv').value)||0;
+  const totPV=nvPanier.reduce((s,i)=>s+i.pv,0);
   const avance=parseFloat(document.getElementById('nv-avance').value)||0;
-  const reste=pv-avance;
+  const reste=totPV-avance;
   const fmtA=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
-  document.getElementById('nv-reste-display').textContent=pv&&reste>=0?fmtA(reste)+' MAD':'—';
+  document.getElementById('nv-reste-display').textContent=totPV&&reste>=0?fmtA(reste)+'':'—';
 }
 
 async function submitNV(){
-  if(!nvArticle) return;
+  if(!nvPanier.length){toast('Le panier est vide — ajoutez au moins un article','error');return;}
   const statut=document.querySelector('input[name="nv-statut"]:checked').value;
+  const avance=parseFloat(document.getElementById('nv-avance').value)||0;
+  if(statut==='avance'&&!avance){toast('Entrez le montant de l\'avance','error');return;}
   const btn=document.getElementById('nv-confirm-btn');
   btn.disabled=true;btn.textContent='⏳ Traitement…';
-
-  let pv, ventePayload;
-  if(nvEstPoids){
-    const poids=parseFloat(document.getElementById('nv-poids').value)||0;
-    if(poids<=0){toast('Entrez le poids à vendre','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
-    pv=parseFloat(document.getElementById('nv-pv').value)||0;
-    if(pv<=0){toast('Entrez le prix de vente','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
-    ventePayload={ref:nvArticle.id, poids_vendu:poids, pv,
-      client:document.getElementById('nv-client').value.trim(),
-      note:document.getElementById('nv-note').value.trim(),
-      mode_paiement:document.getElementById('nv-mode-global').value};
-  } else {
-    pv=parseFloat(document.getElementById('nv-pv').value);
-    if(!pv&&pv!==0){toast('Entrez le prix de vente','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
-    ventePayload={ref:nvArticle.id, pv,
-      client:document.getElementById('nv-client').value.trim(),
-      note:document.getElementById('nv-note').value.trim(),
-      mode_paiement:document.getElementById('nv-mode-global').value};
+  const client=document.getElementById('nv-client').value.trim();
+  const contact=document.getElementById('nv-contact').value.trim();
+  const date_vente=document.getElementById('nv-date').value||new Date().toISOString().split('T')[0];
+  const note=document.getElementById('nv-note').value.trim();
+  const mode=document.getElementById('nv-mode-global').value;
+  const panierCopy=[...nvPanier];
+  let ok=0;const errors=[];let hadIsmail=false;
+  for(const item of nvPanier){
+    try{
+      const payload=item.au_poids
+        ? {ref:item.article.id, poids_vendu:item.poids_vendu, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode}
+        : {ref:item.article.id, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode};
+      const res=await fetch('/api/ventes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      const data=await res.json();
+      if(res.ok){ok++;if(item.article&&item.article.ismail_pierres)hadIsmail=true;}
+      else errors.push(`#${item.article.id}: ${data.error||'Erreur'}`);
+    }catch(e){errors.push(`#${item.article.id}: Erreur réseau`);}
   }
-
-  const avance=parseFloat(document.getElementById('nv-avance').value)||0;
-  if(statut==='avance'&&!avance){toast('Entrez le montant de l\'avance','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
-  try{
-    // 1. Enregistrer la vente
-    const res=await fetch('/api/ventes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ventePayload)});
-    const data=await res.json();
-    if(!res.ok){toast(data.error||'Erreur','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
-
-    // 2. Si Avance ou Rien → créer un crédit client automatiquement
-    if(statut!=='totalite'){
-      const today=new Date().toISOString().split('T')[0];
-      const creditPayload={
-        client:     document.getElementById('nv-client').value.trim()||'Client inconnu',
-        contact:    document.getElementById('nv-contact').value.trim(),
-        date_achat: today,
-        refs:       String(nvArticle.id),
-        article:    nvArticle.article||'',
-        montant_total: pv,
-        avance:     statut==='avance'?avance:0,
-        mode_paiement: statut==='avance'?document.getElementById('nv-mode').value:document.getElementById('nv-mode-global').value,
-        date_avance: today,
-        note:       document.getElementById('nv-note').value.trim(),
-      };
-      await fetch('/api/credits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(creditPayload)});
-    }
-
-    const hadIsmail = nvArticle && nvArticle.ismail_pierres;
-    const msg = nvEstPoids
-      ? `✅ Vente au poids enregistrée — Stock restant : ${data.stock_restant||0} grs`
-      : statut==='totalite'
-        ? '✅ Vente enregistrée ! Article #'+nvArticle.id+' retiré du stock.'
-        : '✅ Vente enregistrée et ajoutée aux Crédits Clients.';
+  if(ok>0&&statut!=='totalite'){
+    const totPV=panierCopy.reduce((s,i)=>s+i.pv,0);
+    const today=new Date().toISOString().split('T')[0];
+    const creditPayload={
+      client:client||'Client inconnu', contact,
+      date_achat:today,
+      refs:panierCopy.map(i=>i.article.id).join(', '),
+      article:panierCopy.map(i=>i.article.article||'').join(', '),
+      montant_total:totPV,
+      avance:statut==='avance'?avance:0,
+      mode_paiement:statut==='avance'?document.getElementById('nv-mode').value:mode,
+      date_avance:today, note,
+    };
+    try{await fetch('/api/credits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(creditPayload)});}catch(e){}
+  }
+  if(errors.length){
+    toast(`${ok} vente(s) ok. Erreurs: ${errors.join(', ')}`,'error');
+  } else {
+    const msg=statut==='totalite'?`✅ ${ok} vente(s) enregistrée(s) !`:'✅ Vente enregistrée et crédit client créé.';
     toast(msg,'success');
     closeNVModal();
-    nvArticle=null;
-    if(hadIsmail) setTimeout(()=>{ document.getElementById('ov-ismail').style.display='flex'; }, 600);
-    document.getElementById('nv-ref-input').value='';
-    document.getElementById('nv-status').textContent='';
-    document.getElementById('nv-sell-btn').style.display='none';
+    if(hadIsmail) setTimeout(()=>{document.getElementById('ov-ismail').style.display='flex';},600);
     await load();
-  }catch(e){toast('Erreur connexion','error');}
+  }
   btn.disabled=false;btn.textContent='✅ Confirmer la vente';
 }
 
@@ -1021,8 +1287,8 @@ function switchTabV(tab){
 
 function renderPeriodStatsV(p, label){
   document.getElementById('v-p-nb').textContent=p.nb;
-  document.getElementById('v-p-ca').textContent=fmtN(p.ca)+' MAD';
-  document.getElementById('v-p-benef').textContent=fmtN(p.benef)+' MAD';
+  document.getElementById('v-p-ca').textContent=fmtN(p.ca)+'';
+  document.getElementById('v-p-benef').textContent=fmtN(p.benef)+'';
   document.getElementById('v-p-or').textContent=fmt(p.or_vendu)+' grs';
   const lbl=document.getElementById('v-period-label');
   if(label){lbl.textContent='📊 '+label;lbl.style.display='block';}
@@ -1074,8 +1340,8 @@ function renderMonthlyV(monthly){
     return`<tr>
       <td style="font-weight:600;color:var(--gold)">${nomMois}</td>
       <td>${m.nb}</td>
-      <td style="color:var(--blue);font-weight:600">${fmtN(m.ca)} MAD</td>
-      <td style="color:var(--green);font-weight:600">${fmtN(m.benef)} MAD</td>
+      <td style="color:var(--blue);font-weight:600">${fmtN(m.ca)}</td>
+      <td style="color:var(--green);font-weight:600">${fmtN(m.benef)}</td>
       <td class="bar-cell"><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--muted)">${pct}%</span></td>
     </tr>`;
   }).join('');
@@ -1091,8 +1357,8 @@ function renderAnnualV(annual){
     return`<tr>
       <td style="font-size:18px;font-weight:900;color:var(--gold-l)">${a.annee}</td>
       <td style="font-weight:600">${a.nb}</td>
-      <td style="color:var(--blue);font-weight:700;font-size:15px">${fmtN(a.ca)} MAD</td>
-      <td style="color:var(--green);font-weight:700;font-size:15px">${fmtN(a.benef)} MAD</td>
+      <td style="color:var(--blue);font-weight:700;font-size:15px">${fmtN(a.ca)}</td>
+      <td style="color:var(--green);font-weight:700;font-size:15px">${fmtN(a.benef)}</td>
       <td><span style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:var(--green);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">${marge}%</span></td>
     </tr>`;
   }).join('');
@@ -1100,18 +1366,302 @@ function renderAnnualV(annual){
 
 load();
 
-// Auto-ouvrir le modal vente si on arrive depuis stock.html avec #vente-{ref}
+// ── SYSTÈME FACTURE INLINE ─────────────────────────────────────────────────
+let _facCurrent = null;
+
+async function openFactureModal(filteredIdx) {
+  const vente = filtered[filteredIdx];
+  if (!vente) return;
+
+  // Grouper toutes les ventes du même client + même jour
+  const dateKey   = (vente.date_vente || '').substring(0, 10);
+  const clientKey = (vente.client || '').trim().toLowerCase();
+  const group = ALL.filter(v =>
+    (v.date_vente || '').substring(0, 10) === dateKey &&
+    (v.client || '').trim().toLowerCase() === clientKey
+  );
+
+  // Chercher via SESSION_FAC (une seule facture par session client+jour)
+  const ck = clientKey;
+  const sk = `${ck}|${dateKey}`;
+  let facture = window.SESSION_FAC?.get(sk) || null;
+
+  _facCurrent = { group, facture, client: vente.client || '—', telephone: vente.telephone || '' };
+
+  // Pas de facture → auto-créer en DB avec TOUS les articles du groupe
+  if (!facture) {
+    const total    = group.reduce((s, v) => s + (v.pv || 0), 0);
+    const articles = group.map(v => ({
+      ref: v.ref, article: v.article || '—', pv: v.pv || 0, or_grs: v.or_grs || 0,
+      d: v.d, em: v.em, r: v.r, s: v.s, em_clb: v.em_clb, perles: v.perles
+    }));
+    try {
+      const res  = await fetch('/api/factures', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          client: vente.client || '—', telephone: vente.telephone || '',
+          email: '', ville: '', articles, total, avance: 0,
+          mode_paiement: vente.mode_paiement || '', note: vente.commentaire || ''
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        facture = data.facture;
+        _facCurrent.facture = facture;
+        // Mettre à jour les deux maps
+        group.forEach(v => window.FACTURE_MAP?.set(`${v.ref}|${ck}`, facture));
+        window.SESSION_FAC?.set(sk, facture);
+        render();
+      }
+    } catch(e) {}
+  }
+
+  buildFacturePreview(_facCurrent);
+  document.getElementById('fac-overlay').classList.add('open');
+}
+
+function buildFacturePreview({ group, facture, client, telephone }) {
+  const fmtM = v => v == null ? '—' : Number(v).toLocaleString('fr-FR', {maximumFractionDigits: 0});
+  const fmtF = (v, d=2) => v == null ? '—' : Number(v).toLocaleString('fr-FR', {maximumFractionDigits: d});
+
+  const orTotal    = group.reduce((s, v) => s + (v.or_grs || 0), 0);
+  const avance     = facture?.avance || 0;
+  const numero     = facture?.numero || '—';
+  const isPrixGlobal = !!(facture?.prix_global);
+  const totalAff   = isPrixGlobal && facture.total_global > 0
+    ? facture.total_global
+    : group.reduce((s, v) => s + (v.pv || 0), 0);
+  const reste = Math.max(0, totalAff - avance);
+
+  // Bouton prix global : état visuel
+  const btnPG = document.getElementById('btn-prix-global');
+  const panel = document.getElementById('prix-global-panel');
+  if (btnPG) {
+    btnPG.style.background    = isPrixGlobal ? 'rgba(201,168,76,.25)' : '';
+    btnPG.style.color         = isPrixGlobal ? '#7a5c20' : '';
+    btnPG.style.borderColor   = isPrixGlobal ? 'rgba(201,168,76,.6)' : '';
+    btnPG.style.fontWeight    = isPrixGlobal ? '700' : '';
+  }
+  if (panel && isPrixGlobal) {
+    panel.style.display = 'flex';
+    const inp = document.getElementById('prix-global-input');
+    if (inp && facture.total_global > 0) inp.value = facture.total_global;
+  }
+
+  const dateStr  = (group[0]?.date_vente || '').substring(0, 10);
+  const dateFmt  = dateStr
+    ? (([y,m,d]) => d+'/'+m+'/'+y)(dateStr.split('-'))
+    : new Date().toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'});
+
+  // ── Lignes articles ──
+  const rows = group.map(v => {
+    const pierres = [];
+    if (v.d)      pierres.push(`Diamants · ${fmtF(v.d)} ct`);
+    if (v.em)     pierres.push(`Émeraudes · ${fmtF(v.em)} ct`);
+    if (v.r)      pierres.push(`Rubis · ${fmtF(v.r)} ct`);
+    if (v.s)      pierres.push(`Saphirs · ${fmtF(v.s)} ct`);
+    if (v.em_clb) pierres.push(`Ém. Colombie · ${fmtF(v.em_clb)} ct`);
+    if (v.perles) pierres.push(`Perles · ${fmtF(v.perles)} grs`);
+    const prixCell = isPrixGlobal ? '' : `<td class="inv-price">${fmtM(v.pv)}</td>`;
+    return `<tr>
+      <td>
+        <span class="inv-ref">#${v.ref}</span><span class="inv-art">${v.article || '—'}</span>
+        ${v.or_grs ? `<div style="font-size:10px;color:#9a8060;margin-top:2px">${fmtF(v.or_grs)} grs OR</div>` : ''}
+      </td>
+      <td style="vertical-align:middle">${pierres.map(p=>`<span style="font-size:10px;color:#6b5c4a;background:#f9f4e8;border-radius:3px;padding:1px 6px;display:inline-block;margin:1px 2px">${p}</span>`).join('')}</td>
+      ${prixCell}
+    </tr>`;
+  }).join('');
+
+  const thPrix = isPrixGlobal ? '' : `<th style="text-align:right">Prix</th>`;
+
+  // Statut paiement
+  const clientKey = (client || '').trim().toLowerCase();
+  const hasCredit = group.some(v =>
+    window.CREDIT_MAP?.has(v.ref) && window.CREDIT_MAP.get(v.ref).has(clientKey)
+  );
+
+  let badge;
+  if (avance > 0 && avance >= totalAff) {
+    badge = `<div class="inv-badge-fac">✓ Soldé</div>`;
+  } else if (avance > 0) {
+    badge = `<div class="inv-badge-fac">Avance · ${fmtM(avance)}</div>`;
+  } else if (hasCredit) {
+    badge = `<div class="inv-badge-fac">Crédit en cours</div>`;
+  } else {
+    badge = `<div class="inv-badge-fac">✓ Soldé</div>`;
+  }
+
+  let totaux = `
+    <div class="inv-t-row"><span>OR total</span><span>${fmtF(orTotal)} grs</span></div>
+    <div class="inv-t-total"><span>Total TTC</span><span>${fmtM(totalAff)}</span></div>`;
+  if (avance > 0) {
+    totaux += `<div class="inv-t-row"><span>Avance</span><span>− ${fmtM(avance)}</span></div>`;
+    totaux += reste > 0
+      ? `<div class="inv-t-reste"><span>Reste dû</span><span>${fmtM(reste)}</span></div>`
+      : `<div class="inv-t-row" style="color:#27ae60;font-weight:600"><span>Soldé</span><span>✓</span></div>`;
+  } else if (hasCredit) {
+    totaux += `<div class="inv-t-reste"><span>Reste dû</span><span>Voir Crédits Clients</span></div>`;
+  }
+
+  const html = `<div class="invoice">
+    <div class="inv-header">
+      <div class="zellige"></div>
+      <div class="inv-header-inner">
+        <div>
+          <div class="inv-brand-name">Trabelsi</div>
+          <div class="inv-brand-sub">Joaillerie &amp; Diamantaire</div>
+          <div class="inv-brand-addr">Mega Mall · Rabat<br>05 37 75 24 34</div>
+        </div>
+        <div class="inv-meta">
+          <div class="inv-meta-word">Facture</div>
+          <div class="inv-meta-date">${dateFmt}</div>
+        </div>
+      </div>
+      <div class="zellige"></div>
+    </div>
+    <div class="inv-body">
+      <div class="inv-client-row">
+        <div>
+          <div class="inv-lbl">Facturé à</div>
+          <div class="inv-client-name">${client}</div>
+          <div class="inv-client-sub">${telephone}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="inv-lbl" style="text-align:right">Statut</div>
+          ${badge}
+        </div>
+      </div>
+      <div style="margin-bottom:10px"><div class="inv-lbl">Détail des articles</div></div>
+      <table class="inv-tbl">
+        <thead><tr>
+          <th>Article</th><th>Pierres précieuses</th>${thPrix}
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="inv-totaux"><div class="inv-totaux-box">${totaux}</div></div>
+    </div>
+    <div class="inv-footer">
+      <div class="inv-footer-brand">Trabelsi Joaillerie &amp; Diamantaire</div>
+      <div class="inv-footer-note">Merci de votre confiance</div>
+    </div>
+  </div>`;
+
+  document.getElementById('fac-preview').innerHTML = html;
+  document.getElementById('fac-title').textContent = `Facture #${numero} — ${client}`;
+}
+
+function togglePrixGlobal() {
+  const panel = document.getElementById('prix-global-panel');
+  const isOpen = panel.style.display === 'flex';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  if (!isOpen) document.getElementById('prix-global-input').focus();
+}
+
+async function savePrixGlobal() {
+  if (!_facCurrent?.facture) return;
+  const val = parseFloat(document.getElementById('prix-global-input').value);
+  if (!val || val <= 0) { alert('Entrez un montant valide.'); return; }
+  try {
+    const res = await fetch(`/api/factures/${_facCurrent.facture.id}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ prix_global: 1, total_global: val })
+    });
+    const data = await res.json();
+    if (data.success) {
+      _facCurrent.facture = data.facture;
+      // Mettre à jour SESSION_FAC
+      const ck = (_facCurrent.client || '').trim().toLowerCase();
+      const dk = (_facCurrent.group[0]?.date_vente || '').substring(0, 10);
+      window.SESSION_FAC?.set(`${ck}|${dk}`, data.facture);
+      buildFacturePreview(_facCurrent);
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function clearPrixGlobal() {
+  if (!_facCurrent?.facture) return;
+  try {
+    const res = await fetch(`/api/factures/${_facCurrent.facture.id}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ prix_global: 0, total_global: 0 })
+    });
+    const data = await res.json();
+    if (data.success) {
+      _facCurrent.facture = data.facture;
+      document.getElementById('prix-global-input').value = '';
+      document.getElementById('prix-global-panel').style.display = 'none';
+      buildFacturePreview(_facCurrent);
+    }
+  } catch(e) { console.error(e); }
+}
+
+function closeFactureModal() {
+  document.getElementById('fac-overlay').classList.remove('open');
+  document.getElementById('prix-global-panel').style.display = 'none';
+  document.getElementById('prix-global-input').value = '';
+  const btn = document.getElementById('btn-prix-global');
+  if (btn) { btn.style.background=''; btn.style.color=''; btn.style.borderColor=''; btn.style.fontWeight=''; }
+  _facCurrent = null;
+}
+
+function printFacture() {
+  if (!_facCurrent) return;
+  const zone = document.getElementById('fac-print-zone');
+  zone.innerHTML = document.getElementById('fac-preview').innerHTML;
+  zone.style.display = 'block';
+  window.print();
+  setTimeout(() => { zone.innerHTML = ''; zone.style.display = 'none'; }, 1500);
+}
+
+function shareFactureWA() {
+  if (!_facCurrent) return;
+  const { group, facture, client, telephone } = _facCurrent;
+  const total  = group.reduce((s, v) => s + (v.pv || 0), 0);
+  const avance = facture?.avance || 0;
+  const reste  = Math.max(0, total - avance);
+  const fmtM   = v => Number(v).toLocaleString('fr-FR', {maximumFractionDigits: 0});
+
+  let msg = `🏆 *TRABELSI Joaillerie & Diamantaire*\n_Mega Mall · Rabat · 05 37 75 24 34_\n\n`;
+  msg += `*Facture #${facture?.numero || '—'}*\nClient : ${client}\n\n*Articles :*\n`;
+  group.forEach(v => { msg += `• #${v.ref} ${v.article} — ${fmtM(v.pv)}\n`; });
+  msg += `\n*Total : ${fmtM(total)}*\n`;
+  if (avance > 0) msg += `Avance : ${fmtM(avance)}\n`;
+  msg += reste > 0 ? `💰 Reste dû : *${fmtM(reste)}*\n` : `✅ Soldé\n`;
+  msg += `\nMerci de votre confiance 🙏`;
+
+  const phone = (telephone || '').replace(/\D/g, '');
+  window.open(phone
+    ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function shareFactureEmail() {
+  if (!_facCurrent) return;
+  const { group, facture, client } = _facCurrent;
+  const total  = group.reduce((s, v) => s + (v.pv || 0), 0);
+  const avance = facture?.avance || 0;
+  const reste  = Math.max(0, total - avance);
+  const fmtM   = v => Number(v).toLocaleString('fr-FR', {maximumFractionDigits: 0});
+
+  const subject = `Facture — TRABELSI Joaillerie & Diamantaire`;
+  let body = `Madame, Monsieur ${client},\n\nVeuillez trouver ci-dessous le détail de votre facture.\n\n`;
+  body += `FACTURE #${facture?.numero || '—'}\n${'─'.repeat(40)}\n\nARTICLES :\n`;
+  group.forEach(v => { body += `  • #${v.ref} ${v.article} — ${fmtM(v.pv)}\n`; });
+  body += `\nTOTAL : ${fmtM(total)}\n`;
+  if (avance > 0) body += `Avance : ${fmtM(avance)}\n`;
+  body += reste > 0 ? `Reste dû : ${fmtM(reste)}\n` : `Statut : Soldé ✓\n`;
+  body += `\nCordialement,\nTRABELSI Joaillerie & Diamantaire\nMega Mall · Rabat\n05 37 75 24 34`;
+
+  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+// Auto-ouvrir le modal vente si on arrive avec #vente-{ref} ou ?new=1
 window.addEventListener('DOMContentLoaded', ()=>{
   const m = window.location.hash.match(/#vente-(\d+)/);
-  if(m){
-    const ref = m[1];
-    document.getElementById('nv-ref-input').value = ref;
-    // Attendre que la page soit chargée puis lancer la recherche et ouvrir le modal
-    setTimeout(async ()=>{
-      await searchNV();
-      if(nvArticle) setTimeout(openNVModal, 200);
-    }, 400);
-  }
+  if(m){ setTimeout(()=>openNVModal(m[1]), 400); return; }
+  if(new URLSearchParams(window.location.search).get('new')==='1')
+    setTimeout(()=>openNVModal(), 400);
 });
 </script>
 <script>
@@ -1139,6 +1689,7 @@ function toggleNav(){
     ov.classList.remove('nav-open');
     const btn=document.getElementById('hamburger-btn');
     if(btn)btn.textContent='☰';
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
   };
   document.body.appendChild(ov);
   // Close nav when a link is clicked
@@ -1150,7 +1701,153 @@ function toggleNav(){
   }));
 })();
 </script>
-<script src="/chatbot.js"></script>
+<!-- ── MODAL FACTURE INLINE ── -->
+<div id="fac-overlay" class="fac-overlay" onclick="if(event.target===this)closeFactureModal()">
+  <div class="fac-shell">
+    <div class="fac-toolbar">
+      <span class="fac-toolbar-title" id="fac-title">Facture</span>
+      <button class="btn-print-fac" onclick="printFacture()">🖨️ Imprimer / PDF</button>
+      <button class="btn-wa-fac" onclick="shareFactureWA()">💬 WhatsApp</button>
+      <button class="btn-email-fac" onclick="shareFactureEmail()">✉️ Email</button>
+      <button id="btn-prix-global" class="btn-email-fac" onclick="togglePrixGlobal()" title="Définir un prix global (sans prix par article)">💰 Prix global</button>
+      <button class="btn-close-fac" onclick="closeFactureModal()">✕ Fermer</button>
+    </div>
+    <!-- Panneau Prix Global -->
+    <div id="prix-global-panel" style="display:none;padding:12px 18px;background:#fffbf0;border-bottom:1px solid #e8d9a0;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:13px;font-weight:600;color:#7a5c20;">💰 Prix global :</span>
+      <input id="prix-global-input" type="number" min="0" step="100" placeholder="Montant total"
+        style="padding:7px 12px;border:1px solid #c9a84c;border-radius:8px;font-size:14px;font-weight:600;color:#1a1612;width:180px;outline:none;">
+      <button onclick="savePrixGlobal()" style="padding:7px 16px;background:linear-gradient(135deg,#b8923c,#9a7530);color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">✓ Appliquer</button>
+      <button onclick="clearPrixGlobal()" style="padding:7px 12px;background:#fff;border:1px solid #e8e0d4;border-radius:8px;font-size:12px;color:#9a8e7e;cursor:pointer;">✕ Retirer</button>
+      <span style="font-size:11px;color:#9a8e7e;">Les prix par article seront masqués — seul le total apparaît sur la facture.</span>
+    </div>
+    <div class="fac-body" id="fac-preview"></div>
+  </div>
+</div>
+
+<!-- Zone isolée pour l'impression (cachée à l'écran, visible uniquement @print) -->
+<div id="fac-print-zone" style="display:none"></div>
+
 <script src="/static/mobile.js"></script>
+<script>
+/* ── GLOBAL SEARCH ── */
+function toggleNavSearch(){
+  const w=document.getElementById('nav-search-wrap');
+  if(!w) return;
+  const open=w.classList.toggle('open');
+  w.style.display=open?'block':'none';
+  if(open) setTimeout(()=>document.getElementById('nav-search-input')?.focus(),50);
+}
+let _searchData=null;
+async function loadSearchData(){
+  if(_searchData) return _searchData;
+  const [arts,ventes,clients]=await Promise.all([
+    fetch('/api/articles').then(r=>r.json()).catch(()=>[]),
+    fetch('/api/ventes').then(r=>r.json()).catch(()=>[]),
+    fetch('/api/clients').then(r=>r.json()).catch(()=>[]),
+  ]);
+  _searchData={arts,ventes,clients};
+  return _searchData;
+}
+document.getElementById('nav-search-input')?.addEventListener('input',async function(){
+  const q=this.value.trim().toLowerCase();
+  const res=document.getElementById('nav-search-results');
+  if(!res) return;
+  if(q.length<2){res.style.display='none';return;}
+  const {arts,ventes,clients}=await loadSearchData();
+  const hits=[];
+  arts.filter(a=>a.article?.toLowerCase().includes(q)||(a.id+'').includes(q)).slice(0,3).forEach(a=>
+    hits.push(`<a href="/stock" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;" onclick="localStorage.setItem('stockSearch','${a.id}')">
+      <span style="font-size:18px">💍</span><div><div style="font-weight:600">#${a.id} — ${a.article}</div><div style="font-size:11px;color:#9a8e7e">${a.or_grs?a.or_grs+' grs':''} · PA: ${a.pa?Number(a.pa).toLocaleString('fr-FR'):'—'}</div></div></a>`));
+  clients.filter(c=>c.nom?.toLowerCase().includes(q)).slice(0,3).forEach(c=>
+    hits.push(`<a href="/clients" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;" onclick="localStorage.setItem('clientSearch','${c.nom}')">
+      <span style="font-size:18px">👤</span><div><div style="font-weight:600">${c.nom}</div><div style="font-size:11px;color:#9a8e7e">${c.nb_achats} achats · ${Number(c.ca_total).toLocaleString('fr-FR')} CA</div></div></a>`));
+  ventes.filter(v=>(v.client||'').toLowerCase().includes(q)||(v.article||'').toLowerCase().includes(q)).slice(0,3).forEach(v=>
+    hits.push(`<a href="/vendu" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;">
+      <span style="font-size:18px">💰</span><div><div style="font-weight:600">#${v.ref} ${v.article}</div><div style="font-size:11px;color:#9a8e7e">${v.client||'—'} · ${v.date_vente||''}</div></div></a>`));
+  if(!hits.length) hits.push('<div style="padding:16px;color:#9a8e7e;text-align:center;font-size:13px">Aucun résultat</div>');
+  res.innerHTML=hits.join('');
+  res.style.display='block';
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#nav-search-wrap')){
+    const res=document.getElementById('nav-search-results');
+    if(res) res.style.display='none';
+  }
+});
+</script>
+
+<script>
+/* ── NAV DROPDOWNS (click) ── */
+(function(){
+  // Dropdowns au clic
+  document.querySelectorAll('.nav-drop-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = this.closest('.nav-dropdown');
+      var isOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
+      if(!isOpen) dd.classList.add('open');
+    });
+  });
+  // Fermer en cliquant ailleurs
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
+  });
+  // Fermer avec Escape
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); }); });
+
+
+  // Recherche globale
+  var searchBtn = document.querySelector('.nav-search-btn');
+  var searchWrap = document.getElementById('nav-search-wrap');
+  if(searchBtn && searchWrap){
+    searchBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = searchWrap.classList.toggle('open');
+      searchWrap.style.display = open ? 'block' : 'none';
+      if(open){ var inp=document.getElementById('nav-search-input'); if(inp) setTimeout(function(){ inp.focus(); }, 50); }
+    });
+  }
+  var _sd=null;
+  async function loadSD(){
+    if(_sd) return _sd;
+    var [arts,ventes,clients]=await Promise.all([
+      fetch('/api/articles').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/ventes').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/clients').then(r=>r.json()).catch(()=>[]),
+    ]);
+    _sd={arts,ventes,clients}; return _sd;
+  }
+  var si = document.getElementById('nav-search-input');
+  if(si){
+    si.addEventListener('input', async function(){
+      var q=this.value.trim().toLowerCase();
+      var res=document.getElementById('nav-search-results');
+      if(!res) return;
+      if(q.length<2){res.style.display='none';return;}
+      var d=await loadSD();
+      var hits=[];
+      var fmtN=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+      d.arts.filter(a=>a.article?.toLowerCase().includes(q)||(a.id+'').includes(q)).slice(0,3).forEach(a=>
+        hits.push('<a href="/stock" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">💍</span><div><div style="font-weight:600">#'+a.id+' — '+a.article+'</div><div style="font-size:11px;color:#9a8e7e">'+(a.or_grs?a.or_grs+' grs · ':'')+' PA: '+(a.pa?fmtN(a.pa):'—')+'</div></div></a>'));
+      d.clients.filter(c=>c.nom?.toLowerCase().includes(q)).slice(0,3).forEach(c=>
+        hits.push('<a href="/clients" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">👤</span><div><div style="font-weight:600">'+c.nom+'</div><div style="font-size:11px;color:#9a8e7e">'+c.nb_achats+' achats · '+fmtN(c.ca_total)+' CA</div></div></a>'));
+      d.ventes.filter(v=>(v.client||'').toLowerCase().includes(q)||(v.article||'').toLowerCase().includes(q)).slice(0,3).forEach(v=>
+        hits.push('<a href="/vendu" style="display:flex;align-items:center;gap:10px;padding:10px 16px;text-decoration:none;color:#1a1612;border-bottom:1px solid #f0e8d4;"><span style="font-size:18px">💰</span><div><div style="font-weight:600">#'+v.ref+' '+v.article+'</div><div style="font-size:11px;color:#9a8e7e">'+(v.client||'—')+' · '+(v.date_vente||'')+'</div></div></a>'));
+      if(!hits.length) hits.push('<div style="padding:16px;color:#9a8e7e;text-align:center;font-size:13px">Aucun résultat</div>');
+      res.innerHTML=hits.join('');
+      res.style.display='block';
+    });
+    document.addEventListener('click',function(e){
+      if(!e.target.closest('#nav-search-wrap')){
+        var res=document.getElementById('nav-search-results');
+        if(res) res.style.display='none';
+      }
+    });
+  }
+})();
+</script>
+
 </body>
 </html>

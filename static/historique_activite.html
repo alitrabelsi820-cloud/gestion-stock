@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#c9a84c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trabelsi">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Historique d'activité — TRABELSI</title>
+<style>
+:root{
+  --gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;
+  --bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;
+  --txt:#1a1612;--muted:#9a8e7e;
+  --green:#27ae60;--red:#e74c3c;--blue:#2980b9;
+  --orange:#e67e22;--teal:#16a085;--purple:#8e44ad;--indigo:#2c3e50;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+/* ── NAV ── */
+nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;text-decoration:none;color:inherit;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover,.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.1);}
+.nav-links a.active{border:1px solid rgba(201,168,76,.25);}
+.nav-dropdown{position:relative;display:inline-block;}
+.nav-drop-btn{padding:8px 14px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;}
+.nav-drop-btn:hover,.nav-drop-btn.active{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-drop-btn.active{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+.nav-drop-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e8e0d4;border-radius:10px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;overflow:hidden;}
+.nav-dropdown.open .nav-drop-menu{display:block;}
+.nav-drop-menu a{display:block;padding:10px 16px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:background .15s;white-space:nowrap;}
+.nav-drop-menu a:hover{background:rgba(201,168,76,.08);color:var(--gold);}
+.nav-search-btn{padding:8px 12px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:16px;cursor:pointer;}
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;border-radius:8px;}
+.nav-logout-btn{padding:7px 14px;border-radius:8px;background:transparent;border:1px solid rgba(231,76,60,.25);color:#c0392b;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);max-height:calc(100vh - 69px);overflow-y:auto;}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px!important;border-radius:10px;}
+  .nav-dropdown{display:block;width:100%;}
+  .nav-drop-btn{width:100%;text-align:left;padding:11px 16px;font-size:14px;border-radius:10px;}
+  .nav-drop-menu{position:static;box-shadow:none;border:none;background:rgba(201,168,76,.04);border-radius:0;border-left:2px solid rgba(201,168,76,.25);margin:0 0 4px 16px;}
+  nav > a.nav-logout-btn{display:none;}
+  .mob-logout{display:block!important;}
+}
+
+/* ── PAGE ── */
+.page{padding:32px 24px 60px;max-width:860px;margin:0 auto;}
+.page-header{margin-bottom:28px;}
+.page-title{font-size:22px;font-weight:800;color:var(--gold-l);margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted);}
+
+/* ── PÉRIODE SELECTOR ── */
+.period-bar{background:var(--bg2);border:1px solid var(--bd);border-radius:14px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:14px;}
+.period-pills{display:flex;gap:8px;flex-wrap:wrap;}
+.pill{padding:7px 18px;border-radius:20px;border:1.5px solid var(--bd);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;}
+.pill:hover{border-color:var(--gold);color:var(--gold-l);}
+.pill.active{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;border-color:transparent;}
+.period-custom{display:none;align-items:center;gap:10px;flex-wrap:wrap;}
+.period-custom.show{display:flex;}
+.period-custom label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;}
+.period-custom input[type=date]{padding:8px 12px;border:1.5px solid var(--bd);border-radius:8px;background:var(--bg3);color:var(--txt);font-size:13px;outline:none;}
+.period-custom input[type=date]:focus{border-color:var(--gold);}
+.btn-apply{padding:8px 18px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;border:none;font-size:13px;font-weight:700;cursor:pointer;}
+
+/* ── FILTRES TYPE ── */
+.type-pill{padding:5px 14px;border-radius:20px;border:1.5px solid var(--bd);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.type-pill:hover{border-color:var(--gold);color:var(--gold-l);}
+.type-pill.active{background:var(--gold);color:#1a1200;border-color:transparent;}
+
+/* ── RÉSUMÉ STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:0;}
+.stat-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;}
+.stat-card .s-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;}
+.stat-card .s-val{font-size:20px;font-weight:800;color:var(--txt);}
+.stat-card .s-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.stat-card.green .s-val{color:var(--green);}
+.stat-card.blue  .s-val{color:var(--blue);}
+.stat-card.orange .s-val{color:var(--orange);}
+.stat-card.teal   .s-val{color:var(--teal);}
+.stat-card.clickable{cursor:pointer;transition:box-shadow .15s;}
+.stat-card.clickable:hover{box-shadow:0 4px 16px rgba(22,160,133,.15);border-color:var(--teal);}
+.stat-card .s-hint{font-size:10px;color:var(--teal);margin-top:4px;opacity:.7;}
+
+/* ── DÉTAIL ENCAISSEMENTS ── */
+.enc-detail{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;margin-top:10px;margin-bottom:18px;overflow:hidden;display:none;}
+.enc-detail.open{display:block;}
+.enc-detail-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bd);background:rgba(22,160,133,.04);}
+.enc-detail-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--teal);}
+.enc-detail-close{background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:0 4px;}
+.enc-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:10px 16px 4px;background:var(--bg3);}
+.enc-row{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(232,224,212,.5);}
+.enc-row:last-child{border-bottom:none;}
+.enc-row-left{font-size:12px;color:var(--txt);}
+.enc-row-right{font-size:12px;font-weight:700;color:var(--teal);white-space:nowrap;}
+.enc-total-row{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:rgba(22,160,133,.06);border-top:2px solid rgba(22,160,133,.2);}
+.enc-total-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);}
+.enc-total-val{font-size:15px;font-weight:800;color:var(--teal);}
+
+/* ── ACCORDÉON ── */
+.accord-sections{display:flex;flex-direction:column;gap:16px;}
+
+.accord-section{background:var(--bg2);border:1px solid var(--bd);border-radius:14px;overflow:hidden;}
+.accord-section.collapsed .accord-body{display:none;}
+
+.accord-head{display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;user-select:none;transition:background .15s;}
+.accord-head:hover{background:rgba(201,168,76,.04);}
+
+.accord-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.accord-label{flex:1;font-size:15px;font-weight:700;color:var(--txt);}
+.accord-count{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--bg3);color:var(--muted);white-space:nowrap;}
+.accord-toggle{font-size:18px;color:var(--muted);flex-shrink:0;transition:transform .25s;line-height:1;}
+.accord-section:not(.collapsed) .accord-toggle{transform:rotate(0deg);}
+.accord-section.collapsed .accord-toggle{transform:rotate(-90deg);}
+
+.accord-body{border-top:1px solid var(--bd);padding:12px 16px 16px;}
+
+/* ── EVENT ITEM ── */
+.event-item{display:flex;align-items:flex-start;gap:14px;border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin-bottom:8px;position:relative;overflow:hidden;background:var(--bg);}
+.event-item:last-child{margin-bottom:0;}
+.event-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;}
+.event-item:hover{background:var(--bg3);}
+
+.ev-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.ev-body{flex:1;min-width:0;}
+.ev-titre{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:2px;}
+.ev-detail{font-size:12px;color:var(--muted);line-height:1.4;}
+.ev-date{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0;padding-top:2px;}
+
+/* Couleurs par section */
+.s-vente .accord-icon{background:rgba(39,174,96,.13);color:var(--green);}
+.s-vente .accord-head{border-left:4px solid var(--green);}
+.s-vente .event-item::before{background:var(--green);}
+.s-vente .ev-icon{background:rgba(39,174,96,.1);color:var(--green);}
+.s-vente .accord-count{background:rgba(39,174,96,.1);color:var(--green);}
+
+.s-stock .accord-icon{background:rgba(41,128,185,.13);color:var(--blue);}
+.s-stock .accord-head{border-left:4px solid var(--blue);}
+.s-stock .event-item::before{background:var(--blue);}
+.s-stock .ev-icon{background:rgba(41,128,185,.1);color:var(--blue);}
+.s-stock .accord-count{background:rgba(41,128,185,.1);color:var(--blue);}
+
+.s-credit_ouvert .accord-icon{background:rgba(230,126,34,.13);color:var(--orange);}
+.s-credit_ouvert .accord-head{border-left:4px solid var(--orange);}
+.s-credit_ouvert .event-item::before{background:var(--orange);}
+.s-credit_ouvert .ev-icon{background:rgba(230,126,34,.1);color:var(--orange);}
+.s-credit_ouvert .accord-count{background:rgba(230,126,34,.1);color:var(--orange);}
+
+.s-credit_paiement .accord-icon{background:rgba(22,160,133,.13);color:var(--teal);}
+.s-credit_paiement .accord-head{border-left:4px solid var(--teal);}
+.s-credit_paiement .event-item::before{background:var(--teal);}
+.s-credit_paiement .ev-icon{background:rgba(22,160,133,.1);color:var(--teal);}
+.s-credit_paiement .accord-count{background:rgba(22,160,133,.1);color:var(--teal);}
+
+.s-cheque_intro .accord-icon{background:rgba(142,68,173,.13);color:var(--purple);}
+.s-cheque_intro .accord-head{border-left:4px solid var(--purple);}
+.s-cheque_intro .event-item::before{background:var(--purple);}
+.s-cheque_intro .ev-icon{background:rgba(142,68,173,.1);color:var(--purple);}
+.s-cheque_intro .accord-count{background:rgba(142,68,173,.1);color:var(--purple);}
+
+.s-cheque_encaisse .accord-icon{background:rgba(39,174,96,.13);color:var(--green);}
+.s-cheque_encaisse .accord-head{border-left:4px solid #1e8449;}
+.s-cheque_encaisse .event-item::before{background:#1e8449;}
+.s-cheque_encaisse .ev-icon{background:rgba(39,174,96,.1);color:#1e8449;}
+.s-cheque_encaisse .accord-count{background:rgba(39,174,96,.1);color:#1e8449;}
+
+.s-facture .accord-icon{background:rgba(44,62,80,.13);color:var(--indigo);}
+.s-facture .accord-head{border-left:4px solid var(--indigo);}
+.s-facture .event-item::before{background:var(--indigo);}
+.s-facture .ev-icon{background:rgba(44,62,80,.1);color:var(--indigo);}
+.s-facture .accord-count{background:rgba(44,62,80,.1);color:var(--indigo);}
+
+.s-devis .accord-icon{background:rgba(154,142,126,.13);color:var(--muted);}
+.s-devis .accord-head{border-left:4px solid var(--muted);}
+.s-devis .event-item::before{background:var(--muted);}
+.s-devis .ev-icon{background:rgba(154,142,126,.1);color:var(--muted);}
+.s-devis .accord-count{background:rgba(154,142,126,.1);color:var(--muted);}
+
+.s-fournisseur .accord-icon{background:rgba(231,76,60,.13);color:var(--red);}
+.s-fournisseur .accord-head{border-left:4px solid var(--red);}
+.s-fournisseur .event-item::before{background:var(--red);}
+.s-fournisseur .ev-icon{background:rgba(231,76,60,.1);color:var(--red);}
+.s-fournisseur .accord-count{background:rgba(231,76,60,.1);color:var(--red);}
+
+/* ── GROUPE VENTES ── */
+.vente-group{border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;overflow:hidden;background:var(--bg);}
+.vente-group:last-child{margin-bottom:0;}
+.vente-group-head{display:flex;align-items:center;gap:14px;padding:12px 14px;cursor:pointer;position:relative;overflow:hidden;}
+.vente-group-head::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--green);}
+.vente-group-head:hover{background:var(--bg3);}
+.vg-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:rgba(39,174,96,.1);color:var(--green);}
+.vg-body{flex:1;min-width:0;}
+.vg-titre{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:2px;}
+.vg-detail{font-size:12px;color:var(--muted);}
+.vg-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.vg-date{font-size:11px;color:var(--muted);white-space:nowrap;}
+.vg-arrow{font-size:14px;color:var(--muted);transition:transform .2s;}
+.vente-group.collapsed .vg-arrow{transform:rotate(-90deg);}
+
+.vente-group-body{border-top:1px solid var(--bd);background:var(--bg2);}
+.vente-group.collapsed .vente-group-body{display:none;}
+.vg-item{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 20px;border-bottom:1px solid var(--bd);}
+.vg-item:last-child{border-bottom:none;}
+.vg-item-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.vg-item-name{flex:1;font-size:13px;font-weight:600;color:var(--txt);}
+.vg-item-pv{font-size:12px;color:var(--green);font-weight:700;white-space:nowrap;}
+
+/* ── ÉTATS ── */
+.loading{text-align:center;padding:60px 20px;color:var(--muted);}
+.loading .spin{font-size:32px;display:block;margin-bottom:12px;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty .ico{font-size:52px;opacity:.3;margin-bottom:12px;}
+
+@media(max-width:600px){
+  .event-item{flex-wrap:wrap;}
+  .ev-date{width:100%;text-align:right;padding-top:6px;border-top:1px solid var(--bd);margin-top:4px;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .accord-head{padding:14px 16px;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">Dashboard</a>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">💍 Stock ▾</button>
+      <div class="nav-drop-menu">
+        
+        <a href="/stock">Voir le stock</a>
+        <a href="/ajouter">Ajouter un article</a>
+        <a href="/vendu">Articles vendus</a>
+        <a href="/fiche">Fiche référence</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/catalogue">Catalogue</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">💰 Ventes ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/vendu">Ventes</a>
+        <a href="/facture">Factures</a>
+        <a href="/facture-libre">📝 Facture Libre</a>
+        <a href="/devis">📋 Devis</a>
+        <a href="/historique-devis">🗂 Historique Devis</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">👥 Clients ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/clients">Dossier Clients</a>
+        <a href="/credit">Crédits</a>
+        <a href="/cheques">Chèques</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn active">⚙️ Gestion ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/fournisseurs">Fournisseurs</a>
+        <a href="/fiche">Fiche</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/historique-activite" class="active">📅 Historique</a>
+      </div>
+    </div>
+    <a href="/logout" style="color:#c0392b;font-weight:600;" class="mob-logout" style="display:none;">⎋ Déco</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn">☰</button>
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">📅 Historique d'activité</div>
+    <div class="page-sub">Toutes les opérations effectuées sur une période</div>
+  </div>
+
+  <!-- Sélecteur de période -->
+  <div class="period-bar">
+    <div class="period-pills">
+      <button class="pill" onclick="setPeriod('today',this)">Aujourd'hui</button>
+      <button class="pill" onclick="setPeriod('week',this)">Cette semaine</button>
+      <button class="pill active" onclick="setPeriod('month',this)">Ce mois</button>
+      <button class="pill" onclick="setPeriod('3months',this)">3 mois</button>
+      <button class="pill" onclick="setPeriod('year',this)">Cette année</button>
+      <button class="pill" onclick="setPeriod('custom',this)">Personnalisé</button>
+    </div>
+    <div class="period-custom" id="custom-range">
+      <label>Du</label>
+      <input type="date" id="date-from">
+      <label>au</label>
+      <input type="date" id="date-to">
+      <button class="btn-apply" onclick="loadData()">Appliquer</button>
+    </div>
+  </div>
+
+  <!-- Stats résumé -->
+  <div class="stats-grid" id="stats-grid" style="display:none;">
+    <div class="stat-card green">
+      <div class="s-label">Ventes</div>
+      <div class="s-val" id="stat-ventes-n">—</div>
+      <div class="s-sub" id="stat-ventes-m">—</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="s-label">Articles ajoutés</div>
+      <div class="s-val" id="stat-stock-n">—</div>
+      <div class="s-sub">au stock</div>
+    </div>
+    <div class="stat-card teal clickable" onclick="toggleEncDetail()">
+      <div class="s-label">Encaissements</div>
+      <div class="s-val" id="stat-enc-n">—</div>
+      <div class="s-sub" id="stat-enc-m">—</div>
+      <div class="s-hint">Appuyer pour le détail ▾</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="s-label">Décaissements</div>
+      <div class="s-val" id="stat-dec-n">—</div>
+      <div class="s-sub">fournisseurs</div>
+    </div>
+  </div>
+
+  <!-- Détail encaissements -->
+  <div class="enc-detail" id="enc-detail">
+    <div class="enc-detail-head">
+      <div class="enc-detail-title">💰 Détail des encaissements</div>
+      <button class="enc-detail-close" onclick="toggleEncDetail()">✕</button>
+    </div>
+    <div id="enc-detail-body"></div>
+  </div>
+
+  <!-- Filtres par type -->
+  <div id="type-filters" style="display:none;margin-top:16px;margin-bottom:4px;display:none;">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-right:4px;">Filtrer :</span>
+      <button class="type-pill active" onclick="setTypeFilter('all',this)">Tout</button>
+      <button class="type-pill" onclick="setTypeFilter('vente',this)">💰 Ventes</button>
+      <button class="type-pill" onclick="setTypeFilter('stock',this)">📦 Stock</button>
+      <button class="type-pill" onclick="setTypeFilter('credit_ouvert',this)">💳 Crédits</button>
+      <button class="type-pill" onclick="setTypeFilter('credit_paiement',this)">✅ Paiements</button>
+      <button class="type-pill" onclick="setTypeFilter('cheque_intro',this)">🏦 Chèques</button>
+      <button class="type-pill" onclick="setTypeFilter('facture',this)">📄 Factures</button>
+      <button class="type-pill" onclick="setTypeFilter('fournisseur',this)">🏭 Fournisseurs</button>
+    </div>
+  </div>
+
+  <!-- Accordéon sections -->
+  <div id="accord-container" style="margin-top:18px;">
+    <div class="loading"><span class="spin">⏳</span>Chargement…</div>
+  </div>
+</div>
+
+<script>
+const SECTIONS = [
+  { type: 'vente',           icon: '💰', label: 'Ventes' },
+  { type: 'stock',           icon: '📦', label: 'Ajouts au stock' },
+  { type: 'credit_ouvert',   icon: '💳', label: 'Crédits ouverts' },
+  { type: 'credit_paiement', icon: '✅', label: 'Paiements crédit' },
+  { type: 'cheque_intro',    icon: '🏦', label: 'Chèques introduits' },
+  { type: 'cheque_encaisse', icon: '✔️', label: 'Chèques encaissés' },
+  { type: 'facture',         icon: '📄', label: 'Factures' },
+  { type: 'devis',           icon: '📋', label: 'Devis' },
+  { type: 'fournisseur',     icon: '🏭', label: 'Paiements fournisseurs' },
+];
+
+let _allEvents = [];
+let _activeTypeFilter = 'all';
+
+// ── Filtre par type ───────────────────────────────────────────────────────────
+function setTypeFilter(type, btn) {
+  _activeTypeFilter = type;
+  document.querySelectorAll('.type-pill').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (_allEvents.length) renderAccord(_allEvents);
+}
+
+// ── Période ──────────────────────────────────────────────────────────────────
+function setPeriod(p, btn) {
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const custom = document.getElementById('custom-range');
+
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const today = fmt(now);
+
+  if (p === 'custom') { custom.classList.add('show'); return; }
+  custom.classList.remove('show');
+
+  let from = today, to = today;
+  if (p === 'week') {
+    const d = new Date(now); d.setDate(d.getDate() - d.getDay() + 1); from = fmt(d);
+  } else if (p === 'month') {
+    from = `${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;
+  } else if (p === '3months') {
+    const d = new Date(now); d.setMonth(d.getMonth() - 3); from = fmt(d);
+  } else if (p === 'year') {
+    from = `${now.getFullYear()}-01-01`;
+  }
+  loadData(from, to);
+}
+
+function loadData(from, to) {
+  if (!from) {
+    from = document.getElementById('date-from').value;
+    to   = document.getElementById('date-to').value;
+    if (!from || !to) return;
+  }
+  document.getElementById('accord-container').innerHTML = '<div class="loading"><span class="spin">⏳</span>Chargement…</div>';
+  document.getElementById('stats-grid').style.display = 'none';
+
+  fetch(`/api/historique?from=${from}&to=${to}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.error) {
+        document.getElementById('accord-container').innerHTML = `<div class="empty"><div class="ico">⚠️</div><p>Erreur serveur : ${data.error}</p></div>`;
+        return;
+      }
+      if (!Array.isArray(data)) {
+        document.getElementById('accord-container').innerHTML = '<div class="empty"><div class="ico">⚠️</div><p>Réponse invalide du serveur</p></div>';
+        return;
+      }
+      _allEvents = data;
+      renderStats(data);
+      renderAccord(data);
+      document.getElementById('type-filters').style.display = data.length ? 'block' : 'none';
+    })
+    .catch(err => {
+      document.getElementById('accord-container').innerHTML = `<div class="empty"><div class="ico">⚠️</div><p>Erreur réseau : ${err.message || err}</p></div>`;
+    });
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function fmtM(v) {
+  if (!v && v !== 0) return '—';
+  return Number(v).toLocaleString('fr-FR', {maximumFractionDigits: 0}) + ' MAD';
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y, m, j] = d.split('-');
+  const mois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  return `${parseInt(j)} ${mois[parseInt(m)-1]} ${y}`;
+}
+
+function renderStats(events) {
+  const sum = arr => arr.reduce((s, e) => s + (e.montant || 0), 0);
+  const ventes   = events.filter(e => e.type === 'vente');
+  const stocks   = events.filter(e => e.type === 'stock');
+  const fourniss = events.filter(e => e.type === 'fournisseur');
+
+  // Encaissements = ventes directes (pv) + ventes libres (benef) + paiements crédit + chèques encaissés
+  const ventesEnc       = events.filter(e => e.type === 'vente' && (e.enc_amount || 0) > 0);
+  const paiementsCredit = events.filter(e => e.type === 'credit_paiement');
+  const chequesEnc      = events.filter(e => e.type === 'cheque_encaisse');
+  const sumEnc = arr => arr.reduce((s, e) => s + (e.enc_amount || 0), 0);
+  const totalEnc = sumEnc(ventesEnc) + sum(paiementsCredit) + sum(chequesEnc);
+  const nbEnc = ventesEnc.length + paiementsCredit.length + chequesEnc.length;
+
+  document.getElementById('stat-ventes-n').textContent = ventes.length;
+  document.getElementById('stat-ventes-m').textContent = fmtM(sum(ventes));
+  document.getElementById('stat-stock-n').textContent  = stocks.length;
+  document.getElementById('stat-enc-n').textContent    = nbEnc;
+  document.getElementById('stat-enc-m').textContent    = fmtM(totalEnc);
+  document.getElementById('stat-dec-n').textContent    = fmtM(sum(fourniss));
+  document.getElementById('stats-grid').style.display  = 'grid';
+}
+
+// ── Accordéon ─────────────────────────────────────────────────────────────────
+function renderAccord(events) {
+  const container = document.getElementById('accord-container');
+
+  // Appliquer le filtre de type actif
+  if (_activeTypeFilter !== 'all') {
+    events = events.filter(e => e.type === _activeTypeFilter);
+  }
+
+  // Regrouper par type — exclure les événements cachés (paiements même jour)
+  const byType = {};
+  SECTIONS.forEach(s => byType[s.type] = []);
+  events.forEach(e => { if (!e.hidden && byType[e.type]) byType[e.type].push(e); });
+
+  const hasAny = events.length > 0;
+  if (!hasAny) {
+    container.innerHTML = '<div class="empty"><div class="ico">📭</div><p>Aucune activité sur cette période</p></div>';
+    return;
+  }
+
+  let html = '<div class="accord-sections">';
+
+  SECTIONS.forEach(s => {
+    const items = byType[s.type] || [];
+    if (!items.length) return;
+
+    items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    let rows = '';
+    let displayCount = 0;
+
+    if (s.type === 'vente') {
+      // Grouper par client + date
+      const groups = {};
+      items.forEach(e => {
+        const key = `${e.date}__${e.client || '—'}`;
+        if (!groups[key]) groups[key] = { date: e.date, client: e.client || '—', items: [], total: 0 };
+        groups[key].items.push(e);
+        groups[key].total += (e.montant || 0);
+      });
+      const groupList = Object.values(groups).sort((a,b) => b.date.localeCompare(a.date));
+      displayCount = groupList.length;
+
+      groupList.forEach((g, gi) => {
+        if (g.items.length === 1) {
+          const e = g.items[0];
+          rows += `
+          <div class="event-item">
+            <div class="ev-icon">💰</div>
+            <div class="ev-body">
+              <div class="ev-titre">${e.titre || '—'}</div>
+              <div class="ev-detail">Client : ${e.client} · ${e.detail || ''}</div>
+            </div>
+            <div class="ev-date">${fmtDate(e.date)}</div>
+          </div>`;
+        } else {
+          const gid = `vg-${gi}`;
+          const subRows = g.items.map(e => `
+            <div class="vg-item">
+              <div class="vg-item-dot"></div>
+              <div class="vg-item-name">${e.article || e.titre}</div>
+              <div class="vg-item-pv">${fmtM(e.montant)}</div>
+            </div>`).join('');
+          rows += `
+          <div class="vente-group" id="${gid}">
+            <div class="vente-group-head" onclick="toggleVGroup('${gid}')">
+              <div class="vg-icon">💰</div>
+              <div class="vg-body">
+                <div class="vg-titre">${g.client} — ${g.items.length} articles</div>
+                <div class="vg-detail">Total : ${fmtM(g.total)}</div>
+              </div>
+              <div class="vg-right">
+                <div class="vg-date">${fmtDate(g.date)}</div>
+                <div class="vg-arrow">▼</div>
+              </div>
+            </div>
+            <div class="vente-group-body">${subRows}</div>
+          </div>`;
+        }
+      });
+    } else {
+      displayCount = items.length;
+      items.forEach(e => {
+        rows += `
+        <div class="event-item">
+          <div class="ev-icon">${s.icon}</div>
+          <div class="ev-body">
+            <div class="ev-titre">${e.titre || '—'}</div>
+            <div class="ev-detail">${e.detail || ''}</div>
+          </div>
+          <div class="ev-date">${fmtDate(e.date)}</div>
+        </div>`;
+      });
+    }
+
+    html += `
+    <div class="accord-section s-${s.type}" id="sec-${s.type}">
+      <div class="accord-head" onclick="toggleSection('${s.type}')">
+        <div class="accord-icon">${s.icon}</div>
+        <div class="accord-label">${s.label}</div>
+        <div class="accord-count">${displayCount}</div>
+        <div class="accord-toggle">▼</div>
+      </div>
+      <div class="accord-body">${rows}</div>
+    </div>`;
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function toggleEncDetail() {
+  const panel = document.getElementById('enc-detail');
+  if (panel.classList.toggle('open')) renderEncDetail();
+}
+
+function groupByClient(items, getAmount, getLabel) {
+  const groups = {};
+  items.forEach(e => {
+    const client = e.client || e.titre.replace('Paiement crédit — ','').replace('Chèque encaissé — ','') || '—';
+    if (!groups[client]) groups[client] = { client, total: 0, rows: [] };
+    const amt = getAmount(e);
+    groups[client].total += amt;
+    groups[client].rows.push({ label: getLabel(e), amount: amt, date: e.date });
+  });
+  return Object.values(groups).sort((a,b) => b.total - a.total);
+}
+
+function renderEncDetail() {
+  const events = _allEvents;
+  const ventesDirectes  = events.filter(e => e.type === 'vente' && (e.enc_amount || 0) > 0);
+  const paiementsCredit = events.filter(e => e.type === 'credit_paiement');
+  const chequesEnc      = events.filter(e => e.type === 'cheque_encaisse');
+
+  let html = '';
+  let gIdx = 0;
+
+  function renderGroups(groups) {
+    let h = '';
+    groups.forEach(g => {
+      const id = `encg-${gIdx++}`;
+      if (g.rows.length === 1) {
+        h += `<div class="enc-row">
+          <div class="enc-row-left">${g.client} <span style="font-size:10px;color:var(--muted)">(${fmtDate(g.rows[0].date)})</span> — <span style="color:var(--muted);font-size:11px">${g.rows[0].label}</span></div>
+          <div class="enc-row-right">+${fmtM(g.total)}</div>
+        </div>`;
+      } else {
+        const subRows = g.rows.map(r => `
+          <div class="enc-row" style="padding-left:28px;background:var(--bg3);">
+            <div class="enc-row-left" style="color:var(--muted)">${r.label} <span style="font-size:10px">(${fmtDate(r.date)})</span></div>
+            <div class="enc-row-right" style="color:var(--txt)">+${fmtM(r.amount)}</div>
+          </div>`).join('');
+        h += `
+        <div class="enc-row" style="cursor:pointer;font-weight:700;" onclick="toggleEncGroup('${id}')">
+          <div class="enc-row-left">${g.client} <span style="font-size:10px;font-weight:400;color:var(--muted)">${g.rows.length} opérations</span> <span class="enc-arrow" id="arr-${id}" style="font-size:11px;color:var(--muted)">▼</span></div>
+          <div class="enc-row-right">+${fmtM(g.total)}</div>
+        </div>
+        <div id="${id}" style="display:none;">${subRows}</div>`;
+      }
+    });
+    return h;
+  }
+
+  if (ventesDirectes.length) {
+    html += `<div class="enc-section-title">Ventes encaissées</div>`;
+    html += renderGroups(groupByClient(ventesDirectes, e => e.enc_amount || 0, e => e.article));
+  }
+  if (paiementsCredit.length) {
+    html += `<div class="enc-section-title">Paiements sur crédits</div>`;
+    html += renderGroups(groupByClient(paiementsCredit, e => e.montant || 0, e => `${fmtM(e.montant)} · ${e.detail.split('Mode : ')[1] || ''}`));
+  }
+  if (chequesEnc.length) {
+    html += `<div class="enc-section-title">Chèques encaissés</div>`;
+    html += renderGroups(groupByClient(chequesEnc, e => e.montant || 0, e => fmtM(e.montant)));
+  }
+
+  const total = ventesDirectes.reduce((s,e)=>s+(e.enc_amount||0),0)
+              + paiementsCredit.reduce((s,e)=>s+(e.montant||0),0)
+              + chequesEnc.reduce((s,e)=>s+(e.montant||0),0);
+
+  html += `<div class="enc-total-row">
+    <div class="enc-total-label">Total encaissé</div>
+    <div class="enc-total-val">${fmtM(total)}</div>
+  </div>`;
+
+  document.getElementById('enc-detail-body').innerHTML = html;
+}
+
+function toggleEncGroup(id) {
+  const el = document.getElementById(id);
+  const arr = document.getElementById('arr-' + id);
+  if (!el) return;
+  const open = el.style.display === 'none';
+  el.style.display = open ? 'block' : 'none';
+  if (arr) arr.textContent = open ? '▲' : '▼';
+}
+
+function toggleSection(type) {
+  const sec = document.getElementById('sec-' + type);
+  if (sec) sec.classList.toggle('collapsed');
+}
+
+function toggleVGroup(gid) {
+  const g = document.getElementById(gid);
+  if (g) g.classList.toggle('collapsed');
+}
+
+// ── Nav hamburger ─────────────────────────────────────────────────────────────
+function toggleNav(){
+  const nl = document.querySelector('.nav-links');
+  const btn = document.getElementById('hamburger-btn');
+  if (!nl) return;
+  const open = nl.classList.toggle('nav-open');
+  if (btn) btn.textContent = open ? '✕' : '☰';
+}
+document.getElementById('hamburger-btn').addEventListener('click', toggleNav);
+document.querySelectorAll('.nav-drop-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const dd = btn.closest('.nav-dropdown');
+    const isOpen = dd.classList.contains('open');
+    document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+    if (!isOpen) dd.classList.add('open');
+  });
+});
+document.addEventListener('click', () => document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open')));
+
+// ── Init : charger ce mois par défaut ─────────────────────────────────────────
+(function() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const from = `${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;
+  const to   = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  loadData(from, to);
+})();
+</script>
+
+<script src="/static/mobile.js"></script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+</body>
+</html>

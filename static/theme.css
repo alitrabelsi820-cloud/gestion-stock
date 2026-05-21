@@ -553,3 +553,197 @@ hr { border-color: rgba(10,10,10,0.08) !important; }
     letter-spacing: 6px !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════
+   MODE SOMBRE (html.dark)
+   ══════════════════════════════════════════════════════════ */
+html.dark {
+  --bg:    #0F0F0D !important;
+  --bg2:   #1A1A17 !important;
+  --bg3:   #141412 !important;
+  --bd:    rgba(255,255,255,0.08) !important;
+  --txt:   #F0EFE8 !important;
+  --muted: #7A7A72 !important;
+  --gold-pale: rgba(196,163,90,0.12) !important;
+}
+
+html.dark body {
+  background: #0F0F0D !important;
+  color: #F0EFE8 !important;
+}
+
+/* Nav */
+html.dark nav {
+  background: #141412 !important;
+  border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+html.dark .nav-logo {
+  background: #C4A35A !important;
+  color: #0A0A0A !important;
+}
+html.dark .nav-title {
+  color: #F0EFE8 !important;
+}
+html.dark .nav-links a {
+  color: #7A7A72 !important;
+}
+html.dark .nav-links a:hover {
+  color: #C4A35A !important;
+  background: rgba(196,163,90,0.10) !important;
+}
+html.dark .nav-links a.active {
+  color: #C4A35A !important;
+  background: rgba(196,163,90,0.12) !important;
+  border-color: rgba(196,163,90,0.25) !important;
+}
+html.dark .mob-logout, html.dark .nav-logout-btn {
+  color: #7A7A72 !important;
+}
+
+/* Page */
+html.dark .page { background: #0F0F0D !important; }
+html.dark .page-header h1 { color: #F0EFE8 !important; }
+
+/* Cards */
+html.dark .card {
+  background: #1A1A17 !important;
+  border-color: rgba(255,255,255,0.07) !important;
+}
+html.dark .card:hover { border-color: rgba(196,163,90,0.35) !important; }
+html.dark .card-val { color: #F0EFE8 !important; }
+
+/* Boutons */
+html.dark .btn-gold {
+  background: #C4A35A !important;
+  color: #0A0A0A !important;
+  border-color: #C4A35A !important;
+}
+html.dark .btn-gold:hover { background: #D4B36A !important; }
+html.dark .btn-outline {
+  border-color: rgba(255,255,255,0.12) !important;
+  color: #7A7A72 !important;
+}
+html.dark .btn-outline:hover {
+  border-color: #C4A35A !important;
+  color: #C4A35A !important;
+}
+
+/* Tables */
+html.dark thead th {
+  background: #141412 !important;
+  color: #7A7A72 !important;
+  border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+html.dark tbody td { border-bottom-color: rgba(255,255,255,0.05) !important; }
+html.dark tbody tr:hover td { background: rgba(196,163,90,0.06) !important; }
+html.dark td.ref-col { color: #F0EFE8 !important; }
+
+/* Tabs */
+html.dark .tab {
+  border-color: rgba(255,255,255,0.10) !important;
+  color: #7A7A72 !important;
+}
+html.dark .tab:hover { border-color: #C4A35A !important; color: #C4A35A !important; }
+html.dark .tab.active {
+  background: #C4A35A !important;
+  border-color: #C4A35A !important;
+  color: #0A0A0A !important;
+}
+
+/* Toolbar & Inputs */
+html.dark .toolbar {
+  background: #0F0F0D !important;
+  border-bottom-color: rgba(255,255,255,0.06) !important;
+}
+html.dark .search-wrap input,
+html.dark input[type=text], html.dark input[type=number], html.dark input[type=date],
+html.dark input[type=email], html.dark input[type=tel], html.dark input[type=password],
+html.dark select, html.dark textarea {
+  background: #1A1A17 !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: #F0EFE8 !important;
+}
+html.dark select option { background: #1A1A17 !important; color: #F0EFE8 !important; }
+
+/* Modaux */
+html.dark .modal, html.dark .confirm-box {
+  background: #1A1A17 !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
+}
+html.dark .modal h2 {
+  color: #F0EFE8 !important;
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+html.dark label, html.dark .mf label, html.dark .form-label { color: #7A7A72 !important; }
+html.dark .overlay, html.dark .ov, html.dark .confirm-overlay {
+  background: rgba(0,0,0,0.65) !important;
+}
+
+/* Panels */
+html.dark .panel, html.dark .panel-full, html.dark .form-card {
+  background: #1A1A17 !important;
+  border-color: rgba(255,255,255,0.07) !important;
+}
+html.dark .section-title, html.dark .panel h2, html.dark .panel-title { color: #F0EFE8 !important; }
+
+/* Accueil hero & modules */
+html.dark .hero { background: #0F0F0D !important; }
+html.dark .brand-name { color: #F0EFE8 !important; }
+html.dark .module {
+  background: #1A1A17 !important;
+  border-color: rgba(255,255,255,0.07) !important;
+}
+html.dark .module:hover {
+  background: #242420 !important;
+  border-color: rgba(196,163,90,0.3) !important;
+}
+html.dark .module-name { color: #F0EFE8 !important; }
+
+/* Tbl-wrap */
+html.dark .tbl-wrap {
+  background: #1A1A17 !important;
+  border-color: rgba(255,255,255,0.07) !important;
+}
+
+/* Period stats */
+html.dark .period-stat, html.dark .benef-item, html.dark .tot-item {
+  background: #1A1A17 !important;
+  border-color: rgba(255,255,255,0.07) !important;
+}
+html.dark .ps-val, html.dark .benef-val, html.dark .tot-val { color: #F0EFE8 !important; }
+
+/* Scrollbar */
+html.dark ::-webkit-scrollbar-track { background: #0F0F0D; }
+html.dark ::-webkit-scrollbar-thumb { background: rgba(196,163,90,0.25); }
+html.dark ::selection { background: rgba(196,163,90,0.25); color: #F0EFE8; }
+html.dark hr { border-color: rgba(255,255,255,0.07) !important; }
+
+/* Mobile dropdown dark */
+@media (max-width: 860px) {
+  html.dark .nav-links {
+    background: #141412 !important;
+    border-top-color: rgba(196,163,90,0.15) !important;
+  }
+  html.dark .nav-links a { color: #F0EFE8 !important; }
+  html.dark .nav-links a.active { color: #C4A35A !important; }
+  html.dark .mob-logout { border-top-color: rgba(255,255,255,0.06) !important; }
+}
+
+/* Bouton toggle dark mode */
+#dark-toggle {
+  background: none !important;
+  border: 1px solid rgba(10,10,10,0.10) !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  padding: 5px 8px !important;
+  transition: border-color 0.2s !important;
+  color: inherit !important;
+  flex-shrink: 0 !important;
+}
+html.dark #dark-toggle {
+  border-color: rgba(255,255,255,0.12) !important;
+}
+#dark-toggle:hover { border-color: #C4A35A !important; }

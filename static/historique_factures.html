@@ -122,6 +122,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <a href="/historique-factures" class="active">Historique</a>
     <a href="/fournisseurs">Fournisseurs</a>
     <a href="/fiche">Fiche</a>
+    <a href="/galerie">📷 Galerie photos</a>
+        <a href="/historique-activite">📅 Historique</a>
+      <a href="/logout" class="mob-logout" style="color:#c0392b;font-weight:600;">⎋ Déconnexion</a>
   </div>
   <button class="hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
 
@@ -131,7 +134,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <!-- CARTES -->
 <div class="cards">
   <div class="card c1"><div class="card-ico">🧾</div><div class="card-lbl">Total Factures</div><div class="card-val" id="s-nb">—</div></div>
-  <div class="card c2"><div class="card-ico">💰</div><div class="card-lbl">CA Facturé (MAD)</div><div class="card-val" id="s-ca">—</div></div>
+  <div class="card c2"><div class="card-ico">💰</div><div class="card-lbl">CA Facturé</div><div class="card-val" id="s-ca">—</div></div>
   <div class="card c3"><div class="card-ico">🔢</div><div class="card-lbl">Articles Facturés</div><div class="card-val" id="s-art">—</div></div>
 </div>
 
@@ -154,9 +157,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <th>Date</th>
         <th>Client</th>
         <th>Articles (réfs)</th>
-        <th>Total (MAD)</th>
-        <th>Avance (MAD)</th>
-        <th>Reste (MAD)</th>
+        <th>Total</th>
+        <th>Avance</th>
+        <th>Reste</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -205,7 +208,7 @@ function updateCards(){
   const ca = ALL.reduce((s,f)=>s+(f.total||0),0);
   const arts = ALL.reduce((s,f)=>s+(f.articles||[]).length,0);
   document.getElementById('s-nb').textContent=ALL.length;
-  document.getElementById('s-ca').textContent=fmtN(ca)+' MAD';
+  document.getElementById('s-ca').textContent=fmtN(ca)+'';
   document.getElementById('s-art').textContent=arts;
 }
 
@@ -234,11 +237,13 @@ function render(){
       <td>${fmtD(f.date)}</td>
       <td><strong>${f.client||'—'}</strong>${f.ville?`<br><span style="font-size:11px;color:var(--muted)">${f.ville}</span>`:''}</td>
       <td style="max-width:200px;white-space:normal">${refs||'—'}</td>
-      <td style="font-weight:700">${fmtN(f.total)} MAD</td>
-      <td style="color:var(--green)">${f.avance>0?fmtN(f.avance)+' MAD':'—'}</td>
-      <td style="color:${reste>0?'var(--orange)':'var(--green)'};font-weight:${reste>0?'700':'600'}">${reste>0?fmtN(reste)+' MAD':'✓ Soldé'}</td>
+      <td style="font-weight:700">${fmtN(f.total)}</td>
+      <td style="color:var(--green)">${f.avance>0?fmtN(f.avance)+'':'—'}</td>
+      <td style="color:${reste>0?'var(--orange)':'var(--green)'};font-weight:${reste>0?'700':'600'}">${reste>0?fmtN(reste)+'':'✓ Soldé'}</td>
       <td onclick="event.stopPropagation()" style="white-space:nowrap">
         <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="showDetail(${f.id})">👁 Voir</button>
+        ${f.source==='libre'&&!f.vente_validee?`<button class="btn" style="padding:4px 10px;font-size:11px;background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.4);color:#1a7a40;margin-left:4px" onclick="event.stopPropagation();validerVente(${f.id})">✅ Valider vente</button>`:''}
+        ${f.source==='libre'&&f.vente_validee?`<span style="font-size:11px;color:var(--green);margin-left:4px">✓ Vente enregistrée</span>`:''}
         <button class="btn" style="padding:4px 10px;font-size:11px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red);margin-left:4px" onclick="deleteFacture(${f.id})">🗑️</button>
       </td>
     </tr>`;
@@ -257,9 +262,9 @@ function showDetail(id){
     <div class="mf"><label>Ville</label><div class="v">${f.ville||'—'}</div></div>
     <div class="mf"><label>Téléphone</label><div class="v">${f.telephone||'—'}</div></div>
     <div class="mf"><label>Email</label><div class="v">${f.email||'—'}</div></div>
-    <div class="mf"><label>Total (MAD)</label><div class="v">${fmtN(f.total)} MAD</div></div>
-    <div class="mf"><label>Avance</label><div class="v" style="color:var(--green)">${f.avance>0?fmtN(f.avance)+' MAD':'—'}</div></div>
-    <div class="mf"><label>Reste dû</label><div class="v" style="color:${reste>0?'var(--orange)':'var(--green)'}">${reste>0?fmtN(reste)+' MAD':'Soldé ✓'}</div></div>
+    <div class="mf"><label>Total</label><div class="v">${fmtN(f.total)}</div></div>
+    <div class="mf"><label>Avance</label><div class="v" style="color:var(--green)">${f.avance>0?fmtN(f.avance)+'':'—'}</div></div>
+    <div class="mf"><label>Reste dû</label><div class="v" style="color:${reste>0?'var(--orange)':'var(--green)'}">${reste>0?fmtN(reste)+'':'Soldé ✓'}</div></div>
     <div class="mf"><label>Mode paiement</label><div class="v">${f.mode_paiement||'—'}</div></div>
     ${f.note?`<div class="mf full"><label>Note</label><div class="v" style="font-weight:400">${f.note}</div></div>`:''}
   `;
@@ -271,7 +276,7 @@ function showDetail(id){
       ${f.articles.map(a=>`
         <div class="inv-art-row">
           <div><span class="inv-art-ref">#${a.ref}</span>${a.article||'—'}</div>
-          <div style="font-weight:700">${fmtN(a.pv)} MAD</div>
+          <div style="font-weight:700">${fmtN(a.pv)}</div>
         </div>
       `).join('')}
     `;
@@ -280,9 +285,23 @@ function showDetail(id){
   }
   document.getElementById('m-actions').innerHTML=`
     <button class="btn btn-outline" onclick="closeModal()">Fermer</button>
+    ${f.source==='libre'&&!f.vente_validee?`<button class="btn" style="background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.4);color:#1a7a40" onclick="validerVente(${f.id})">✅ Valider la vente</button>`:''}
     <button class="btn" style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red)" onclick="deleteFacture(${f.id})">🗑️ Supprimer</button>
   `;
   document.getElementById('ov').classList.add('open');
+}
+
+async function validerVente(id){
+  if(!confirm('Enregistrer cette facture comme vente dans l\'historique des ventes ?')) return;
+  try{
+    const r=await fetch(`/api/factures/${id}/valider`,{method:'POST'});
+    const j=await r.json();
+    if(j.success){
+      document.getElementById('ov').classList.remove('open');
+      showToast('Vente enregistrée ✅','success');
+      await load();
+    } else { alert(j.error||'Erreur'); }
+  }catch(e){ alert('Erreur réseau'); }
 }
 
 async function deleteFacture(id){
@@ -329,6 +348,7 @@ function toggleNav(){
     ov.classList.remove('nav-open');
     const btn=document.getElementById('hamburger-btn');
     if(btn)btn.textContent='☰';
+    document.querySelectorAll('.nav-dropdown').forEach(function(d){ d.classList.remove('open'); });
   };
   document.body.appendChild(ov);
   // Close nav when a link is clicked
@@ -340,7 +360,6 @@ function toggleNav(){
   }));
 })();
 </script>
-<script src="/chatbot.js"></script>
 <script src="/static/mobile.js"></script>
 </body>
 </html>

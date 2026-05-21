@@ -5,7 +5,9 @@ Fonctionne sur Mac sans aucune installation supplémentaire.
 """
 
 import base64
+import csv
 import http.server
+import io
 import json
 import os
 import re
@@ -18,6 +20,17 @@ import hashlib
 import webbrowser
 from datetime import datetime
 from pathlib import Path
+
+# Charger .env local si présent (credentials R2, etc.)
+_env_path = Path(__file__).parent / ".env"
+if _env_path.exists():
+    for _line in _env_path.read_text(encoding="utf-8").splitlines():
+        _line = _line.strip()
+        if _line and not _line.startswith("#") and "=" in _line:
+            _k, _, _v = _line.partition("=")
+            _k = _k.strip()
+            if _k not in os.environ:
+                os.environ[_k] = _v.strip().strip('"').strip("'")
 
 import database as db
 
@@ -46,8 +59,38 @@ PHOTOS_DIR_COMPRESSED = BASE_DIR / "photos_compressed"
 MOT_DE_PASSE_ADMIN   = os.environ.get("MOT_DE_PASSE_ADMIN",   "7868")
 MOT_DE_PASSE_EMPLOYE = os.environ.get("MOT_DE_PASSE_EMPLOYE", "    ")
 
-# token → "admin" | "employe"
-SESSIONS = {}
+# ─── Protection brute-force ───────────────────────────────────────────────────
+# {ip: {"count": int, "blocked_until": float}}
+_LOGIN_ATTEMPTS: dict = {}
+MAX_ATTEMPTS    = 5      # tentatives avant blocage
+BLOCK_SECONDS   = 900    # 15 minutes de blocage
+
+def _get_client_ip(headers):
+    return (headers.get("X-Forwarded-For") or headers.get("X-Real-IP") or "unknown").split(",")[0].strip()
+
+def _check_brute_force(ip) -> tuple[bool, int]:
+    """Retourne (bloqué, secondes_restantes)."""
+    import time
+    now = time.time()
+    rec = _LOGIN_ATTEMPTS.get(ip)
+    if rec and rec["count"] >= MAX_ATTEMPTS:
+        remaining = int(rec["blocked_until"] - now)
+        if remaining > 0:
+            return True, remaining
+        else:
+            del _LOGIN_ATTEMPTS[ip]  # blocage expiré
+    return False, 0
+
+def _record_failed_login(ip):
+    import time
+    now = time.time()
+    rec = _LOGIN_ATTEMPTS.setdefault(ip, {"count": 0, "blocked_until": 0})
+    rec["count"] += 1
+    rec["blocked_until"] = now + BLOCK_SECONDS
+    print(f"⚠️  Tentative échouée #{rec['count']} depuis {ip}")
+
+def _reset_login_attempts(ip):
+    _LOGIN_ATTEMPTS.pop(ip, None)
 
 def get_session_token(headers):
     cookie = headers.get("Cookie", "")
@@ -60,7 +103,7 @@ def get_session_token(headers):
 def get_role(headers):
     """Retourne 'admin', 'employe', ou None si non connecté."""
     token = get_session_token(headers)
-    return SESSIONS.get(token)
+    return db.get_session_role(token)
 
 def is_authenticated(headers):
     return get_role(headers) is not None
@@ -93,6 +136,161 @@ load_factures    = db.load_factures
 save_factures    = db.save_factures
 load_config      = db.load_config
 save_config      = db.save_config
+load_devis       = db.load_devis
+insert_devis     = db.insert_devis
+delete_devis     = db.delete_devis
+
+def merge_duplicate_factures():
+    """Fusionne les factures avec même client + même jour en une seule."""
+    factures = load_factures()
+    groups = {}
+    order  = []
+    for f in factures:
+        cl = (f.get("client") or "").strip().lower()
+        dt = (f.get("date")   or "")[:10]
+        if not cl or not dt:
+            continue
+        key = (cl, dt)
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append(f)
+
+    new_factures = []
+    merged_count = 0
+    for key in order:
+        facs = groups[key]
+        if len(facs) == 1:
+            new_factures.append(facs[0])
+            continue
+        # Fusionner
+        merged_count += len(facs) - 1
+        base         = facs[0]
+        all_articles = []
+        total_sum    = 0.0
+        avance_sum   = 0.0
+        modes        = []
+        notes        = []
+        tel          = base.get("telephone") or ""
+        for f in facs:
+            arts = f.get("articles") or []
+            all_articles.extend(arts)
+            if f.get("prix_global") and f.get("total_global"):
+                total_sum += float(f["total_global"])
+            else:
+                total_sum += float(f.get("total") or 0)
+            avance_sum += float(f.get("avance") or 0)
+            m = (f.get("mode_paiement") or "").strip()
+            if m and m not in modes: modes.append(m)
+            n = (f.get("note") or "").strip()
+            if n and n not in notes: notes.append(n)
+            if not tel and f.get("telephone"): tel = f["telephone"]
+        merged = {
+            "id":            base["id"],
+            "numero":        base.get("numero") or str(base["id"]),
+            "client":        base.get("client"),
+            "telephone":     tel,
+            "email":         base.get("email") or "",
+            "ville":         base.get("ville") or "",
+            "articles":      all_articles,
+            "total":         total_sum,
+            "avance":        avance_sum,
+            "mode_paiement": ", ".join(modes) if modes else "Espèces",
+            "note":          " | ".join(notes),
+            "date":          base.get("date"),
+            "created_at":    base.get("created_at"),
+            "prix_global":   0,
+            "total_global":  0.0,
+        }
+        new_factures.append(merged)
+
+    if merged_count > 0:
+        save_factures(new_factures)
+        print(f"[MERGE-FAC] {merged_count} facture(s) dupliquée(s) fusionnée(s) (même client + même jour).")
+    return merged_count
+
+
+def auto_generate_missing_factures():
+    """Génère automatiquement une facture pour chaque groupe (client, date) de ventes qui n'en a pas encore."""
+    ventes   = load_ventes()
+    factures = load_factures()
+
+    # Construire l'ensemble des (client_low, date_jour) déjà couverts par une facture
+    covered = set()
+    for f in factures:
+        cl = (f.get("client") or "").strip().lower()
+        dt = (f.get("date") or "")[:10]
+        if cl and dt:
+            covered.add((cl, dt))
+
+    # Grouper les ventes par (client, date_jour) non couvertes
+    groups = {}
+    for v in ventes:
+        raw_client = (v.get("client") or "").strip()
+        date_jour  = (v.get("date_vente") or "")[:10]
+        if not raw_client or not date_jour:
+            continue
+        key = (raw_client.lower(), date_jour)
+        if key in covered:
+            continue
+        if key not in groups:
+            groups[key] = {"client": raw_client, "date": date_jour, "ventes": []}
+        # Préférer le nom le mieux formaté
+        if sum(1 for c in raw_client if c.isupper()) > sum(1 for c in groups[key]["client"] if c.isupper()):
+            groups[key]["client"] = raw_client
+        groups[key]["ventes"].append(v)
+
+    if not groups:
+        return 0
+
+    existing = load_factures()
+    max_id   = max((f.get("id", 0) for f in existing), default=0)
+    new_facs = []
+
+    for key, grp in groups.items():
+        max_id += 1
+        articles = []
+        total    = 0
+        for v in grp["ventes"]:
+            pierres_parts = []
+            for pk in ["d","em","r","s","p_fines","rosaces","em_clb","perles"]:
+                val = v.get(pk)
+                if val: pierres_parts.append(str(val))
+            articles.append({
+                "article":  v.get("article") or v.get("designation") or "—",
+                "or_grs":  v.get("or_grs") or "",
+                "pierres":  ", ".join(pierres_parts) if pierres_parts else "",
+                "pv":       v.get("pv") or 0,
+                "pa":       v.get("pa") or 0,
+            })
+            total += v.get("pv") or 0
+
+        tel = next((v.get("telephone","") for v in grp["ventes"] if v.get("telephone")), "")
+        fac = {
+            "id":            max_id,
+            "numero":        str(max_id),
+            "client":        grp["client"],
+            "telephone":     tel,
+            "email":         "",
+            "ville":         "",
+            "articles":      articles,
+            "total":         total,
+            "avance":        0,
+            "mode_paiement": "Espèces",
+            "note":          "",
+            "date":          grp["date"],
+            "created_at":    datetime.now().isoformat(),
+            "prix_global":   0,
+            "total_global":  0,
+        }
+        new_facs.append(fac)
+        covered.add(key)   # éviter doublons si même key dans groups
+
+    if new_facs:
+        save_factures(existing + new_facs)
+        print(f"[AUTO-FAC] {len(new_facs)} facture(s) générée(s) automatiquement.")
+    return len(new_facs)
+
 
 def is_poids_article(article):
     """Un article est 'vente au poids' s'il n'a aucune pierre (D/EM/R/S/p_fines/rosaces/em_clb/perles)."""
@@ -181,6 +379,100 @@ def _upload_to_r2(filename, data_bytes):
         if resp.status not in (200, 204):
             raise Exception(f"R2 upload failed: {resp.status}")
 
+# ─── Synchronisation DB ↔ R2 ─────────────────────────────────────────────────
+DB_R2_KEY     = "db/gestionstock.db"
+_db_sync_lock = threading.Lock()
+
+def _r2_has_creds():
+    return bool(R2_ACCESS_KEY and R2_SECRET_KEY and R2_ACCOUNT_ID and R2_BUCKET_NAME)
+
+def _r2_db_request(method, data=None):
+    """Construit une requête AWS SigV4 vers R2 pour la DB (GET ou PUT)."""
+    from datetime import datetime as _dt
+    now        = _dt.utcnow()
+    date_stamp = now.strftime("%Y%m%d")
+    amz_date   = now.strftime("%Y%m%dT%H%M%SZ")
+    region, service = "auto", "s3"
+    host     = f"{R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+    endpoint = f"https://{host}/{R2_BUCKET_NAME}/{DB_R2_KEY}"
+    payload_hash = hashlib.sha256(data or b"").hexdigest()
+
+    if method == "PUT":
+        ctype            = "application/octet-stream"
+        headers_to_sign  = "content-type;host;x-amz-content-sha256;x-amz-date"
+        canonical_hdrs   = (f"content-type:{ctype}\nhost:{host}\n"
+                            f"x-amz-content-sha256:{payload_hash}\nx-amz-date:{amz_date}\n")
+    else:
+        ctype            = None
+        headers_to_sign  = "host;x-amz-content-sha256;x-amz-date"
+        canonical_hdrs   = (f"host:{host}\n"
+                            f"x-amz-content-sha256:{payload_hash}\nx-amz-date:{amz_date}\n")
+
+    canonical = f"{method}\n/{R2_BUCKET_NAME}/{DB_R2_KEY}\n\n{canonical_hdrs}\n{headers_to_sign}\n{payload_hash}"
+    sts = (f"AWS4-HMAC-SHA256\n{amz_date}\n{date_stamp}/{region}/{service}/aws4_request\n"
+           + hashlib.sha256(canonical.encode()).hexdigest())
+
+    def _h(k, m): return hmac.new(k, m.encode(), hashlib.sha256).digest()
+    sk  = _h(_h(_h(_h(f"AWS4{R2_SECRET_KEY}".encode(), date_stamp), region), service), "aws4_request")
+    sig = hmac.new(sk, sts.encode(), hashlib.sha256).hexdigest()
+    auth = (f"AWS4-HMAC-SHA256 Credential={R2_ACCESS_KEY}/{date_stamp}/{region}/{service}/aws4_request,"
+            f"SignedHeaders={headers_to_sign},Signature={sig}")
+
+    req = urllib.request.Request(endpoint, data=data, method=method)
+    req.add_header("x-amz-date", amz_date)
+    req.add_header("x-amz-content-sha256", payload_hash)
+    req.add_header("Authorization", auth)
+    if ctype:
+        req.add_header("Content-Type", ctype)
+    return req
+
+def upload_db_to_r2():
+    """Upload la DB SQLite vers R2 (thread-safe, appelé en arrière-plan)."""
+    if not _r2_has_creds():
+        return
+    with _db_sync_lock:
+        try:
+            import sqlite3 as _sq
+            conn = _sq.connect(str(db.DB_FILE))
+            conn.execute("PRAGMA wal_checkpoint(FULL)")
+            conn.close()
+            data = db.DB_FILE.read_bytes()
+            with urllib.request.urlopen(_r2_db_request("PUT", data), timeout=30):
+                pass
+            print(f"☁️  DB → R2 ({len(data)//1024} Ko)")
+        except Exception as e:
+            print(f"⚠️  Upload DB R2 : {e}")
+
+def download_db_from_r2():
+    """Télécharge la DB depuis R2 au démarrage. Retourne True si succès."""
+    if not _r2_has_creds():
+        return False
+    try:
+        with urllib.request.urlopen(_r2_db_request("GET"), timeout=30) as resp:
+            data = resp.read()
+        if len(data) < 4096:
+            print("⚠️  DB R2 trop petite, ignorée")
+            return False
+        tmp = db.DB_FILE.with_suffix(".tmp")
+        tmp.write_bytes(data)
+        tmp.replace(db.DB_FILE)
+        print(f"☁️  DB ← R2 ({len(data)//1024} Ko) — données à jour")
+        return True
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            print("ℹ️  Aucune DB sur R2 — upload initial en cours...")
+            threading.Thread(target=upload_db_to_r2, daemon=True).start()
+        else:
+            print(f"⚠️  Download DB R2 : {e}")
+        return False
+    except Exception as e:
+        print(f"⚠️  Download DB R2 : {e}")
+        return False
+
+def push_db_background():
+    """Déclenche un upload R2 en thread séparé (non-bloquant)."""
+    threading.Thread(target=upload_db_to_r2, daemon=True).start()
+
 def find_photo_local(ref):
     """Cherche la photo localement (Mac) — fallback si pas de R2."""
     # D'abord dans photos_compressed (JPEG)
@@ -198,18 +490,29 @@ def find_photo_local(ref):
                 return p
     return None
 
+def _nb_sessions(ventes_list):
+    """Nombre de ventes uniques (une session = même client + même jour)."""
+    sessions = set()
+    for v in ventes_list:
+        ck = (v.get("client") or "").strip().lower()
+        dk = (v.get("date_vente") or "")[:10]
+        if dk:
+            sessions.add(f"{ck}|{dk}")
+    return len(sessions)
+
 def calc_stats(articles):
+    qty = lambda a: int(a.get("quantite") or 1)
     return {
-        "nb_articles": len(articles),
-        "total_or": round(sum(a["or_grs"] or 0 for a in articles), 2),
-        "valeur_stock": round(sum(a["pa"] or 0 for a in articles), 0),
-        "diamants": round(sum(a["d"] or 0 for a in articles), 2),
-        "emeraudes": round(sum(a["em"] or 0 for a in articles), 2),
-        "rubis": round(sum(a["r"] or 0 for a in articles), 2),
-        "saphirs": round(sum(a["s"] or 0 for a in articles), 2),
-        "rosaces": round(sum(a["rosaces"] or 0 for a in articles), 2),
-        "em_clb": round(sum(a["em_clb"] or 0 for a in articles), 2),
-        "perles": round(sum(a["perles"] or 0 for a in articles), 2),
+        "nb_articles": sum(qty(a) for a in articles),  # total pièces physiques
+        "total_or": round(sum((a["or_grs"] or 0) * qty(a) for a in articles), 2),
+        "valeur_stock": round(sum((a["pa"] or 0) * qty(a) for a in articles), 0),
+        "diamants": round(sum((a["d"] or 0) * qty(a) for a in articles), 2),
+        "emeraudes": round(sum((a["em"] or 0) * qty(a) for a in articles), 2),
+        "rubis": round(sum((a["r"] or 0) * qty(a) for a in articles), 2),
+        "saphirs": round(sum((a["s"] or 0) * qty(a) for a in articles), 2),
+        "rosaces": round(sum((a["rosaces"] or 0) * qty(a) for a in articles), 2),
+        "em_clb": round(sum((a["em_clb"] or 0) * qty(a) for a in articles), 2),
+        "perles": round(sum((a["perles"] or 0) * qty(a) for a in articles), 2),
     }
 
 def ventes_stats(ventes, date_from=None, date_to=None):
@@ -220,7 +523,8 @@ def ventes_stats(ventes, date_from=None, date_to=None):
     if date_to:
         filt = [v for v in filt if (v.get("date_vente") or "") <= date_to]
     return {
-        "nb": len(filt),
+        "nb": _nb_sessions(filt),           # ventes = sessions uniques client+jour
+        "nb_articles": len(filt),           # articles individuels vendus
         "ca": round(sum(v.get("pv") or 0 for v in filt), 0),
         "benef": round(sum(v.get("benef") or 0 for v in filt), 0),
         "or_vendu": round(sum(v.get("or_grs") or 0 for v in filt), 2),
@@ -234,13 +538,15 @@ def monthly_stats(ventes):
         if not d:
             continue
         if d not in months:
-            months[d] = {"mois": d, "nb": 0, "ca": 0, "benef": 0, "or_vendu": 0}
-        months[d]["nb"] += 1
+            months[d] = {"mois": d, "nb": 0, "nb_articles": 0, "ca": 0, "benef": 0, "or_vendu": 0, "_ventes": []}
+        months[d]["nb_articles"] += 1
+        months[d]["_ventes"].append(v)
         months[d]["ca"] += v.get("pv") or 0
         months[d]["benef"] += v.get("benef") or 0
         months[d]["or_vendu"] += v.get("or_grs") or 0
     result = sorted(months.values(), key=lambda x: x["mois"], reverse=True)
     for m in result:
+        m["nb"] = _nb_sessions(m.pop("_ventes"))
         m["ca"] = round(m["ca"], 0)
         m["benef"] = round(m["benef"], 0)
         m["or_vendu"] = round(m["or_vendu"], 2)
@@ -254,12 +560,14 @@ def annual_stats(ventes):
         if not d:
             continue
         if d not in years:
-            years[d] = {"annee": d, "nb": 0, "ca": 0, "benef": 0}
-        years[d]["nb"] += 1
+            years[d] = {"annee": d, "nb": 0, "nb_articles": 0, "ca": 0, "benef": 0, "_ventes": []}
+        years[d]["nb_articles"] += 1
+        years[d]["_ventes"].append(v)
         years[d]["ca"] += v.get("pv") or 0
         years[d]["benef"] += v.get("benef") or 0
     result = sorted(years.values(), key=lambda x: x["annee"], reverse=True)
     for y in result:
+        y["nb"] = _nb_sessions(y.pop("_ventes"))
         y["ca"] = round(y["ca"], 0)
         y["benef"] = round(y["benef"], 0)
     return result
@@ -311,6 +619,8 @@ def build_article(data, ref_override=None):
         "perles": parse_float(data.get("perles")),
         "fabricant": (str(data["fabricant"]).strip() if data.get("fabricant") else None),
         "ismail_pierres": bool(data.get("ismail_pierres", False)),
+        "quantite": max(1, int(data.get("quantite") or 1)),
+        "note": str(data.get("note") or "").strip(),
     }
 
 
@@ -823,6 +1133,12 @@ function filter(type, btn) {{
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(body)
+        # Sync DB → R2 après chaque écriture réussie (POST/DELETE)
+        if getattr(self, "command", "") in ("POST", "DELETE", "PUT") and status < 300:
+            push_db_background()
+
+    # Pages sans sidebar (login, employé, accueil spécial)
+    NO_SIDEBAR_PAGES = {'login.html', 'fiche_employe.html'}
 
     def send_html(self, path):
         try:
@@ -836,47 +1152,42 @@ function filter(type, btn) {{
             )
             if 'apple-mobile-web-app-capable' not in content:
                 content = content.replace('<meta name="viewport"', pwa_tags + '<meta name="viewport"', 1)
-            # Injecter fix nav-links desktop : CSS inline + MutationObserver + setInterval
-            nav_fix = (
-                '<style>'
-                '@media(min-width:861px){'
-                'nav .nav-links,body>.nav-links{'
-                'display:flex!important;flex-direction:row!important;'
-                'position:static!important;visibility:visible!important;'
-                'opacity:1!important;height:auto!important;overflow:visible!important;'
-                'max-height:none!important;}'
-                '}'
-                '</style>'
-                '<script>'
-                '(function(){'
-                'var _obs=null;'
-                'function fixNav(){'
-                'if(window.innerWidth<=860)return;'
-                'var nl=document.querySelector("nav .nav-links")||document.querySelector(".nav-links");'
-                'if(!nl)return;'
-                'nl.style.setProperty("display","flex","important");'
-                'nl.style.setProperty("flex-direction","row","important");'
-                'nl.style.setProperty("align-items","center","important");'
-                'nl.style.setProperty("position","static","important");'
-                'nl.style.setProperty("background","transparent","important");'
-                'nl.style.setProperty("box-shadow","none","important");'
-                'nl.style.setProperty("visibility","visible","important");'
-                'nl.style.setProperty("opacity","1","important");'
-                'nl.style.setProperty("height","auto","important");'
-                'nl.style.setProperty("overflow","visible","important");'
-                'nl.style.setProperty("max-height","none","important");'
-                'if(_obs)_obs.disconnect();'
-                '_obs=new MutationObserver(function(){if(window.innerWidth>860)fixNav();});'
-                '_obs.observe(nl,{attributes:true,attributeFilter:["style","class"]});'
-                '}'
-                '[0,50,100,200,400,700,1200,2000].forEach(function(t){setTimeout(fixNav,t);});'
-                'var _si=setInterval(fixNav,500);setTimeout(function(){clearInterval(_si);},8000);'
-                'window.addEventListener("resize",fixNav);'
-                '})();'
-                '</script>'
-            )
-            if '</body>' in content:
-                content = content.replace('</body>', nav_fix + '\n</body>', 1)
+
+            use_sidebar = path.name not in self.NO_SIDEBAR_PAGES
+
+            if use_sidebar:
+                # Injecter sidebar.css dans <head>
+                sidebar_css = '<link rel="stylesheet" href="/static/sidebar.css">\n'
+                if '/static/sidebar.css' not in content and '</head>' in content:
+                    content = content.replace('</head>', sidebar_css + '</head>', 1)
+                # Masquer la nav desktop immédiatement (évite le flash avant que sidebar.js tourne)
+                hide_nav_css = (
+                    '<style>'
+                    '@media(min-width:861px){'
+                    'body>nav{display:none!important;}'
+                    '}'
+                    '</style>\n'
+                )
+                if '</head>' in content:
+                    content = content.replace('</head>', hide_nav_css + '</head>', 1)
+                # Injecter sidebar.js avant </body>
+                sidebar_script = '<script src="/static/sidebar.js"></script>\n'
+                if '/static/sidebar.js' not in content and '</body>' in content:
+                    content = content.replace('</body>', sidebar_script + '</body>', 1)
+            else:
+                # Pages sans sidebar : garder le fix nav-links mobile uniquement
+                mobile_nav_fix = (
+                    '<script>'
+                    '(function(){'
+                    'var nl=document.querySelector(".nav-links");'
+                    'if(!nl)return;'
+                    'var _obs=new MutationObserver(function(){});'
+                    '})();'
+                    '</script>\n'
+                )
+                if '</body>' in content:
+                    content = content.replace('</body>', mobile_nav_fix + '</body>', 1)
+
             body = content.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -942,7 +1253,7 @@ function filter(type, btn) {{
             rel = path[len("/static/"):]
             self.send_static(STATIC_DIR / rel); return
 
-        # ── JS communs (chatbot, etc.) ────────────────────────────────────────
+        # ── JS communs ───────────────────────────────────────────────────────────
         if path.endswith(".js") and not path.startswith("/api"):
             self.send_static(STATIC_DIR / path.lstrip("/")); return
 
@@ -953,7 +1264,7 @@ function filter(type, btn) {{
         # ── Logout ────────────────────────────────────────────────────────────
         if path == "/logout":
             token = get_session_token(self.headers)
-            if token: SESSIONS.pop(token, None)
+            if token: db.delete_session(token)
             self.send_response(302)
             self.send_header("Set-Cookie", "session=; Max-Age=0; Path=/")
             self.send_header("Location", "/login")
@@ -1038,9 +1349,20 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "cheques.html"); return
         if path == "/historique-factures":
             self.send_html(STATIC_DIR / "historique_factures.html"); return
+        if path == "/facture-libre":
+            self.send_html(STATIC_DIR / "facture_libre.html"); return
+        if path == "/devis":
+            self.send_html(STATIC_DIR / "devis.html"); return
+        if path == "/historique-devis":
+            self.send_html(STATIC_DIR / "historique_devis.html"); return
+        if path == "/clients":
+            self.send_html(STATIC_DIR / "clients.html"); return
         if path == "/catalogue":
             self.send_html(STATIC_DIR / "catalogue.html"); return
-
+        if path == "/historique-activite":
+            self.send_html(STATIC_DIR / "historique_activite.html"); return
+        if path == "/galerie":
+            self.send_html(STATIC_DIR / "galerie.html"); return
         # ── API articles ──────────────────────────────────────────────────────
         if path == "/api/articles":
             self.send_json(load_articles()); return
@@ -1081,8 +1403,10 @@ function filter(type, btn) {{
             stats = calc_stats(articles)
             today = datetime.now().strftime("%Y-%m-%d")
             ventes_today = [v for v in ventes if (v.get("date_vente") or "").startswith(today)]
-            stats["nb_ventes_total"] = len(ventes)
-            stats["nb_ventes_today"] = len(ventes_today)
+            stats["nb_ventes_total"] = _nb_sessions(ventes)
+            stats["nb_articles_vendus_total"] = len(ventes)
+            stats["nb_ventes_today"] = _nb_sessions(ventes_today)
+            stats["nb_articles_vendus_today"] = len(ventes_today)
             stats["ca_today"] = round(sum(v.get("pv") or 0 for v in ventes_today), 0)
             stats["benef_today"] = round(sum(v.get("benef") or 0 for v in ventes_today), 0)
             stats["ca_total"] = round(sum(v.get("pv") or 0 for v in ventes), 0)
@@ -1201,14 +1525,354 @@ function filter(type, btn) {{
         if path == "/api/factures":
             self.send_json(load_factures()); return
 
+        # ── API devis ─────────────────────────────────────────────────────────
+        if path == "/api/devis":
+            self.send_json(load_devis()); return
+
+        # ── API clients (dossier client) ──────────────────────────────────────
+        if path == "/api/clients":
+            ventes   = load_ventes()
+            credits  = load_credits()
+            factures = load_factures()
+            cheques  = load_cheques()
+            # Agréger par client (clé normalisée = minuscules sans espaces superflus)
+            clients_map = {}   # key = nom_low (str normalisé)
+            nom_display = {}   # key = nom_low → nom d'affichage (première occurrence la plus propre)
+            def _ck(name):
+                return (name or "").strip().lower()
+            def _best_display(existing, new_name):
+                # Préférer la version avec des majuscules (title case) sur tout-minuscules
+                n = (new_name or "").strip()
+                if not n: return existing
+                if not existing: return n
+                # Prendre celle qui a le plus de majuscules (= mieux formatée)
+                if sum(1 for c in n if c.isupper()) > sum(1 for c in existing if c.isupper()):
+                    return n
+                return existing
+            for v in ventes:
+                raw = (v.get("client") or "").strip()
+                c = raw.lower()
+                if not c: continue
+                nom_display[c] = _best_display(nom_display.get(c,""), raw)
+                if c not in clients_map:
+                    clients_map[c] = {"nom": nom_display[c], "telephone": v.get("telephone","") or "", "nb_achats": 0, "ca_total": 0, "benef_total": 0, "derniere_visite": "", "ventes": [], "factures": [], "credits": [], "cheques": []}
+                e = clients_map[c]
+                e["nom"] = nom_display[c]
+                e["nb_achats"] += 1
+                e["ca_total"]  += v.get("pv") or 0
+                e["benef_total"] += v.get("benef") or 0
+                dv = (v.get("date_vente") or "")[:10]
+                if dv > e["derniere_visite"]: e["derniere_visite"] = dv
+                if not e["telephone"] and v.get("telephone"): e["telephone"] = v["telephone"]
+                e["ventes"].append(v)
+            for f in factures:
+                raw = (f.get("client") or "").strip()
+                c = raw.lower()
+                if not c: continue
+                nom_display[c] = _best_display(nom_display.get(c,""), raw)
+                if c in clients_map:
+                    clients_map[c]["nom"] = nom_display[c]
+                    clients_map[c]["factures"].append(f)
+                else:
+                    clients_map[c] = {"nom": nom_display[c], "telephone": f.get("telephone","") or "", "nb_achats": 0, "ca_total": 0, "benef_total": 0, "derniere_visite": (f.get("date") or "")[:10], "ventes": [], "factures": [f], "credits": [], "cheques": []}
+            for cr in credits:
+                raw = (cr.get("client") or "").strip()
+                c = raw.lower()
+                if c in clients_map:
+                    nom_display[c] = _best_display(nom_display.get(c,""), raw)
+                    clients_map[c]["nom"] = nom_display[c]
+                    clients_map[c]["credits"].append(cr)
+            for ch in cheques:
+                raw = (ch.get("client") or "").strip()
+                c = raw.lower()
+                if c in clients_map:
+                    nom_display[c] = _best_display(nom_display.get(c,""), raw)
+                    clients_map[c]["nom"] = nom_display[c]
+                    clients_map[c]["cheques"].append(ch)
+            result = sorted(clients_map.values(), key=lambda x: x["ca_total"], reverse=True)
+            # Retirer les listes détaillées pour la liste (trop lourd)
+            summary = [{k: v for k, v in cl.items() if k not in ("ventes","factures","credits","cheques")} for cl in result]
+            for i, cl in enumerate(result):
+                summary[i]["credit_restant"] = sum(c.get("reste",0) for c in cl["credits"] if c.get("statut") != "solde")
+                summary[i]["nb_factures"]    = len(cl["factures"])
+            self.send_json(summary); return
+
+        if path.startswith("/api/clients/"):
+            nom = urllib.parse.unquote(path.split("/api/clients/")[1])
+            ventes   = load_ventes()
+            credits  = load_credits()
+            factures = load_factures()
+            cheques  = load_cheques()
+            nom_low  = nom.strip().lower()
+            detail = {
+                "nom": nom,
+                "ventes":   [v for v in ventes   if (v.get("client") or "").strip().lower() == nom_low],
+                "factures": [f for f in factures  if (f.get("client") or "").strip().lower() == nom_low],
+                "credits":  [c for c in credits   if (c.get("client") or "").strip().lower() == nom_low],
+                "cheques":  [ch for ch in cheques if (ch.get("client") or "").strip().lower() == nom_low],
+            }
+            detail["ca_total"]      = sum(v.get("pv",0) or 0 for v in detail["ventes"])
+            detail["benef_total"]   = sum(v.get("benef",0) or 0 for v in detail["ventes"])
+            detail["credit_restant"]= sum(c.get("reste",0) for c in detail["credits"] if c.get("statut") != "solde")
+            detail["telephone"]     = next((v.get("telephone") for v in detail["ventes"] if v.get("telephone")), "")
+            self.send_json(detail); return
+
+        # ── Backup complet ────────────────────────────────────────────────────
+        if path == "/api/backup":
+            backup = {
+                "date": datetime.now().isoformat(),
+                "articles": load_articles(),
+                "ventes": load_ventes(),
+                "credits": load_credits(),
+                "factures": load_factures(),
+                "cheques": load_cheques(),
+                "fournisseurs": load_fournisseurs(),
+            }
+            body = json.dumps(backup, ensure_ascii=False, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Disposition", f"attachment; filename=backup_trabelsi_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(body); return
+
+        # ── Export CSV ────────────────────────────────────────────────────────
+        if path == "/api/export/ventes":
+            qs = urllib.parse.parse_qs(parsed.query)
+            date_from = qs.get("from", [""])[0]
+            date_to   = qs.get("to",   [""])[0]
+            ventes = load_ventes()
+            if date_from: ventes = [v for v in ventes if (v.get("date_vente") or "") >= date_from]
+            if date_to:   ventes = [v for v in ventes if (v.get("date_vente") or "") <= date_to]
+            buf = io.StringIO()
+            w = csv.writer(buf, delimiter=";")
+            w.writerow(["Date vente","Date achat","Réf","Article","OR (grs)","PA","PV","Bénéfice","Client","Mode paiement","Commentaire","Source"])
+            for v in sorted(ventes, key=lambda x: x.get("date_vente") or "", reverse=True):
+                w.writerow([
+                    v.get("date_vente",""), v.get("date_achat",""), v.get("ref",""),
+                    v.get("article",""), v.get("or_grs",""), v.get("pa",""),
+                    v.get("pv",""), v.get("benef",""), v.get("client",""),
+                    v.get("mode_paiement",""), v.get("commentaire",""), v.get("source","")
+                ])
+            body = ("﻿" + buf.getvalue()).encode("utf-8")
+            fname = f"ventes_trabelsi_{datetime.now().strftime('%Y%m%d')}.csv"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv; charset=utf-8")
+            self.send_header("Content-Disposition", f"attachment; filename={fname}")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body); return
+
+        if path == "/api/export/stock":
+            articles = load_articles()
+            buf = io.StringIO()
+            w = csv.writer(buf, delimiter=";")
+            w.writerow(["Réf","Date","Article","OR (grs)","PA","Diamants","Émeraudes","Rubis","Saphirs","EM.CLB","Perles","Fabricant","Quantité","Note"])
+            for a in articles:
+                w.writerow([
+                    a.get("id",""), a.get("date",""), a.get("article",""),
+                    a.get("or_grs",""), a.get("pa",""), a.get("d",""),
+                    a.get("em",""), a.get("r",""), a.get("s",""),
+                    a.get("em_clb",""), a.get("perles",""), a.get("fabricant",""),
+                    a.get("quantite",1), a.get("note","")
+                ])
+            body = ("﻿" + buf.getvalue()).encode("utf-8")
+            fname = f"stock_trabelsi_{datetime.now().strftime('%Y%m%d')}.csv"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv; charset=utf-8")
+            self.send_header("Content-Disposition", f"attachment; filename={fname}")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body); return
+
+        if path == "/api/export/credits":
+            credits = load_credits()
+            buf = io.StringIO()
+            w = csv.writer(buf, delimiter=";")
+            w.writerow(["ID","Client","Contact","Date achat","Article","Montant total","Reste","Statut","Note"])
+            for c in credits:
+                w.writerow([
+                    c.get("id",""), c.get("client",""), c.get("contact",""),
+                    c.get("date_achat",""), c.get("article",""), c.get("montant_total",""),
+                    c.get("reste",""), c.get("statut",""), c.get("note","")
+                ])
+            body = ("﻿" + buf.getvalue()).encode("utf-8")
+            fname = f"credits_trabelsi_{datetime.now().strftime('%Y%m%d')}.csv"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv; charset=utf-8")
+            self.send_header("Content-Disposition", f"attachment; filename={fname}")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body); return
+
         # ── API notifs Ismail ─────────────────────────────────────────────────
         if path == "/api/notifs":
             notifs = [n for n in load_notifs() if not n.get("dismissed")]
+            # Alertes stock faible (quantite = 1) — générées dynamiquement
+            articles = load_articles()
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            for a in articles:
+                qty = int(a.get("quantite") or 1)
+                if qty == 1:
+                    ref = a.get("id")
+                    # Vérifier si une notif stock_faible non-dismissed existe déjà pour cet article
+                    already = any(
+                        n.get("type") == "stock_faible" and n.get("ref") == ref
+                        for n in notifs
+                    )
+                    if not already:
+                        notifs.append({
+                            "id": f"sf_{ref}",
+                            "type": "stock_faible",
+                            "date": today_str,
+                            "ref": ref,
+                            "article": a.get("article", ""),
+                            "client": None,
+                            "dismissed": False,
+                        })
             self.send_json(notifs); return
 
         # ── API config (prix de l'or) ─────────────────────────────────────────
         if path == "/api/config":
             self.send_json(load_config()); return
+
+        # ── API Historique d'activité ─────────────────────────────────────────
+        if path == "/api/historique":
+          try:
+            qs = urllib.parse.parse_qs(parsed.query)
+            date_from = qs.get("from", [""])[0]
+            date_to   = qs.get("to",   [""])[0]
+
+            def in_range(d):
+                if not d: return False
+                d = str(d)[:10]
+                if date_from and d < date_from: return False
+                if date_to   and d > date_to:   return False
+                return True
+
+            def fmt_mad(v):
+                try: return f"{int(float(v or 0)):,}".replace(",", " ") + " MAD"
+                except: return "— MAD"
+
+            events = []
+
+            # Identifier les ventes liées à un crédit (client + date uniquement)
+            credit_keys = set()
+            for c in load_credits():
+                key = (
+                    str(c.get("client") or "").strip().lower(),
+                    str(c.get("date_achat") or "")[:10],
+                )
+                credit_keys.add(key)
+
+            # Ventes
+            for v in load_ventes():
+                d = str(v.get("date_vente") or "")[:10]
+                if in_range(d):
+                    source    = v.get("source") or "stock"
+                    pv        = float(v.get("pv") or 0)
+                    benef     = float(v.get("benef") or 0)
+                    ref_val   = v.get("ref")
+                    # Vente libre = source "libre" OU ref=0 (article hors stock)
+                    is_libre  = (source == "libre") or (str(ref_val) == "0") or (ref_val == 0)
+                    vkey   = (
+                        str(v.get("client") or "").strip().lower(),
+                        d,
+                    )
+                    direct = vkey not in credit_keys
+                    if is_libre:
+                        enc_amount = benef          # vente libre → seulement le bénéfice
+                    elif direct:
+                        enc_amount = pv             # vente stock payée cash → PV complet
+                    else:
+                        enc_amount = 0              # sur crédit → compté via paiements crédit
+                    events.append({"date": d, "type": "vente",
+                        "titre": f"Vente #{ref_val} — {v.get('article') or '—'}",
+                        "detail": f"PV : {fmt_mad(pv)}" + (f" · Bénéf : {fmt_mad(benef)}" if is_libre else ""),
+                        "montant": pv, "ref": ref_val,
+                        "client": v.get("client") or "—",
+                        "article": v.get("article") or "—",
+                        "enc_amount": enc_amount})
+
+            # Articles ajoutés au stock
+            for a in load_articles():
+                d = str(a.get("date") or "")[:10]
+                if in_range(d):
+                    events.append({"date": d, "type": "stock",
+                        "titre": f"Article ajouté #{a.get('id')} — {a.get('article') or '—'}",
+                        "detail": f"OR : {a.get('or_grs') or '—'} grs · PA : {fmt_mad(a.get('pa'))}",
+                        "montant": None, "ref": a.get("id")})
+
+            # Crédits ouverts + paiements
+            for c in load_credits():
+                date_achat = str(c.get("date_achat") or "")[:10]
+                if in_range(date_achat):
+                    events.append({"date": date_achat, "type": "credit_ouvert",
+                        "titre": f"Crédit ouvert — {c.get('client') or '—'}",
+                        "detail": f"Montant : {fmt_mad(c.get('montant_total'))} · Art. : {c.get('article') or '—'}",
+                        "montant": c.get("montant_total"), "ref": c.get("id")})
+                for p in (c.get("paiements") or []):
+                    d = str(p.get("date") or "")[:10]
+                    if in_range(d):
+                        same_day = (d == date_achat)
+                        events.append({"date": d, "type": "credit_paiement",
+                            "titre": f"Paiement crédit — {c.get('client') or '—'}",
+                            "detail": f"Versement : {fmt_mad(p.get('montant'))} · Mode : {p.get('mode') or '—'}",
+                            "montant": p.get("montant"), "ref": c.get("id"),
+                            "hidden": same_day})
+
+            # Chèques introduits + encaissés
+            for ch in load_cheques():
+                d = str(ch.get("created_at") or ch.get("date_cheque") or "")[:10]
+                if in_range(d):
+                    events.append({"date": d, "type": "cheque_intro",
+                        "titre": f"Chèque introduit — {ch.get('client') or '—'}",
+                        "detail": f"Montant : {fmt_mad(ch.get('montant'))} · Banque : {ch.get('banque') or '—'}",
+                        "montant": ch.get("montant"), "ref": ch.get("id")})
+                nb = max(int(ch.get("nb_cheques") or 1), 1)
+                montant_unit = (ch.get("montant") or 0) / nb
+                for de in (ch.get("dates_encaissement") or []):
+                    d = str(de or "")[:10]
+                    if in_range(d):
+                        events.append({"date": d, "type": "cheque_encaisse",
+                            "titre": f"Chèque encaissé — {ch.get('client') or '—'}",
+                            "detail": f"Montant : {fmt_mad(montant_unit)} · Banque : {ch.get('banque') or '—'}",
+                            "montant": montant_unit, "ref": ch.get("id")})
+
+            # Factures
+            for fac in load_factures():
+                d = str(fac.get("date") or "")[:10]
+                if in_range(d):
+                    events.append({"date": d, "type": "facture",
+                        "titre": f"Facture — {fac.get('client') or '—'}",
+                        "detail": f"N° {fac.get('numero') or '—'} · Total : {fmt_mad(fac.get('total'))}",
+                        "montant": fac.get("total"), "ref": fac.get("id")})
+
+            # Devis
+            for dv in load_devis():
+                d = str(dv.get("date_devis") or "")[:10]
+                if in_range(d):
+                    events.append({"date": d, "type": "devis",
+                        "titre": f"Devis — {dv.get('client') or '—'}",
+                        "detail": f"Total : {fmt_mad(dv.get('total_initial'))}",
+                        "montant": dv.get("total_initial"), "ref": dv.get("id")})
+
+            # Paiements fournisseurs
+            for fo in load_fournisseurs():
+                for p in (fo.get("paiements") or []):
+                    d = str(p.get("date") or "")[:10]
+                    if in_range(d):
+                        events.append({"date": d, "type": "fournisseur",
+                            "titre": f"Paiement fournisseur — {fo.get('fournisseur') or '—'}",
+                            "detail": f"Versement : {fmt_mad(p.get('montant'))} · Mode : {p.get('mode') or '—'}",
+                            "montant": p.get("montant"), "ref": fo.get("id")})
+
+            events.sort(key=lambda e: e.get("date") or "", reverse=True)
+            self.send_json(events); return
+          except Exception as e:
+            import traceback; traceback.print_exc()
+            self.send_json({"error": str(e)}, 500); return
 
         self.send_response(404)
         self.end_headers()
@@ -1220,6 +1884,10 @@ function filter(type, btn) {{
 
         # ── Login ─────────────────────────────────────────────────────────────
         if path == "/api/login":
+            ip = _get_client_ip(self.headers)
+            blocked, secs = _check_brute_force(ip)
+            if blocked:
+                self.send_json({"error": f"Trop de tentatives. Réessayez dans {secs//60+1} min."}, 429); return
             try:
                 data = json.loads(body)
             except:
@@ -1230,14 +1898,21 @@ function filter(type, btn) {{
             elif pwd == MOT_DE_PASSE_EMPLOYE:
                 role = "employe"
             else:
+                _record_failed_login(ip)
                 self.send_json({"error": "Mot de passe incorrect"}, 401); return
+            _reset_login_attempts(ip)
             token = secrets.token_hex(32)
-            SESSIONS[token] = role
+            db.create_session(token, role)
+            db.cleanup_old_sessions(72)  # nettoyage sessions > 72h
             # Employé → redirige vers /fiche après login
             redirect = "/fiche" if role == "employe" else "/accueil"
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
-            self.send_header("Set-Cookie", f"session={token}; Path=/; HttpOnly; SameSite=Strict")
+            # Ajouter Secure si on est en HTTPS (Railway/production)
+            is_https = (self.headers.get("X-Forwarded-Proto") == "https"
+                        or bool(os.environ.get("RAILWAY_ENVIRONMENT")))
+            secure_flag = "; Secure" if is_https else ""
+            self.send_header("Set-Cookie", f"session={token}; Path=/; HttpOnly; SameSite=Strict{secure_flag}")
             self.end_headers()
             self.wfile.write(json.dumps({"success": True, "redirect": redirect, "role": role}).encode())
             return
@@ -1321,6 +1996,7 @@ function filter(type, btn) {{
                     "client": str(data.get("client", "")).strip(),
                     "telephone": str(data.get("telephone", "")).strip(),
                     "mode_paiement": str(data.get("mode_paiement", "")).strip(),
+                    "avance": float(data["avance"]) if data.get("avance") not in (None, "") else None,
                     "commentaire": str(data.get("note", "")).strip(),
                 }
                 # Soustraire le poids vendu du stock
@@ -1335,6 +2011,7 @@ function filter(type, btn) {{
                 ventes = load_ventes()
                 ventes.append(vente)
                 save_ventes(ventes)
+                merge_duplicate_factures(); auto_generate_missing_factures()
                 if article.get("ismail_pierres"):
                     add_notif_ismail(article, vente["client"], article["id"])
                 self.send_json({"success": True, "vente": vente, "poids_vendu": poids_vendu,
@@ -1368,16 +2045,120 @@ function filter(type, btn) {{
                     "client": str(data.get("client", "")).strip(),
                     "telephone": str(data.get("telephone", "")).strip(),
                     "mode_paiement": str(data.get("mode_paiement", "")).strip(),
+                    "avance": float(data["avance"]) if data.get("avance") not in (None, "") else None,
                     "commentaire": str(data.get("note", "")).strip(),
                 }
-                articles.pop(idx)
+                qty = int(articles[idx].get("quantite") or 1)
+                if qty > 1:
+                    articles[idx]["quantite"] = qty - 1
+                else:
+                    articles.pop(idx)
                 save_articles(articles)
                 ventes = load_ventes()
                 ventes.append(vente)
                 save_ventes(ventes)
+                merge_duplicate_factures(); auto_generate_missing_factures()
                 if article.get("ismail_pierres"):
                     add_notif_ismail(article, vente["client"], article["id"])
                 self.send_json({"success": True, "vente": vente}); return
+
+        # ── Vente / Facture manuelle (hors stock) ────────────────────────────
+        if path == "/api/ventes/manuel":
+            lignes = data.get("articles", [])
+            if not lignes:
+                self.send_json({"error": "Au moins un article requis"}, 400); return
+            client  = str(data.get("client", "")).strip()
+            tel     = str(data.get("telephone", "")).strip()
+            note    = str(data.get("note", "")).strip()
+            mode    = str(data.get("mode_paiement", "")).strip()
+            now     = datetime.now()
+            date_v  = str(data.get("date_vente") or now.strftime("%Y-%m-%d")).strip()
+            try: datetime.strptime(date_v, "%Y-%m-%d")
+            except: date_v = now.strftime("%Y-%m-%d")
+
+            ventes = load_ventes()
+            new_ventes = []
+            fac_articles = []
+            total_pv = 0.0
+            or_total = 0.0
+
+            for i, ligne in enumerate(lignes):
+                pv   = float(ligne.get("pv") or 0)
+                pa   = float(ligne.get("pa") or 0)
+                benef = round(pv - pa, 2)
+                or_grs = float(ligne.get("or_grs") or 0)
+                id_v = int(now.timestamp() * 1000) + i
+                v = {
+                    "id_vente": id_v,
+                    "date_achat": date_v,
+                    "date_vente": date_v,
+                    "ref": 0,
+                    "article": str(ligne.get("article","")).strip() or "Article",
+                    "or_grs": or_grs or None,
+                    "vente_au_poids": False,
+                    "prix_or_achat": None,
+                    "pa": pa or None,
+                    "d":  float(ligne["d"])  if ligne.get("d")  else None,
+                    "em": float(ligne["em"]) if ligne.get("em") else None,
+                    "r":  float(ligne["r"])  if ligne.get("r")  else None,
+                    "s":  float(ligne["s"])  if ligne.get("s")  else None,
+                    "p_fines": None, "rosaces": None,
+                    "em_clb": float(ligne["em_clb"]) if ligne.get("em_clb") else None,
+                    "perles": float(ligne["perles"]) if ligne.get("perles") else None,
+                    "pv": pv,
+                    "benef": benef,
+                    "client": client,
+                    "telephone": tel,
+                    "mode_paiement": mode,
+                    "commentaire": note,
+                    "source": "libre",
+                }
+                new_ventes.append(v)
+                fac_articles.append({
+                    "ref": 0, "article": v["article"], "pv": pv,
+                    "or_grs": or_grs,
+                    "d": v["d"], "em": v["em"], "r": v["r"], "s": v["s"],
+                    "em_clb": v["em_clb"], "perles": v["perles"],
+                })
+                total_pv += pv
+                or_total += or_grs
+
+            ventes.extend(new_ventes)
+            save_ventes(ventes)
+
+            # Créer la facture automatiquement
+            factures = load_factures()
+            annee = now.strftime("%Y")
+            num_existants = [f.get("numero","") for f in factures if f.get("numero","").startswith(f"FAC-{annee}-")]
+            max_seq = 0
+            for n in num_existants:
+                try: max_seq = max(max_seq, int(n.split("-")[-1]))
+                except: pass
+            numero = f"FAC-{annee}-{str(max_seq+1).zfill(4)}"
+
+            # Prix global ?
+            prix_global = int(bool(data.get("prix_global")))
+            total_global = float(data.get("total_global") or 0)
+
+            facture = {
+                "id": int(now.timestamp() * 1000) + 9999,
+                "numero": numero,
+                "client": client,
+                "telephone": tel,
+                "email": None, "ville": None,
+                "articles": fac_articles,
+                "total": total_global if prix_global and total_global > 0 else total_pv,
+                "avance": float(data.get("avance") or 0),
+                "mode_paiement": mode,
+                "note": note,
+                "date": date_v,
+                "created_at": now.isoformat(),
+                "prix_global": prix_global,
+                "total_global": total_global,
+            }
+            factures.append(facture)
+            save_factures(factures)
+            self.send_json({"success": True, "facture": facture, "nb_ventes": len(new_ventes)}); return
 
         # ── Créer un crédit client ────────────────────────────────────────────
         if path == "/api/credits":
@@ -1557,6 +2338,9 @@ function filter(type, btn) {{
                 except: pass
             numero = data.get("numero") or f"FAC-{annee}-{str(max_seq+1).zfill(4)}"
             new_id = int(now.timestamp() * 1000)
+            source = str(data.get("source", "")).strip()
+            date_vente = str(data.get("date_vente") or now.strftime("%Y-%m-%d")).strip()
+            total_val = float(data.get("total_global") or data.get("total") or 0)
             facture = {
                 "id": new_id,
                 "numero": numero,
@@ -1565,16 +2349,71 @@ function filter(type, btn) {{
                 "email": str(data.get("email", "")).strip() or None,
                 "ville": str(data.get("ville", "")).strip() or None,
                 "articles": data.get("articles", []),
-                "total": float(data.get("total") or 0),
+                "total": total_val,
                 "avance": float(data.get("avance") or 0),
                 "mode_paiement": str(data.get("mode_paiement", "")).strip() or None,
                 "note": str(data.get("note", "")).strip(),
-                "date": now.strftime("%Y-%m-%d"),
+                "date": date_vente,
                 "created_at": now.isoformat(),
+                "source": source,
+                "vente_validee": False,
+                "prix_global": int(data.get("prix_global") or 0),
+                "total_global": float(data.get("total_global") or 0),
             }
             factures.append(facture)
             save_factures(factures)
             self.send_json({"success": True, "facture": facture}); return
+
+        # ── Valider une facture libre comme vente ───────────────────────
+        if path.startswith("/api/factures/") and path.endswith("/valider"):
+            try:
+                fac_id = int(path.split("/")[-2])
+                factures = load_factures()
+                idx = next((i for i, f in enumerate(factures) if f["id"] == fac_id), None)
+                if idx is None:
+                    self.send_json({"error": "Facture introuvable"}, 404); return
+                fac = factures[idx]
+                if fac.get("vente_validee"):
+                    self.send_json({"error": "Déjà validée"}); return
+                # Créer les ventes
+                ventes = load_ventes()
+                now2 = datetime.now()
+                client = fac.get("client", "")
+                date_v = fac.get("date") or now2.strftime("%Y-%m-%d")
+                new_ventes = []
+                for i, a in enumerate(fac.get("articles", [])):
+                    pv  = float(a.get("pv") or 0)
+                    pa  = float(a.get("pa") or 0)
+                    new_ventes.append({
+                        "id_vente": int(now2.timestamp() * 1000) + i,
+                        "date_achat": date_v, "date_vente": date_v,
+                        "ref": 0,
+                        "article": str(a.get("article") or "—"),
+                        "or_grs": float(a.get("or_grs") or 0) or None,
+                        "vente_au_poids": False, "prix_or_achat": None,
+                        "pa": pa or None,
+                        "d":  float(a["d"])  if a.get("d")  else None,
+                        "em": float(a["em"]) if a.get("em") else None,
+                        "r":  float(a["r"])  if a.get("r")  else None,
+                        "s":  float(a["s"])  if a.get("s")  else None,
+                        "p_fines": None, "rosaces": None,
+                        "em_clb": float(a["em_clb"]) if a.get("em_clb") else None,
+                        "perles": float(a["perles"]) if a.get("perles") else None,
+                        "pv": pv, "benef": round(pv - pa, 2),
+                        "client": client,
+                        "telephone": fac.get("telephone") or "",
+                        "mode_paiement": fac.get("mode_paiement") or "",
+                        "commentaire": fac.get("note") or "",
+                        "source": "libre",
+                    })
+                ventes.extend(new_ventes)
+                save_ventes(ventes)
+                # Marquer la facture comme validée
+                factures[idx]["vente_validee"] = True
+                save_factures(factures)
+                self.send_json({"success": True, "ventes_creees": len(new_ventes)}); return
+            except Exception as e:
+                self.send_json({"error": str(e)}, 400); return
 
         # ── Upload photo article ────────────────────────────────────────
         if path == "/api/photo/upload":
@@ -1595,6 +2434,25 @@ function filter(type, btn) {{
                 self.send_json({"success": True}); return
             except Exception as e:
                 self.send_json({"error": str(e)}, 400); return
+
+        # ── Enregistrer un devis ─────────────────────────────────────────────
+        if path == "/api/devis":
+            client = str(data.get("client","")).strip()
+            if not client:
+                self.send_json({"error": "Client requis"}, 400); return
+            now = datetime.now()
+            item = {
+                "client":        client,
+                "telephone":     str(data.get("telephone","")).strip(),
+                "date_devis":    str(data.get("date_devis") or now.strftime("%Y-%m-%d")),
+                "articles":      data.get("articles", []),
+                "total_initial": float(data.get("total_initial") or 0),
+                "total_reduit":  float(data.get("total_reduit") or 0),
+                "note":          str(data.get("note","")).strip(),
+                "created_at":    now.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            devis_id = insert_devis(item)
+            self.send_json({"success": True, "id": devis_id}); return
 
         # ── Chatbot ───────────────────────────────────────────────────────────
         if path == "/api/chat":
@@ -1669,9 +2527,11 @@ function filter(type, btn) {{
                     self.send_json({"error": "Vente introuvable"}, 404); return
                 # Mettre à jour seulement les champs éditables
                 v = ventes[idx]
+                if "pa" in data and data["pa"] not in (None, ""):
+                    v["pa"] = float(data["pa"])
                 if "pv" in data and data["pv"] not in (None, ""):
                     v["pv"] = float(data["pv"])
-                    v["benef"] = round(v["pv"] - (v.get("pa") or 0), 2)
+                v["benef"] = round((v.get("pv") or 0) - (v.get("pa") or 0), 2)
                 if "client" in data:
                     v["client"] = str(data["client"]).strip()
                 if "commentaire" in data:
@@ -1783,6 +2643,27 @@ function filter(type, btn) {{
                 cheques[idx] = c
                 save_cheques(cheques)
                 self.send_json({"success": True, "cheque": c}); return
+            except Exception as e:
+                self.send_json({"error": str(e)}, 400); return
+
+        # ── Modifier une facture (prix global, avance) ────────────────────────
+        if path.startswith("/api/factures/"):
+            try:
+                id_facture = int(path.split("/")[-1])
+                factures = load_factures()
+                idx = next((i for i, f in enumerate(factures) if f["id"] == id_facture), None)
+                if idx is None:
+                    self.send_json({"error": "Facture introuvable"}, 404); return
+                f = factures[idx]
+                if "prix_global" in data:
+                    f["prix_global"] = int(bool(data["prix_global"]))
+                if "total_global" in data and data["total_global"] not in (None, ""):
+                    f["total_global"] = float(data["total_global"])
+                if "avance" in data and data["avance"] not in (None, ""):
+                    f["avance"] = float(data["avance"])
+                factures[idx] = f
+                save_factures(factures)
+                self.send_json({"success": True, "facture": f}); return
             except Exception as e:
                 self.send_json({"error": str(e)}, 400); return
 
@@ -1898,6 +2779,15 @@ function filter(type, btn) {{
             except:
                 self.send_json({"error": "ID invalide"}, 400); return
 
+        # ── Supprimer un devis ────────────────────────────────────────────────
+        if path.startswith("/api/devis/"):
+            try:
+                devis_id = int(path.split("/")[-1])
+                delete_devis(devis_id)
+                self.send_json({"success": True}); return
+            except:
+                self.send_json({"error": "ID invalide"}, 400); return
+
         # ── Rejeter (dismiss) une notif Ismail ────────────────────────────────
         if path.startswith("/api/notifs/"):
             try:
@@ -1941,8 +2831,15 @@ def backup_loop():
             time.sleep(3600)  # toutes les heures
 
 if __name__ == "__main__":
+    # Synchroniser la DB depuis R2 avant tout (source de vérité unique)
+    db.DATA_DIR.mkdir(parents=True, exist_ok=True)
+    download_db_from_r2()
     # Initialiser la base de données SQLite (migration JSON → SQLite au premier lancement)
     db.init_db()
+    # 1. Fusionner les factures dupliquées (même client + même jour → une seule)
+    merge_duplicate_factures()
+    # 2. Générer les factures manquantes pour les ventes qui n'en ont pas
+    merge_duplicate_factures(); auto_generate_missing_factures()
 
     is_cloud = bool(os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("RENDER"))
 
@@ -1953,6 +2850,10 @@ if __name__ == "__main__":
     print(f"  Mode    : {'☁️  Cloud' if is_cloud else '💻 Local'}")
     if not is_cloud:
         print(f"  Appuie sur Ctrl+C pour arrêter")
+    print("=" * 50)
+    if MOT_DE_PASSE_ADMIN in ("7868", "1234", "0000", "admin", ""):
+        print("⚠️  SÉCURITÉ : Mot de passe admin trop simple !")
+        print("    → Changez MOT_DE_PASSE_ADMIN dans Railway Variables")
     print("=" * 50)
 
     os.chdir(STATIC_DIR)

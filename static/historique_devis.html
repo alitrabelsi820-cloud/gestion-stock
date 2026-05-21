@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Historique Devis — TRABELSI</title>
+<style>
+:root{
+  --gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;
+  --bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;
+  --txt:#1a1612;--muted:#9a8e7e;
+  --green:#2ecc71;--red:#e74c3c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;text-decoration:none;color:inherit;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;}
+.nav-links a:hover{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+.hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);padding:6px 10px;}
+.nav-logout-btn{padding:7px 14px;border-radius:8px;background:transparent;border:1px solid rgba(231,76,60,.25);color:#c0392b;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;}
+@media(max-width:860px){
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:fixed;top:69px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 14px 16px;gap:2px;z-index:98;box-shadow:0 8px 28px rgba(0,0,0,.14);border-top:2px solid rgba(201,168,76,.25);}
+  .nav-links.nav-open{display:flex;}
+  .nav-links a{padding:11px 16px;font-size:14px;border-radius:10px;}
+}
+.nav-dropdown{position:relative;display:inline-block;}
+.nav-drop-btn{padding:8px 14px;border-radius:8px;border:none;background:transparent;color:#6a6058;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;}
+.nav-drop-btn:hover,.nav-drop-btn.active{color:var(--gold);background:rgba(201,168,76,.08);}
+.nav-drop-btn.active{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.25);}
+.nav-drop-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e8e0d4;border-radius:10px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;overflow:hidden;}
+.nav-dropdown.open .nav-drop-menu{display:block;}
+.nav-drop-menu a{display:block;padding:10px 16px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;transition:background .15s;white-space:nowrap;}
+.nav-drop-menu a:hover{background:rgba(201,168,76,.08);color:var(--gold);}
+@media(max-width:860px){
+  .nav-dropdown{display:block;width:100%;}
+  .nav-drop-btn{width:100%;text-align:left;padding:11px 16px;font-size:14px;border-radius:10px;}
+  .nav-drop-menu{display:none;position:static;box-shadow:none;border:none;background:rgba(201,168,76,.04);border-radius:0;border-left:2px solid rgba(201,168,76,.25);margin:0 0 4px 16px;}
+  .nav-drop-menu a{padding:8px 14px;font-size:13px;}
+}
+.page{max-width:1100px;margin:0 auto;padding:28px 20px 80px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.page-header h1{font-size:22px;color:var(--gold-l);}
+.btn{padding:9px 20px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
+.btn-gold:hover{filter:brightness(1.1);}
+.btn-outline{background:#fff;border:1px solid var(--bd);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-red{background:none;border:1px solid rgba(231,76,60,.3);color:var(--red);border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer;font-weight:600;transition:all .2s;}
+.btn-red:hover{background:rgba(231,76,60,.08);}
+.tbl-wrap{background:#fff;border:1px solid var(--bd);border-radius:14px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:11px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);background:var(--bg3);border-bottom:1px solid var(--bd);}
+tbody td{padding:13px 16px;border-bottom:1px solid rgba(232,224,212,.5);font-size:13px;vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:rgba(201,168,76,.03);}
+.client-name{font-weight:700;color:#1a1612;}
+.client-tel{font-size:11px;color:var(--muted);margin-top:2px;}
+.arts-list{font-size:12px;color:#4a4038;}
+.arts-list span{display:block;}
+.prix-initial{font-size:12px;color:#aaa;text-decoration:line-through;}
+.prix-reduit{font-weight:800;color:var(--gold-l);font-size:14px;}
+.prix-seul{font-weight:700;color:#1a1612;font-size:14px;}
+.date-cell{font-size:12px;color:var(--muted);}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .ico{font-size:48px;opacity:.3;margin-bottom:12px;}
+
+/* ── Modal PDF ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal-shell{background:#f8f5f0;border-radius:14px;width:min(820px,96vw);max-height:94vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.modal-bar{padding:13px 18px;display:flex;align-items:center;gap:8px;background:#fff;border-bottom:1px solid #e8e0d4;flex-wrap:wrap;}
+.modal-title{flex:1;font-size:14px;font-weight:700;color:#7a5c20;}
+.btn-print{background:linear-gradient(135deg,#b8923c,#9a7530);color:#1a1200;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-close-modal{background:none;border:1px solid #e8e0d4;color:#9a8e7e;border-radius:8px;padding:8px 13px;font-size:13px;cursor:pointer;}
+.modal-body{overflow-y:auto;padding:20px;flex:1;}
+
+/* ── Document Devis (même style que devis.html) ── */
+.devis-doc{background:#fff;border-radius:10px;font-family:'Georgia',serif;color:#2c2010;max-width:680px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.12);}
+.dv-header{background:#fff;border-radius:10px 10px 0 0;border-bottom:2px solid #b8923c;}
+.dv-header-inner{padding:22px 28px 20px;display:flex;justify-content:space-between;align-items:flex-start;}
+.dv-brand-name{font-size:28px;font-weight:900;letter-spacing:3px;color:#2c1a00;}
+.dv-brand-sub{font-size:11px;letter-spacing:2px;color:#9a7530;text-transform:uppercase;margin-top:2px;}
+.dv-brand-addr{font-size:11px;color:#7a6040;margin-top:8px;font-family:'Segoe UI',sans-serif;line-height:1.6;}
+.dv-meta{text-align:right;}
+.dv-meta-word{font-size:22px;font-style:italic;color:#9a7530;}
+.dv-meta-date{font-size:11px;color:#7a6040;margin-top:2px;font-family:'Segoe UI',sans-serif;}
+.dv-body-doc{padding:22px 28px;}
+.dv-client-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #e8d9b0;}
+.dv-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#9a8060;margin-bottom:4px;font-family:'Segoe UI',sans-serif;}
+.dv-client-name{font-size:18px;font-weight:700;color:#2c1a00;}
+.dv-client-sub{font-size:12px;color:#7a6040;margin-top:2px;}
+.dv-tbl{width:100%;border-collapse:collapse;margin-bottom:16px;font-family:'Segoe UI',sans-serif;}
+.dv-tbl th{padding:8px 10px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9a8060;border-bottom:1px solid #e8d9b0;}
+.dv-tbl td{padding:10px;border-bottom:1px solid #f0e8d4;vertical-align:top;font-size:12px;}
+.dv-art{font-weight:600;color:#2c1a00;font-size:13px;}
+.dv-price{text-align:right;font-weight:700;color:#2c1a00;white-space:nowrap;}
+.dv-totaux{display:flex;justify-content:flex-end;margin-top:10px;}
+.dv-totaux-box{width:100%;font-family:'Segoe UI',sans-serif;}
+.dv-t-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:5px 0;font-size:12px;color:#7a6040;border-bottom:1px solid #f0e8d4;}
+.dv-t-total{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0 6px;font-size:16px;font-weight:800;color:#2c1a00;border-top:2px solid #b8923c;margin-top:4px;}
+.dv-footer{background:linear-gradient(135deg,#fdf6e8,#f5e6c8);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e8d9b0;border-radius:0 0 10px 10px;}
+.dv-footer-brand{font-style:italic;color:#9a7530;font-size:13px;}
+.dv-conditions{background:#fdf9f0;border-top:1px solid #e8d9b0;padding:14px 28px;font-family:'Segoe UI',sans-serif;}
+.dv-conditions-title{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#9a8060;margin-bottom:6px;}
+.dv-conditions-text{font-size:11px;color:#7a6040;line-height:1.7;}
+@media print{body>*{display:none!important;}#print-zone{display:block!important;position:fixed;inset:0;background:#fff;z-index:9999;overflow:auto;padding:20px;}#print-zone .devis-doc{box-shadow:none;border:none;}}
+</style>
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand">
+    <div class="nav-logo">♦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">Dashboard</a>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">💍 Stock ▾</button>
+      <div class="nav-drop-menu">
+        
+        <a href="/stock">Voir le stock</a>
+        <a href="/ajouter">Ajouter un article</a>
+        <a href="/vendu">Articles vendus</a>
+        <a href="/fiche">Fiche référence</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/catalogue">Catalogue</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn active">💰 Ventes ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/vendu">Ventes</a>
+        <a href="/facture">Factures</a>
+        <a href="/facture-libre">📝 Facture Libre</a>
+        <a href="/devis">📋 Devis</a>
+        <a href="/historique-devis" class="active">🗂 Historique Devis</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">👥 Clients ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/clients">Dossier Clients</a>
+        <a href="/credit">Crédits</a>
+        <a href="/cheques">Chèques</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-drop-btn">⚙️ Gestion ▾</button>
+      <div class="nav-drop-menu">
+        <a href="/fournisseurs">Fournisseurs</a>
+        <a href="/fiche">Fiche</a>
+        <a href="/galerie">📷 Galerie photos</a>
+        <a href="/historique-activite">📅 Historique</a>
+      </div>
+    </div>
+    <a href="/logout" style="color:#c0392b;font-weight:600;" class="mob-logout">⎋ Déco</a>
+  </div>
+  <button class="hamburger" onclick="toggleNav()">☰</button>
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div id="print-zone" style="display:none;"></div>
+
+<div class="page">
+  <div class="page-header">
+    <h1>🗂 Historique des Devis</h1>
+    <a href="/devis" class="btn btn-gold">+ Nouveau Devis</a>
+  </div>
+
+  <div class="tbl-wrap" id="tbl-wrap">
+    <div class="empty-state"><div class="ico">📋</div>Chargement…</div>
+  </div>
+</div>
+
+<!-- Modal PDF -->
+<div id="modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-shell">
+    <div class="modal-bar">
+      <span class="modal-title" id="modal-title">Devis</span>
+      <button class="btn-print" onclick="printModal()">🖨️ Imprimer / PDF</button>
+      <button class="btn-close-modal" onclick="closeModal()">✕ Fermer</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const fmtN = v => v==null||v===0?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+const fmtF = (v,d=2) => Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d});
+const fmtDate = s => s ? (([y,m,d])=>d+'/'+m+'/'+y)(s.substring(0,10).split('-')) : '—';
+
+let allDevis = [];
+
+async function loadDevis() {
+  try {
+    const res = await fetch('/api/devis');
+    allDevis = await res.json();
+    renderTable();
+  } catch(e) {
+    document.getElementById('tbl-wrap').innerHTML = '<div class="empty-state"><div class="ico">⚠️</div>Erreur de chargement.</div>';
+  }
+}
+
+function renderTable() {
+  const wrap = document.getElementById('tbl-wrap');
+  if(!allDevis.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="ico">📋</div>Aucun devis enregistré.<br><a href="/devis" style="color:var(--gold);font-weight:600;margin-top:8px;display:inline-block;">Créer le premier devis →</a></div>';
+    return;
+  }
+  const rows = allDevis.map(d => {
+    const arts = (d.articles||[]).filter(a=>a.article);
+    const artsList = arts.slice(0,3).map(a=>`<span>${a.article}</span>`).join('') + (arts.length>3?`<span style="color:var(--muted)">+${arts.length-3} autres</span>`:'');
+    const hasRed = d.total_reduit > 0 && d.total_reduit !== d.total_initial;
+    const prixCell = d.total_initial > 0
+      ? (hasRed
+          ? `<div class="prix-initial">${fmtN(d.total_initial)} MAD</div><div class="prix-reduit">${fmtN(d.total_reduit)} MAD</div>`
+          : `<div class="prix-seul">${fmtN(d.total_initial)} MAD</div>`)
+      : '<span style="color:var(--muted)">—</span>';
+    return `<tr>
+      <td class="date-cell">${fmtDate(d.date_devis)}<br><span style="font-size:10px;color:#bbb">${(d.created_at||'').substring(0,16)}</span></td>
+      <td><div class="client-name">${d.client||'—'}</div>${d.telephone?`<div class="client-tel">📞 ${d.telephone}</div>`:''}</td>
+      <td><div class="arts-list">${artsList||'—'}</div></td>
+      <td>${prixCell}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;margin-right:6px;" onclick="voirPDF(${d.id})">👁 Voir</button>
+        <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;margin-right:6px;border-color:rgba(46,204,113,.4);color:#27ae60;" onclick="convertirEnVente(${d.id})" title="Convertir en Facture Libre">💰 Vendre</button>
+        <button class="btn-red" onclick="supprimerDevis(${d.id})">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>Date</th><th>Client</th><th>Articles</th><th>Total</th><th>Actions</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function voirPDF(id) {
+  const d = allDevis.find(x => x.id === id);
+  if(!d) return;
+  const html = buildDevisHTML(d);
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-title').textContent = `Devis — ${d.client}`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function buildDevisHTML(d) {
+  const articles = d.articles || [];
+  const dateFmt  = fmtDate(d.date_devis);
+  const hasRed   = d.total_reduit > 0 && d.total_reduit !== d.total_initial;
+  const orTotal  = articles.reduce((s,a)=>s+(a.or_grs||0),0);
+
+  const rows = articles.map((a,i) => {
+    const pierres = [];
+    if(a.d)      pierres.push(`Diamants · ${fmtF(a.d)} ct`);
+    if(a.em)     pierres.push(`Émeraudes · ${fmtF(a.em)} ct`);
+    if(a.r)      pierres.push(`Rubis · ${fmtF(a.r)} ct`);
+    if(a.s)      pierres.push(`Saphirs · ${fmtF(a.s)} ct`);
+    if(a.em_clb) pierres.push(`Ém. Colombie · ${fmtF(a.em_clb)} ct`);
+    if(a.perles) pierres.push(`Perles · ${fmtF(a.perles)} grs`);
+    const pvCell = a.pv > 0
+      ? (a.pvr > 0 && a.pvr !== a.pv ? `<span style="text-decoration:line-through;color:#aaa;font-size:11px">${fmtN(a.pv)}</span>` : `${fmtN(a.pv)}`)
+      : '—';
+    const pvrCell = (a.pvr > 0 && a.pvr !== a.pv)
+      ? `<span style="color:#1a7a40;font-weight:800">${fmtN(a.pvr)} MAD</span>`
+      : (a.pv > 0 ? `${fmtN(a.pv)} MAD` : '—');
+    return `<tr>
+      <td style="color:#9a8060;font-size:11px;font-weight:700;vertical-align:top">${String(i+1).padStart(2,'0')}</td>
+      <td>
+        <span class="dv-art">${a.article||'—'}</span>
+        ${a.or_grs ? `<div style="font-size:10px;color:#9a8060;margin-top:2px">🏅 ${fmtF(a.or_grs)} grs OR</div>` : ''}
+        ${pierres.length ? `<div style="margin-top:4px">${pierres.map(p=>`<span style="font-size:10px;color:#6b5c4a;background:#f9f4e8;border-radius:3px;padding:1px 6px;display:inline-block;margin:1px 2px">💎 ${p}</span>`).join('')}</div>` : ''}
+        ${a.note ? `<div style="font-size:11px;color:#7a6040;margin-top:4px;font-style:italic;">${a.note}</div>` : ''}
+      </td>
+      <td class="dv-price">${pvCell}</td>
+      <td class="dv-price">${pvrCell}</td>
+    </tr>`;
+  }).join('');
+
+  const totauxHtml = `
+    ${orTotal > 0 ? `<div class="dv-t-row"><span>OR total</span><span>${fmtF(orTotal)} grs</span></div>` : ''}
+    ${hasRed ? `<div class="dv-t-row"><span>Total initial</span><span style="text-decoration:line-through;color:#aaa">${fmtN(d.total_initial)} MAD</span></div>` : ''}
+    <div class="dv-t-total">
+      <span>${hasRed ? 'Total après réduction' : 'Total'}</span>
+      <span>${fmtN(hasRed ? d.total_reduit : d.total_initial) !== '—' ? fmtN(hasRed ? d.total_reduit : d.total_initial) + ' MAD' : 'Sur demande'}</span>
+    </div>`;
+
+  const condHtml = d.note ? `<div class="dv-conditions"><div class="dv-conditions-title">Remarques</div><div class="dv-conditions-text">${d.note}</div></div>` : '';
+
+  return `<div class="devis-doc">
+    <div class="dv-header">
+      <div class="dv-header-inner">
+        <div>
+          <div class="dv-brand-name">Trabelsi</div>
+          <div class="dv-brand-sub">Joaillerie &amp; Diamantaire</div>
+          <div class="dv-brand-addr">Mega Mall · Rabat<br>05 37 75 24 34</div>
+        </div>
+        <div class="dv-meta">
+          <div class="dv-meta-word">Devis</div>
+          <div class="dv-meta-date">Le ${dateFmt}</div>
+        </div>
+      </div>
+    </div>
+    <div class="dv-body-doc">
+      <div class="dv-client-row">
+        <div>
+          <div class="dv-lbl">Établi pour</div>
+          <div class="dv-client-name">${d.client}</div>
+          ${d.telephone ? `<div class="dv-client-sub">📞 ${d.telephone}</div>` : ''}
+        </div>
+      </div>
+      <div style="margin-bottom:10px"><div class="dv-lbl">Détail des articles proposés</div></div>
+      <table class="dv-tbl">
+        <thead><tr><th>#</th><th>Article</th><th style="text-align:right">Prix initial</th><th style="text-align:right">Après réduction</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="dv-totaux"><div class="dv-totaux-box">${totauxHtml}</div></div>
+    </div>
+    ${condHtml}
+    <div class="dv-footer">
+      <div class="dv-footer-brand">Trabelsi Joaillerie &amp; Diamantaire</div>
+    </div>
+  </div>`;
+}
+
+async function supprimerDevis(id) {
+  if(!confirm('Supprimer ce devis ?')) return;
+  await fetch(`/api/devis/${id}`, { method: 'DELETE' });
+  allDevis = allDevis.filter(d => d.id !== id);
+  renderTable();
+}
+
+function convertirEnVente(id) {
+  const d = allDevis.find(x => x.id === id);
+  if(!d) return;
+  // Construire les paramètres pour pré-remplir la page Facture Libre
+  const params = new URLSearchParams();
+  params.set('client', d.client || '');
+  params.set('telephone', d.telephone || '');
+  params.set('note', d.note ? `Converti depuis devis du ${fmtDate(d.date_devis)}. ${d.note}` : `Converti depuis devis du ${fmtDate(d.date_devis)}`);
+  // Articles encodés en JSON
+  const arts = (d.articles||[]).map(a => ({
+    article: a.article || '',
+    pv: a.total_reduit || a.pv_apres || a.prix_apres || 0,
+    pa: 0,
+    or_grs: a.or_grs || 0
+  }));
+  params.set('articles', JSON.stringify(arts));
+  window.location.href = `/facture-libre?${params.toString()}`;
+}
+
+function printModal() {
+  const zone = document.getElementById('print-zone');
+  zone.innerHTML = document.getElementById('modal-body').innerHTML;
+  zone.style.display = 'block';
+  window.print();
+  setTimeout(() => { zone.style.display='none'; zone.innerHTML=''; }, 1000);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function toggleNav(){
+  const nl=document.getElementById('nav-links');
+  const btn=document.querySelector('.hamburger');
+  if(!nl) return;
+  const open=nl.classList.toggle('nav-open');
+  if(btn) btn.textContent=open?'✕':'☰';
+  if(!open) document.querySelectorAll('.nav-dropdown').forEach(d=>d.classList.remove('open'));
+}
+document.querySelectorAll('.nav-drop-btn').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    const dd=btn.closest('.nav-dropdown');
+    const isOpen=dd.classList.contains('open');
+    document.querySelectorAll('.nav-dropdown').forEach(d=>d.classList.remove('open'));
+    if(!isOpen) dd.classList.add('open');
+  });
+});
+document.addEventListener('click',()=>document.querySelectorAll('.nav-dropdown').forEach(d=>d.classList.remove('open')));
+
+loadDevis();
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+<script src="/static/mobile.js"></script>
+</body>
+</html>
