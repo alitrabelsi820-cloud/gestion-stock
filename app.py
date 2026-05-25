@@ -2452,6 +2452,11 @@ function filter(type, btn) {{
                 "created_at":    now.strftime("%Y-%m-%d %H:%M:%S"),
             }
             devis_id = insert_devis(item)
+            # Support restauration : si statut=vendu est passé, marquer directement
+            statut = str(data.get("statut","")).strip()
+            if statut == "vendu":
+                dv = str(data.get("date_vente") or now.strftime("%Y-%m-%d"))
+                db.mark_devis_vendu(devis_id, dv)
             self.send_json({"success": True, "id": devis_id}); return
 
         # ── Convertir un devis en vente(s) ───────────────────────────────────
