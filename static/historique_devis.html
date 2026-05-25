@@ -193,6 +193,43 @@ tbody tr:hover td{background:rgba(201,168,76,.03);}
   </div>
 </div>
 
+<!-- Modal Vendre -->
+<div id="vendre-overlay" class="modal-overlay" onclick="if(event.target===this)closeVendreModal()" style="z-index:600;">
+  <div class="modal-shell" style="max-width:500px;">
+    <div class="modal-bar">
+      <span class="modal-title" id="vendre-title">Convertir en vente</span>
+      <button class="btn-close-modal" onclick="closeVendreModal()">✕ Fermer</button>
+    </div>
+    <div class="modal-body" style="padding:20px;">
+      <div id="vendre-info" style="background:#f0f7ff;border:1px solid rgba(52,152,219,.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#2471a3;line-height:1.6;"></div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="form-group" style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);">Mode de paiement</label>
+          <select id="vendre-mode" style="padding:9px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg3);color:var(--txt);font-size:13px;outline:none;">
+            <option value="Espèces">Espèces</option>
+            <option value="Chèque">Chèque</option>
+            <option value="Virement">Virement</option>
+            <option value="Carte">Carte</option>
+            <option value="Mixte">Mixte</option>
+          </select>
+        </div>
+        <div class="form-group" style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);">Date de vente</label>
+          <input type="date" id="vendre-date" style="padding:9px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg3);color:var(--txt);font-size:13px;outline:none;">
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="vendre-delete" checked style="width:16px;height:16px;cursor:pointer;">
+          Supprimer le devis après la vente
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button class="btn btn-outline" onclick="closeVendreModal()">Annuler</button>
+        <button class="btn btn-gold" id="vendre-confirm-btn" onclick="confirmerVente()">💰 Confirmer la vente</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const fmtN = v => v==null||v===0?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
 const fmtF = (v,d=2) => Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d});
@@ -341,23 +378,70 @@ async function supprimerDevis(id) {
   renderTable();
 }
 
+let vendreDevisId = null;
+
 function convertirEnVente(id) {
   const d = allDevis.find(x => x.id === id);
   if(!d) return;
-  // Construire les paramètres pour pré-remplir la page Facture Libre
-  const params = new URLSearchParams();
-  params.set('client', d.client || '');
-  params.set('telephone', d.telephone || '');
-  params.set('note', d.note ? `Converti depuis devis du ${fmtDate(d.date_devis)}. ${d.note}` : `Converti depuis devis du ${fmtDate(d.date_devis)}`);
-  // Articles encodés en JSON
-  const arts = (d.articles||[]).map(a => ({
-    article: a.article || '',
-    pv: a.total_reduit || a.pv_apres || a.prix_apres || 0,
-    pa: 0,
-    or_grs: a.or_grs || 0
-  }));
-  params.set('articles', JSON.stringify(arts));
-  window.location.href = `/facture-libre?${params.toString()}`;
+  vendreDevisId = id;
+
+  // Compter les articles avec et sans refs
+  const arts = d.articles || [];
+  let avecRef = 0, sansRef = 0;
+  arts.forEach(a => {
+    const refs = a.refs || [];
+    if(refs.length > 0) avecRef += refs.length;
+    else sansRef += 1;
+  });
+
+  document.getElementById('vendre-title').textContent = `Convertir en vente — ${d.client}`;
+  document.getElementById('vendre-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('vendre-delete').checked = true;
+
+  let infoMsg = '';
+  if(avecRef > 0) infoMsg += `<strong>${avecRef}</strong> article(s) avec référence stock seront retirés du stock. `;
+  if(sansRef > 0) infoMsg += `<strong>${sansRef}</strong> article(s) sans référence seront enregistrés comme ventes libres.`;
+  if(!infoMsg) infoMsg = 'Aucun article à convertir.';
+  document.getElementById('vendre-info').innerHTML = infoMsg;
+
+  document.getElementById('vendre-overlay').classList.add('open');
+}
+
+function closeVendreModal() {
+  document.getElementById('vendre-overlay').classList.remove('open');
+  vendreDevisId = null;
+}
+
+async function confirmerVente() {
+  if(!vendreDevisId) return;
+  const btn = document.getElementById('vendre-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ En cours…';
+
+  const mode         = document.getElementById('vendre-mode').value;
+  const date_vente   = document.getElementById('vendre-date').value;
+  const delete_after = document.getElementById('vendre-delete').checked;
+
+  try {
+    const res = await fetch(`/api/devis/${vendreDevisId}/vendre`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ mode_paiement: mode, date_vente, delete_after })
+    });
+    const data = await res.json();
+    if(data.success) {
+      closeVendreModal();
+      alert(`Vente enregistrée ! ${data.ventes_crees} vente(s) créée(s) dont ${data.stock_articles} depuis le stock.`);
+      await loadDevis();
+    } else {
+      alert(data.error || 'Erreur lors de la conversion.');
+    }
+  } catch(e) {
+    alert('Erreur réseau.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💰 Confirmer la vente';
+  }
 }
 
 function printModal() {

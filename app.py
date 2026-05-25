@@ -2454,6 +2454,161 @@ function filter(type, btn) {{
             devis_id = insert_devis(item)
             self.send_json({"success": True, "id": devis_id}); return
 
+        # ── Convertir un devis en vente(s) ───────────────────────────────────
+        if path.startswith("/api/devis/") and path.endswith("/vendre"):
+            try:
+                parts = path.split("/")
+                devis_id = int(parts[-2])  # /api/devis/{id}/vendre
+            except (ValueError, IndexError):
+                self.send_json({"error": "ID invalide"}, 400); return
+
+            # Charger le devis
+            all_devis = load_devis()
+            devis = next((d for d in all_devis if d["id"] == devis_id), None)
+            if not devis:
+                self.send_json({"error": "Devis introuvable"}, 404); return
+
+            mode    = str(data.get("mode_paiement", "Espèces")).strip()
+            delete_after = bool(data.get("delete_after", True))
+            date_vente_input = str(data.get("date_vente", "")).strip()
+            now = datetime.now()
+            try:
+                datetime.strptime(date_vente_input, "%Y-%m-%d")
+                date_vente = date_vente_input
+            except Exception:
+                date_vente = now.strftime("%Y-%m-%d")
+
+            client  = devis.get("client", "")
+            tel     = devis.get("telephone", "")
+
+            articles_stock = load_articles()
+            ventes_existantes = load_ventes()
+            new_ventes = []
+            stock_count = 0
+            libre_count = 0
+            vente_counter = 0
+
+            for art in (devis.get("articles") or []):
+                refs      = art.get("refs") or []
+                pv_art    = float(art.get("pvr") or 0) if (art.get("pvr") or 0) > 0 else float(art.get("pv") or 0)
+                pa_art    = float(art.get("pa") or 0)
+                or_grs    = art.get("or_grs") or None
+                d_val     = art.get("d") or None
+                em_val    = art.get("em") or None
+                r_val     = art.get("r") or None
+                s_val     = art.get("s") or None
+                em_clb    = art.get("em_clb") or None
+                perles    = art.get("perles") or None
+                art_name  = art.get("article", "")
+
+                if refs:
+                    # Ventes avec références stock
+                    pv_per_ref = round(pv_art / len(refs), 2) if len(refs) > 1 else pv_art
+                    for ref_id in refs:
+                        idx = next((i for i, a in enumerate(articles_stock) if a["id"] == int(ref_id)), None)
+                        if idx is None:
+                            # Ref introuvable en stock → créer une vente libre
+                            id_vente = int(now.timestamp() * 1000) + vente_counter
+                            vente_counter += 1
+                            new_ventes.append({
+                                "id_vente": id_vente,
+                                "date_achat": date_vente,
+                                "date_vente": date_vente,
+                                "ref": int(ref_id),
+                                "article": art_name,
+                                "or_grs": or_grs,
+                                "vente_au_poids": False,
+                                "prix_or_achat": None,
+                                "pa": pa_art or None,
+                                "d": d_val, "em": em_val, "r": r_val, "s": s_val,
+                                "p_fines": None, "rosaces": None,
+                                "em_clb": em_clb, "perles": perles,
+                                "pv": pv_per_ref,
+                                "benef": round(pv_per_ref - (pa_art or 0), 2),
+                                "client": client,
+                                "telephone": tel,
+                                "mode_paiement": mode,
+                                "commentaire": "",
+                                "source": "devis",
+                            })
+                            libre_count += 1
+                            continue
+                        article = articles_stock[idx]
+                        pa_stock = article.get("pa") or 0
+                        id_vente = int(now.timestamp() * 1000) + vente_counter
+                        vente_counter += 1
+                        new_ventes.append({
+                            "id_vente": id_vente,
+                            "date_achat": article.get("date"),
+                            "date_vente": date_vente,
+                            "ref": article["id"],
+                            "article": article.get("article", art_name),
+                            "or_grs": article.get("or_grs"),
+                            "vente_au_poids": False,
+                            "prix_or_achat": None,
+                            "pa": pa_stock,
+                            "d": article.get("d"), "em": article.get("em"),
+                            "r": article.get("r"), "s": article.get("s"),
+                            "p_fines": article.get("p_fines"), "rosaces": article.get("rosaces"),
+                            "em_clb": article.get("em_clb"), "perles": article.get("perles"),
+                            "pv": pv_per_ref,
+                            "benef": round(pv_per_ref - pa_stock, 2),
+                            "client": client,
+                            "telephone": tel,
+                            "mode_paiement": mode,
+                            "commentaire": "",
+                            "source": "devis",
+                        })
+                        # Retirer du stock
+                        qty = int(articles_stock[idx].get("quantite") or 1)
+                        if qty > 1:
+                            articles_stock[idx]["quantite"] = qty - 1
+                        else:
+                            articles_stock.pop(idx)
+                        stock_count += 1
+                else:
+                    # Vente libre (pas de référence stock)
+                    id_vente = int(now.timestamp() * 1000) + vente_counter
+                    vente_counter += 1
+                    new_ventes.append({
+                        "id_vente": id_vente,
+                        "date_achat": date_vente,
+                        "date_vente": date_vente,
+                        "ref": 0,
+                        "article": art_name,
+                        "or_grs": or_grs,
+                        "vente_au_poids": False,
+                        "prix_or_achat": None,
+                        "pa": pa_art or None,
+                        "d": d_val, "em": em_val, "r": r_val, "s": s_val,
+                        "p_fines": None, "rosaces": None,
+                        "em_clb": em_clb, "perles": perles,
+                        "pv": pv_art,
+                        "benef": round(pv_art - (pa_art or 0), 2),
+                        "client": client,
+                        "telephone": tel,
+                        "mode_paiement": mode,
+                        "commentaire": "",
+                        "source": "devis",
+                    })
+                    libre_count += 1
+
+            # Sauvegarder stock + ventes
+            save_articles(articles_stock)
+            all_ventes = ventes_existantes + new_ventes
+            save_ventes(all_ventes)
+
+            # Supprimer le devis si demandé
+            if delete_after:
+                delete_devis(devis_id)
+
+            self.send_json({
+                "success": True,
+                "ventes_crees": len(new_ventes),
+                "stock_articles": stock_count,
+                "libres": libre_count,
+            }); return
+
         # ── Chatbot ───────────────────────────────────────────────────────────
         if path == "/api/chat":
             msg = data.get("message", "").strip()
