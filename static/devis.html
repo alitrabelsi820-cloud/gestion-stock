@@ -327,6 +327,16 @@ function renderLignes() {
         <span class="article-num">Article ${i+1}</span>
         ${lignes.length > 1 ? `<button class="btn-remove-ligne" onclick="removeLigne(${l.id})">✕ Retirer</button>` : ''}
       </div>
+      <!-- Recherche par référence stock -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;background:#fffbf0;border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:8px 12px;">
+        <span style="font-size:11px;font-weight:700;color:var(--gold);white-space:nowrap;">🔍 Réf. stock</span>
+        <input type="number" id="art-${l.id}-ref" placeholder="ex: 4256" min="1" step="1"
+          style="width:110px;padding:6px 10px;border:1px solid rgba(201,168,76,.4);border-radius:6px;font-size:13px;background:#fff;outline:none;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();fetchRef(${l.id});}">
+        <button type="button" onclick="fetchRef(${l.id})"
+          style="padding:6px 14px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Charger</button>
+        <span id="art-${l.id}-ref-badge" style="font-size:11px;color:#2ecc71;font-weight:600;display:none;">✓ Article chargé</span>
+      </div>
       <div class="form-row" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
         <div class="form-group" style="grid-column:span 2">
           <label>Type d'article *</label>
@@ -387,6 +397,44 @@ function getLigneData(l) {
     em_clb: g(`art-${l.id}-ec`)     || null,
     perles: g(`art-${l.id}-perles`) || null,
   };
+}
+
+async function fetchRef(lid) {
+  const refInput = document.getElementById(`art-${lid}-ref`);
+  const badge    = document.getElementById(`art-${lid}-ref-badge`);
+  const ref = parseInt(refInput.value);
+  if(!ref) return;
+  badge.style.display = 'none';
+  badge.style.color = '#2ecc71';
+  badge.textContent = '⏳ Chargement…';
+  badge.style.display = 'inline';
+  try {
+    const res = await fetch(`/api/articles/${ref}`);
+    if(!res.ok) throw new Error();
+    const a = await res.json();
+    if(a.error) { badge.textContent = '✗ Réf. introuvable'; badge.style.color='var(--red)'; return; }
+    // Remplir les champs
+    const set = (id, val) => { const el=document.getElementById(id); if(el && val!=null && val!=='') el.value=val; };
+    set(`art-${lid}-type`, a.article);
+    set(`art-${lid}-or`,   a.or_grs);
+    // Pierres précieuses si présentes
+    if(a.d)      { set(`art-${lid}-d`,      a.d);      openPierres(lid); }
+    if(a.em)     { set(`art-${lid}-em`,     a.em);     openPierres(lid); }
+    if(a.r)      { set(`art-${lid}-r`,      a.r);      openPierres(lid); }
+    if(a.s)      { set(`art-${lid}-s`,      a.s);      openPierres(lid); }
+    if(a.em_clb) { set(`art-${lid}-ec`,     a.em_clb); openPierres(lid); }
+    if(a.perles) { set(`art-${lid}-perles`, a.perles); openPierres(lid); }
+    badge.textContent = `✓ #${ref} — ${a.article}`;
+    badge.style.color = '#2ecc71';
+    updateTotaux();
+  } catch(e) {
+    badge.textContent = '✗ Erreur réseau'; badge.style.color='var(--red)';
+  }
+}
+
+function openPierres(lid) {
+  const details = document.querySelector(`#ligne-${lid} details`);
+  if(details) details.open = true;
 }
 
 function updateTotaux() {
