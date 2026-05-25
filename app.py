@@ -2488,7 +2488,12 @@ function filter(type, btn) {{
             for art in devis_articles:
                 if not (art.get("refs") and len(art.get("refs", [])) > 0):
                     if manuel_idx < len(refs_manuelles) and refs_manuelles[manuel_idx]:
-                        art["refs"] = [int(refs_manuelles[manuel_idx])]
+                        val = refs_manuelles[manuel_idx]
+                        # val peut être un entier ou une liste d'entiers
+                        if isinstance(val, list):
+                            art["refs"] = [int(r) for r in val if r]
+                        else:
+                            art["refs"] = [int(val)]
                     manuel_idx += 1
 
             articles_stock = load_articles()

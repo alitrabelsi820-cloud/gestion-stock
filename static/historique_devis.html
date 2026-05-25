@@ -204,7 +204,7 @@ tbody tr:hover td{background:rgba(201,168,76,.03);}
       <!-- Articles sans ref : saisie manuelle -->
       <div id="vendre-refs-section" style="display:none;margin-bottom:16px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gold);margin-bottom:8px;">📦 Références stock (optionnel)</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Ces articles n'ont pas de référence sauvegardée. Ajoutez-en une pour les retirer du stock, ou laissez vide pour une vente libre.</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Saisissez les références stock. Laissez vide pour une vente libre. Cliquez <strong>+</strong> si l'article combine plusieurs pièces du stock.</div>
         <div id="vendre-refs-list"></div>
       </div>
 
@@ -386,6 +386,19 @@ async function supprimerDevis(id) {
 
 let vendreDevisId = null;
 
+function addRefInput(artIdx) {
+  const wrap = document.getElementById(`vendre-refs-art-${artIdx}`);
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:4px;';
+  div.innerHTML = `
+    <input type="number" placeholder="Réf. stock" min="1" step="1"
+      style="width:120px;padding:5px 8px;border:1px solid rgba(201,168,76,.4);border-radius:6px;font-size:13px;background:#fff;outline:none;">
+    <button type="button" onclick="this.parentElement.remove()"
+      style="padding:3px 8px;border:1px solid rgba(231,76,60,.3);background:transparent;color:var(--red);border-radius:6px;font-size:12px;cursor:pointer;">✕</button>
+  `;
+  wrap.appendChild(div);
+}
+
 function convertirEnVente(id) {
   const d = allDevis.find(x => x.id === id);
   if(!d) return;
@@ -404,11 +417,18 @@ function convertirEnVente(id) {
 
   if(sansRef.length > 0) {
     refsList.innerHTML = sansRef.map((a, i) => `
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px;">
-        <span style="flex:1;font-size:13px;font-weight:500;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.article || '—'}</span>
-        <input type="number" id="vendre-ref-art-${i}" placeholder="Réf. stock" min="1" step="1"
-          style="width:110px;padding:5px 8px;border:1px solid rgba(201,168,76,.4);border-radius:6px;font-size:13px;background:#fff;outline:none;"
-          title="Entrez la référence stock si applicable">
+      <div style="background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:600;color:var(--txt);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ${a.article || '—'}
+        </div>
+        <div id="vendre-refs-art-${i}">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <input type="number" placeholder="Réf. stock" min="1" step="1"
+              style="width:120px;padding:5px 8px;border:1px solid rgba(201,168,76,.4);border-radius:6px;font-size:13px;background:#fff;outline:none;">
+            <button type="button" onclick="addRefInput(${i})"
+              style="padding:4px 10px;border:1px dashed rgba(201,168,76,.6);background:transparent;color:var(--gold);border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">+</button>
+          </div>
+        </div>
       </div>
     `).join('');
     refsSection.style.display = 'block';
@@ -434,13 +454,16 @@ async function confirmerVente() {
   const date_vente   = document.getElementById('vendre-date').value;
   const delete_after = document.getElementById('vendre-delete').checked;
 
-  // Récupérer les refs saisies manuellement pour les articles sans ref
+  // Récupérer les refs saisies manuellement (multiples par article possible)
   const d = allDevis.find(x => x.id === vendreDevisId);
   const arts = d ? (d.articles || []) : [];
   const sansRef = arts.filter(a => !(a.refs && a.refs.length > 0));
   const refs_manuelles = sansRef.map((a, i) => {
-    const el = document.getElementById(`vendre-ref-art-${i}`);
-    return el && el.value ? parseInt(el.value) : null;
+    const wrap = document.getElementById(`vendre-refs-art-${i}`);
+    if(!wrap) return null;
+    const inputs = wrap.querySelectorAll('input[type="number"]');
+    const vals = Array.from(inputs).map(el => el.value ? parseInt(el.value) : null).filter(v => v);
+    return vals.length > 0 ? vals : null;  // tableau de refs ou null
   });
 
   try {
