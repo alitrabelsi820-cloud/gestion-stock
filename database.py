@@ -871,6 +871,22 @@ def _row_to_devis(row):
     d['articles'] = json.loads(d.get('articles') or '[]')
     return d
 
+def mark_devis_vendu(devis_id: int, date_vente: str = None):
+    """Marque un devis comme vendu (sans le supprimer)."""
+    from datetime import datetime as _dt
+    dv = date_vente or _dt.now().strftime("%Y-%m-%d")
+    with get_conn() as conn:
+        # Ajouter la colonne statut si elle n'existe pas encore
+        cols = [r[1] for r in conn.execute("PRAGMA table_info(devis)").fetchall()]
+        if 'statut' not in cols:
+            conn.execute("ALTER TABLE devis ADD COLUMN statut TEXT DEFAULT 'actif'")
+        if 'date_vente' not in cols:
+            conn.execute("ALTER TABLE devis ADD COLUMN date_vente TEXT")
+        conn.execute(
+            "UPDATE devis SET statut='vendu', date_vente=? WHERE id=?",
+            (dv, int(devis_id))
+        )
+
 def load_devis():
     with get_conn() as conn:
         rows = conn.execute("SELECT * FROM devis ORDER BY id DESC").fetchall()

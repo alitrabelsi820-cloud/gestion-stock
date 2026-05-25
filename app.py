@@ -2613,7 +2613,8 @@ function filter(type, btn) {{
             all_ventes = ventes_existantes + new_ventes
             save_ventes(all_ventes)
 
-            # Supprimer le devis si demandé
+            # Marquer le devis comme vendu (toujours), supprimer si demandé
+            db.mark_devis_vendu(devis_id, date_vente)
             if delete_after:
                 delete_devis(devis_id)
 

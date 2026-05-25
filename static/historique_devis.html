@@ -260,6 +260,7 @@ function renderTable() {
     return;
   }
   const rows = allDevis.map(d => {
+    const vendu = d.statut === 'vendu';
     const arts = (d.articles||[]).filter(a=>a.article);
     const artsList = arts.slice(0,3).map(a=>`<span>${a.article}</span>`).join('') + (arts.length>3?`<span style="color:var(--muted)">+${arts.length-3} autres</span>`:'');
     const hasRed = d.total_reduit > 0 && d.total_reduit !== d.total_initial;
@@ -268,14 +269,26 @@ function renderTable() {
           ? `<div class="prix-initial">${fmtN(d.total_initial)} MAD</div><div class="prix-reduit">${fmtN(d.total_reduit)} MAD</div>`
           : `<div class="prix-seul">${fmtN(d.total_initial)} MAD</div>`)
       : '<span style="color:var(--muted)">—</span>';
-    return `<tr>
-      <td class="date-cell">${fmtDate(d.date_devis)}<br><span style="font-size:10px;color:#bbb">${(d.created_at||'').substring(0,16)}</span></td>
-      <td><div class="client-name">${d.client||'—'}</div>${d.telephone?`<div class="client-tel">📞 ${d.telephone}</div>`:''}</td>
+    const dateVenduStr = d.date_vente ? `<br><span style="font-size:10px;color:#27ae60">Vendu le ${fmtDate(d.date_vente)}</span>` : '';
+    return `<tr style="${vendu ? 'opacity:0.75;' : ''}">
+      <td class="date-cell">
+        ${fmtDate(d.date_devis)}<br>
+        <span style="font-size:10px;color:#bbb">${(d.created_at||'').substring(0,16)}</span>
+        ${vendu ? dateVenduStr : ''}
+      </td>
+      <td>
+        <div class="client-name">${d.client||'—'}</div>
+        ${d.telephone?`<div class="client-tel">📞 ${d.telephone}</div>`:''}
+        ${vendu ? `<span style="display:inline-block;margin-top:4px;background:#eafaf1;border:1px solid #2ecc71;color:#1a7a40;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700;">✓ Vendu</span>` : ''}
+      </td>
       <td><div class="arts-list">${artsList||'—'}</div></td>
       <td>${prixCell}</td>
       <td style="white-space:nowrap;">
         <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;margin-right:6px;" onclick="voirPDF(${d.id})">👁 Voir</button>
-        <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;margin-right:6px;border-color:rgba(46,204,113,.4);color:#27ae60;" onclick="convertirEnVente(${d.id})" title="Convertir en Facture Libre">💰 Vendre</button>
+        ${vendu
+          ? `<span style="display:inline-block;padding:5px 12px;font-size:12px;border:1px solid #ccc;border-radius:8px;color:#aaa;margin-right:6px;cursor:default;">✓ Vendu</span>`
+          : `<button class="btn btn-outline" style="padding:5px 12px;font-size:12px;margin-right:6px;border-color:rgba(46,204,113,.4);color:#27ae60;" onclick="convertirEnVente(${d.id})">💰 Vendre</button>`
+        }
         <button class="btn-red" onclick="supprimerDevis(${d.id})">✕</button>
       </td>
     </tr>`;
