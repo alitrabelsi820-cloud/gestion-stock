@@ -8,9 +8,14 @@
   body.sidebar-layout {
     padding-left: 240px !important;
     padding-top: 54px !important;
-    overflow-x: hidden;
-    max-width: 100vw;
     box-sizing: border-box;
+    /* NE PAS mettre overflow-x:hidden ici — ça bloque le scroll du tableau */
+    min-width: 0;
+  }
+
+  /* Empêcher le scroll horizontal de la page sans bloquer les tableaux */
+  html:has(body.sidebar-layout) {
+    overflow-x: hidden;
   }
 
   /* Cache l'ancienne nav top */
