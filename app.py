@@ -2557,7 +2557,7 @@ function filter(type, btn) {{
                             "date_achat": article.get("date"),
                             "date_vente": date_vente,
                             "ref": article["id"],
-                            "article": article.get("article", art_name),
+                            "article": art_name or article.get("article", ""),
                             "or_grs": article.get("or_grs"),
                             "vente_au_poids": False,
                             "prix_or_achat": None,

@@ -406,7 +406,7 @@ function convertirEnVente(id) {
 
   document.getElementById('vendre-title').textContent = `Convertir en vente — ${d.client}`;
   document.getElementById('vendre-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('vendre-delete').checked = true;
+  document.getElementById('vendre-delete').checked = false;
 
   // Articles sans refs sauvegardées → afficher champs de saisie
   const arts = d.articles || [];
