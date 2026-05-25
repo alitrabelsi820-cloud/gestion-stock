@@ -293,6 +293,11 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
 <script>
 const fmtN = v => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
 const fmtF = (v,d=2) => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d});
+const ABBREV = { 'B.O': "Boucles D'oreilles", 'B.o': "Boucles D'oreilles", 'b.o': "Boucles D'oreilles", 'BO': "Boucles D'oreilles" };
+function expandArt(name) {
+  if(!name) return name;
+  return ABBREV[name.trim()] || name;
+}
 
 let lignes = [];
 let devisNum = 0;
@@ -561,7 +566,7 @@ function buildDevisHTML(numStr, client, articles) {
     return `<tr>
       <td style="color:#9a8060;font-size:11px;font-weight:700;vertical-align:top">${String(i+1).padStart(2,'0')}</td>
       <td>
-        <span class="dv-art">${a.article||'—'}</span>
+        <span class="dv-art">${expandArt(a.article)||'—'}</span>
         ${a.or_grs ? `<div style="font-size:10px;color:#9a8060;margin-top:2px">${fmtF(a.or_grs)} grs OR</div>` : ''}
         ${pierres.length ? `<div style="margin-top:4px">${pierres.map(p=>`<span style="font-size:10px;color:#6b5c4a;background:#f9f4e8;border-radius:3px;padding:1px 6px;display:inline-block;margin:1px 2px">${p}</span>`).join('')}</div>` : ''}
         ${a.note ? `<div style="font-size:11px;color:#7a6040;margin-top:4px;font-style:italic;">${a.note}</div>` : ''}
@@ -636,7 +641,7 @@ function sharerWA() {
   msg += `*Devis — ${client}*\n\n*Articles proposés :*\n`;
   articles.forEach(a => {
     if(!a.article) return;
-    let ligne = `• ${a.article}`;
+    let ligne = `• ${expandArt(a.article)}`;
     if(a.pv > 0) ligne += ` — ${fmtN(a.pv)} MAD`;
     if(a.pvr > 0 && a.pvr !== a.pv) ligne += ` ➜ *${fmtN(a.pvr)} MAD*`;
     msg += ligne + '\n';
