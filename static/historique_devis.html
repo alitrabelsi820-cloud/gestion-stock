@@ -200,8 +200,14 @@ tbody tr:hover td{background:rgba(201,168,76,.03);}
       <span class="modal-title" id="vendre-title">Convertir en vente</span>
       <button class="btn-close-modal" onclick="closeVendreModal()">✕ Fermer</button>
     </div>
-    <div class="modal-body" style="padding:20px;">
-      <div id="vendre-info" style="background:#f0f7ff;border:1px solid rgba(52,152,219,.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#2471a3;line-height:1.6;"></div>
+    <div class="modal-body" style="padding:20px;max-height:80vh;overflow-y:auto;">
+      <!-- Articles sans ref : saisie manuelle -->
+      <div id="vendre-refs-section" style="display:none;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gold);margin-bottom:8px;">📦 Références stock (optionnel)</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Ces articles n'ont pas de référence sauvegardée. Ajoutez-en une pour les retirer du stock, ou laissez vide pour une vente libre.</div>
+        <div id="vendre-refs-list"></div>
+      </div>
+
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div class="form-group" style="display:flex;flex-direction:column;gap:5px;">
           <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);">Mode de paiement</label>
@@ -385,24 +391,30 @@ function convertirEnVente(id) {
   if(!d) return;
   vendreDevisId = id;
 
-  // Compter les articles avec et sans refs
-  const arts = d.articles || [];
-  let avecRef = 0, sansRef = 0;
-  arts.forEach(a => {
-    const refs = a.refs || [];
-    if(refs.length > 0) avecRef += refs.length;
-    else sansRef += 1;
-  });
-
   document.getElementById('vendre-title').textContent = `Convertir en vente — ${d.client}`;
   document.getElementById('vendre-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('vendre-delete').checked = true;
 
-  let infoMsg = '';
-  if(avecRef > 0) infoMsg += `<strong>${avecRef}</strong> article(s) avec référence stock seront retirés du stock. `;
-  if(sansRef > 0) infoMsg += `<strong>${sansRef}</strong> article(s) sans référence seront enregistrés comme ventes libres.`;
-  if(!infoMsg) infoMsg = 'Aucun article à convertir.';
-  document.getElementById('vendre-info').innerHTML = infoMsg;
+  // Articles sans refs sauvegardées → afficher champs de saisie
+  const arts = d.articles || [];
+  const sansRef = arts.filter(a => !(a.refs && a.refs.length > 0));
+
+  const refsSection = document.getElementById('vendre-refs-section');
+  const refsList    = document.getElementById('vendre-refs-list');
+
+  if(sansRef.length > 0) {
+    refsList.innerHTML = sansRef.map((a, i) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px;">
+        <span style="flex:1;font-size:13px;font-weight:500;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.article || '—'}</span>
+        <input type="number" id="vendre-ref-art-${i}" placeholder="Réf. stock" min="1" step="1"
+          style="width:110px;padding:5px 8px;border:1px solid rgba(201,168,76,.4);border-radius:6px;font-size:13px;background:#fff;outline:none;"
+          title="Entrez la référence stock si applicable">
+      </div>
+    `).join('');
+    refsSection.style.display = 'block';
+  } else {
+    refsSection.style.display = 'none';
+  }
 
   document.getElementById('vendre-overlay').classList.add('open');
 }
@@ -422,11 +434,20 @@ async function confirmerVente() {
   const date_vente   = document.getElementById('vendre-date').value;
   const delete_after = document.getElementById('vendre-delete').checked;
 
+  // Récupérer les refs saisies manuellement pour les articles sans ref
+  const d = allDevis.find(x => x.id === vendreDevisId);
+  const arts = d ? (d.articles || []) : [];
+  const sansRef = arts.filter(a => !(a.refs && a.refs.length > 0));
+  const refs_manuelles = sansRef.map((a, i) => {
+    const el = document.getElementById(`vendre-ref-art-${i}`);
+    return el && el.value ? parseInt(el.value) : null;
+  });
+
   try {
     const res = await fetch(`/api/devis/${vendreDevisId}/vendre`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ mode_paiement: mode, date_vente, delete_after })
+      body: JSON.stringify({ mode_paiement: mode, date_vente, delete_after, refs_manuelles })
     });
     const data = await res.json();
     if(data.success) {

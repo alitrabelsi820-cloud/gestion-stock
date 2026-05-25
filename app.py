@@ -2471,6 +2471,7 @@ function filter(type, btn) {{
             mode    = str(data.get("mode_paiement", "Espèces")).strip()
             delete_after = bool(data.get("delete_after", True))
             date_vente_input = str(data.get("date_vente", "")).strip()
+            refs_manuelles = data.get("refs_manuelles") or []
             now = datetime.now()
             try:
                 datetime.strptime(date_vente_input, "%Y-%m-%d")
@@ -2481,6 +2482,15 @@ function filter(type, btn) {{
             client  = devis.get("client", "")
             tel     = devis.get("telephone", "")
 
+            import copy
+            devis_articles = copy.deepcopy(devis.get("articles") or [])
+            manuel_idx = 0
+            for art in devis_articles:
+                if not (art.get("refs") and len(art.get("refs", [])) > 0):
+                    if manuel_idx < len(refs_manuelles) and refs_manuelles[manuel_idx]:
+                        art["refs"] = [int(refs_manuelles[manuel_idx])]
+                    manuel_idx += 1
+
             articles_stock = load_articles()
             ventes_existantes = load_ventes()
             new_ventes = []
@@ -2488,7 +2498,7 @@ function filter(type, btn) {{
             libre_count = 0
             vente_counter = 0
 
-            for art in (devis.get("articles") or []):
+            for art in devis_articles:
                 refs      = art.get("refs") or []
                 pv_art    = float(art.get("pvr") or 0) if (art.get("pvr") or 0) > 0 else float(art.get("pv") or 0)
                 pa_art    = float(art.get("pa") or 0)
