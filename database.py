@@ -89,7 +89,8 @@ CREATE TABLE IF NOT EXISTS ventes (
     benef          REAL,
     client         TEXT,
     mode_paiement  TEXT,
-    commentaire    TEXT
+    commentaire    TEXT,
+    type_vente     TEXT DEFAULT 'produit'
 );
 
 CREATE TABLE IF NOT EXISTS credits (
@@ -437,6 +438,17 @@ def init_db():
             print("[DB] Colonne 'telephone' ajoutée aux ventes.")
         except Exception:
             pass
+        # Migration : type_vente (produit/service)
+        try:
+            conn.execute("ALTER TABLE ventes ADD COLUMN type_vente TEXT DEFAULT 'produit'")
+            print("[DB] Colonne 'type_vente' ajoutée aux ventes.")
+        except Exception:
+            pass
+        # Marquer les ventes Sidi Baba comme service (toujours, car historique)
+        try:
+            conn.execute("UPDATE ventes SET type_vente='service' WHERE client='Sidi Baba'")
+        except Exception:
+            pass
         # Migration 5 : mode prix global sur les factures
         try:
             conn.execute("ALTER TABLE factures ADD COLUMN prix_global INTEGER DEFAULT 0")
@@ -513,6 +525,7 @@ def _row_to_vente(row):
         "telephone": row["telephone"] if "telephone" in keys else "",
         "mode_paiement": row["mode_paiement"], "commentaire": row["commentaire"],
         "source": row["source"] if "source" in keys else "stock",
+        "type_vente": row["type_vente"] if "type_vente" in keys else "produit",
     }
 
 def load_ventes():
@@ -527,8 +540,8 @@ def save_ventes(ventes):
             INSERT INTO ventes
             (id_vente,date_achat,date_vente,ref,article,or_grs,vente_au_poids,
              prix_or_achat,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,
-             pv,benef,client,telephone,mode_paiement,commentaire,source)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             pv,benef,client,telephone,mode_paiement,commentaire,source,type_vente)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, [(v["id_vente"], v.get("date_achat"), v.get("date_vente"),
                v.get("ref"), v.get("article"), v.get("or_grs"),
                1 if v.get("vente_au_poids") else 0, v.get("prix_or_achat"),
@@ -536,7 +549,7 @@ def save_ventes(ventes):
                v.get("p_fines"), v.get("rosaces"), v.get("em_clb"), v.get("perles"),
                v.get("pv"), v.get("benef"), v.get("client"),
                v.get("telephone",""), v.get("mode_paiement"), v.get("commentaire"),
-               v.get("source","stock")) for v in ventes])
+               v.get("source","stock"), v.get("type_vente","produit")) for v in ventes])
 
 
 # ─── CRÉDITS ──────────────────────────────────────────────────────────────────

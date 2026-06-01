@@ -304,10 +304,48 @@ td.has{color:#82e0aa;}
   <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
 </nav>
 
-<div class="cards">
-  <div class="card c1"><div class="card-ico">📋</div><div class="card-lbl">Ventes du Mois</div><div class="card-val" id="s-nb">—</div><div class="card-sub" id="s-mois-lbl" style="font-size:10px;color:var(--muted);margin-top:3px">—</div></div>
-  <div class="card c2"><div class="card-ico">💰</div><div class="card-lbl" id="ca-lbl">CA du Mois</div><div class="card-val" id="s-ca">—</div></div>
-  <div class="card c3"><div class="card-ico">📈</div><div class="card-lbl" id="benef-lbl">Bénéfice du Mois</div><div class="card-val" id="s-benef">—</div></div>
+<div class="cards" style="grid-template-columns:repeat(5,1fr)">
+  <!-- Ventes du mois -->
+  <div class="card c1">
+    <div class="card-ico">📋</div>
+    <div class="card-lbl">Ventes du Mois</div>
+    <div class="card-val" id="s-nb">—</div>
+    <div class="card-sub" id="s-mois-lbl" style="font-size:10px;color:var(--muted);margin-top:3px">—</div>
+  </div>
+  <!-- CA + Bénéf Produits -->
+  <div class="card c2">
+    <div class="card-ico">🛍️</div>
+    <div class="card-lbl">Produits</div>
+    <div class="card-val" id="s-ca">—</div>
+    <div class="card-sub" style="font-size:11px;color:var(--muted);margin-top:4px">CA</div>
+    <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--bd)">
+      <div style="font-size:13px;font-weight:700;color:var(--green)" id="s-benef-prod">—</div>
+      <div style="font-size:10px;color:var(--muted)">Bénéfice</div>
+    </div>
+  </div>
+  <!-- CA + Bénéf Services -->
+  <div class="card" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.25)">
+    <div class="card-ico">🔧</div>
+    <div class="card-lbl" style="color:#2980b9">Services</div>
+    <div class="card-val" style="color:#2980b9" id="s-ca-service">—</div>
+    <div class="card-sub" style="font-size:11px;color:var(--muted);margin-top:4px">CA</div>
+    <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(52,152,219,.2)">
+      <div style="font-size:13px;font-weight:700;color:var(--green)" id="s-benef-service">—</div>
+      <div style="font-size:10px;color:var(--muted)">Bénéfice</div>
+    </div>
+  </div>
+  <!-- Total combiné -->
+  <div class="card c3">
+    <div class="card-ico">📈</div>
+    <div class="card-lbl">Total Combiné</div>
+    <div class="card-val" id="s-ca-total">—</div>
+    <div class="card-sub" style="font-size:11px;color:var(--muted);margin-top:4px">CA total</div>
+    <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--bd)">
+      <div style="font-size:13px;font-weight:700;color:var(--green)" id="s-benef">—</div>
+      <div style="font-size:10px;color:var(--muted)">Bénéfice total</div>
+    </div>
+  </div>
+  <!-- Nouvelle vente -->
   <div class="card c4" style="cursor:pointer" onclick="openNVModal()">
     <div class="card-ico">💰</div>
     <div class="card-lbl">Nouvelle Vente</div>
@@ -333,6 +371,11 @@ td.has{color:#82e0aa;}
   <select id="sd" onchange="filter()">
     <option value="desc">Décroissant</option>
     <option value="asc">Croissant</option>
+  </select>
+  <select id="ftype" onchange="filter()">
+    <option value="">Tous les types</option>
+    <option value="produit">🛍️ Produit</option>
+    <option value="service">🔧 Service</option>
   </select>
   <button class="btn btn-outline" onclick="reset()">Réinitialiser</button>
   <span class="count-lbl"><span id="cnt">0</span> vente(s)</span>
@@ -420,6 +463,21 @@ td.has{color:#82e0aa;}
   <div class="modal" style="width:680px">
     <button class="close-btn" onclick="closeNVModal()">✕</button>
     <h2>💰 Nouvelle Vente</h2>
+
+    <!-- TYPE VENTE TOGGLE -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="nv-type-produit" onclick="setNVType('produit')"
+        style="flex:1;padding:10px;border-radius:9px;border:2px solid var(--gold);background:rgba(184,146,60,.15);color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">
+        🛍️ Produit
+      </button>
+      <button id="nv-type-service" onclick="setNVType('service')"
+        style="flex:1;padding:10px;border-radius:9px;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">
+        🔧 Service
+      </button>
+    </div>
+    <div id="nv-service-info" style="display:none;background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.3);border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:12px;color:#2980b9">
+      ℹ️ Vente de type <strong>Service</strong> — comptabilisée dans le bénéfice uniquement, exclue du CA.
+    </div>
 
     <!-- SECTION 1 — CLIENT -->
     <div style="border:1px solid rgba(184,146,60,.3);border-radius:10px;padding:14px;margin-bottom:14px;background:rgba(184,146,60,.04)">
@@ -599,11 +657,22 @@ td.has{color:#82e0aa;}
       <button class="btn-quick" onclick="setQuickV('all',event)">Tout (depuis 2025)</button>
     </div>
     <div id="v-period-label"></div>
-    <div class="period-stats">
+    <div class="period-stats" style="grid-template-columns:repeat(3,1fr) auto">
       <div class="period-card pc-nb"><label>Nombre de Ventes</label><div class="val" id="v-p-nb">—</div></div>
-      <div class="period-card pc-ca"><label>Chiffre d'Affaires</label><div class="val" id="v-p-ca">—</div></div>
-      <div class="period-card pc-b"><label>Bénéfice Net</label><div class="val" id="v-p-benef">—</div></div>
-      <div class="period-card pc-or"><label>OR Vendu</label><div class="val" id="v-p-or">—</div></div>
+      <div class="period-card pc-ca">
+        <label>🛍️ CA Produits</label><div class="val" id="v-p-ca">—</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted)">Bénéf : <span style="color:var(--green);font-weight:700" id="v-p-benef">—</span></div>
+      </div>
+      <div class="period-card" style="border-color:rgba(52,152,219,.3);background:rgba(52,152,219,.05)">
+        <label style="color:#2980b9">🔧 CA Services</label><div class="val" style="color:#2980b9" id="v-p-ca-service">—</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted)">Bénéf : <span style="color:var(--green);font-weight:700" id="v-p-benef-service">—</span></div>
+      </div>
+      <div class="period-card pc-or" style="min-width:130px">
+        <label>OR Vendu</label><div class="val" id="v-p-or">—</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted)">Total combiné :</div>
+        <div style="font-size:12px;font-weight:700;color:var(--blue)" id="v-p-ca-total">—</div>
+        <div style="font-size:11px;color:var(--green);font-weight:700" id="v-p-benef-total">—</div>
+      </div>
     </div>
   </div>
 
@@ -739,24 +808,31 @@ async function load(){
       selM.appendChild(o);
     });
 
-    // MOIS EN COURS uniquement pour les 3 cartes du haut
+    // MOIS EN COURS — cartes du haut
     const now=new Date();
     const moisKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
     const nomsM=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
     const nomMois=nomsM[now.getMonth()]+' '+now.getFullYear();
-    const moisData=advanced.monthly.find(m=>m.mois===moisKey)||{nb:0,ca:0,benef:0};
+    const moisData=advanced.monthly.find(m=>m.mois===moisKey)||{nb:0,ca:0,benef:0,ca_service:0,benef_service:0,ca_total:0,benef_total:0};
 
     const moisVentes=ALL.filter(v=>(v.date_vente||'').startsWith(moisKey));
     const moisSessions=new Set(moisVentes.map(v=>`${(v.client||'').trim().toLowerCase()}|${(v.date_vente||'').substring(0,10)}`));
     document.getElementById('s-nb').textContent=moisSessions.size;
     document.getElementById('s-mois-lbl').textContent=nomMois;
-    document.getElementById('s-ca').textContent=fmtN(moisData.ca)+'';
-    document.getElementById('s-benef').textContent=fmtN(moisData.benef)+'';
+    // Produits
+    document.getElementById('s-ca').textContent=fmtN(moisData.ca);
+    document.getElementById('s-benef-prod').textContent=fmtN(moisData.benef);
+    // Services
+    document.getElementById('s-ca-service').textContent=fmtN(moisData.ca_service||0);
+    document.getElementById('s-benef-service').textContent=fmtN(moisData.benef_service||0);
+    // Total combiné
+    document.getElementById('s-ca-total').textContent=fmtN(moisData.ca_total||(moisData.ca+(moisData.ca_service||0)));
+    document.getElementById('s-benef').textContent=fmtN(moisData.benef_total||(moisData.benef+(moisData.benef_service||0)));
 
     // Analyses financières — initialiser sur mois courant
     renderMonthlyV(advanced.monthly);
     renderAnnualV(advanced.annual);
-    renderPeriodStatsV({nb:moisData.nb,ca:moisData.ca,benef:moisData.benef,or_vendu:0}, nomMois);
+    renderPeriodStatsV({nb:moisData.nb,ca:moisData.ca,benef:moisData.benef,ca_service:moisData.ca_service||0,benef_service:moisData.benef_service||0,ca_total:moisData.ca_total||0,benef_total:moisData.benef_total||0,or_vendu:0}, nomMois);
 
     filter();
   }catch(e){
@@ -769,13 +845,15 @@ function filter(){
   const q=document.getElementById('q').value.toLowerCase();
   const ft=document.getElementById('ft').value;
   const fm=document.getElementById('fm').value;
+  const ftype=document.getElementById('ftype').value;
   sortCol=document.getElementById('sb').value;
   sortDir=document.getElementById('sd').value;
 
   filtered=ALL.filter(v=>
     (!q||String(v.ref).includes(q)||(v.article||'').toLowerCase().includes(q)||(v.client||'').toLowerCase().includes(q))&&
     (!ft||v.article===ft)&&
-    (!fm||((v.date_vente||'').startsWith(fm)))
+    (!fm||((v.date_vente||'').startsWith(fm)))&&
+    (!ftype||(v.type_vente||'produit')===ftype)
   );
 
   filtered.sort((a,b)=>{
@@ -786,10 +864,27 @@ function filter(){
   });
 
   // Stats filtrées
-  const caF=filtered.reduce((s,v)=>s+(v.pv||0),0);
-  const benefF=filtered.reduce((s,v)=>s+(v.benef||0),0);
   const sessions=new Set(filtered.map(v=>`${(v.client||'').trim().toLowerCase()}|${(v.date_vente||'').substring(0,10)}`));
   document.getElementById('cnt').textContent=sessions.size;
+
+  // Mettre à jour les cartes du haut si un mois est sélectionné
+  if(fm && advancedDataV){
+    const nomsM=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    const [y,mo]=fm.split('-');
+    const nomMois=nomsM[parseInt(mo)-1]+' '+y;
+    const moisData=advancedDataV.monthly.find(m=>m.mois===fm)||{nb:0,ca:0,benef:0,ca_service:0,benef_service:0,ca_total:0,benef_total:0};
+    const moisSessions=new Set(filtered.map(v=>`${(v.client||'').trim().toLowerCase()}|${(v.date_vente||'').substring(0,10)}`));
+    const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+    set('s-nb', moisSessions.size);
+    set('s-mois-lbl', nomMois);
+    set('s-ca', fmtN(moisData.ca));
+    set('s-benef-prod', fmtN(moisData.benef));
+    set('s-ca-service', fmtN(moisData.ca_service||0));
+    set('s-benef-service', fmtN(moisData.benef_service||0));
+    set('s-ca-total', fmtN(moisData.ca_total||(moisData.ca+(moisData.ca_service||0))));
+    set('s-benef', fmtN(moisData.benef_total||(moisData.benef+(moisData.benef_service||0))));
+  }
+
   page=1;
   render();
   renderPag();
@@ -810,7 +905,7 @@ function render(){
       <td class="ref-col">#${v.ref}${inCredit?'<span title="Paiement en cours" style="margin-left:5px;font-size:13px">💳</span>':''}</td>
       <td>${fmtD(v.date_achat)}</td>
       <td>${fmtD(v.date_vente)}</td>
-      <td><span class="badge ${badge(v.article)}">${v.article||'—'}</span></td>
+      <td><span class="badge ${badge(v.article)}">${v.article||'—'}</span>${v.type_vente==='service'?'<span style="margin-left:5px;display:inline-block;padding:2px 7px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(52,152,219,.15);color:#2980b9;border:1px solid rgba(52,152,219,.3)">SERVICE</span>':''}</td>
       <td class="or-col">${v.or_grs!=null?fmt(v.or_grs)+' grs':'—'}</td>
       <td class="pa-col">${v.pa!=null?fmtN(v.pa)+'':'—'}</td>
       <td class="pv-col">${v.pv!=null?fmtN(v.pv)+'':'—'}</td>
@@ -851,7 +946,7 @@ function renderPag(){
 
 function goP(n){page=n;render();renderPag();window.scrollTo({top:200,behavior:'smooth'});}
 function sort(c){if(sortCol===c)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=c;sortDir='desc';}filter();}
-function reset(){document.getElementById('q').value='';document.getElementById('ft').value='';document.getElementById('fm').value='';document.getElementById('sb').value='date_vente';document.getElementById('sd').value='desc';filter();}
+function reset(){document.getElementById('q').value='';document.getElementById('ft').value='';document.getElementById('fm').value='';document.getElementById('ftype').value='';document.getElementById('sb').value='date_vente';document.getElementById('sd').value='desc';filter();}
 
 function showDetail(idx){
   const v=filtered[idx];
@@ -974,6 +1069,19 @@ let nvArticle = null;
 let nvPanier = [];
 let nvConfig = {prix_or_achat: 1000, prix_or_vente: 1100};
 let nvEstPoids = false;
+let nvTypeVente = 'produit';
+
+function setNVType(type){
+  nvTypeVente = type;
+  const isProd = type === 'produit';
+  document.getElementById('nv-type-produit').style.cssText = isProd
+    ? 'flex:1;padding:10px;border-radius:9px;border:2px solid var(--gold);background:rgba(184,146,60,.15);color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s'
+    : 'flex:1;padding:10px;border-radius:9px;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s';
+  document.getElementById('nv-type-service').style.cssText = !isProd
+    ? 'flex:1;padding:10px;border-radius:9px;border:2px solid #2980b9;background:rgba(52,152,219,.15);color:#2980b9;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s'
+    : 'flex:1;padding:10px;border-radius:9px;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s';
+  document.getElementById('nv-service-info').style.display = isProd ? 'none' : 'block';
+}
 
 async function loadNVConfig(){
   try{ nvConfig = await fetch('/api/config').then(r=>r.json()); }catch(e){}
@@ -1158,6 +1266,7 @@ function openNVModal(preRef){
   document.getElementById('nv-reste-display').textContent='—';
   document.getElementById('nv-st-total').checked=true;
   onNVStatutChange();
+  setNVType('produit');
   document.getElementById('ov-nv').classList.add('open');
   if(preRef) setTimeout(searchNV, 100);
 }
@@ -1240,8 +1349,8 @@ async function submitNV(){
   for(const item of nvPanier){
     try{
       const payload=item.au_poids
-        ? {ref:item.article.id, poids_vendu:item.poids_vendu, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode}
-        : {ref:item.article.id, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode};
+        ? {ref:item.article.id, poids_vendu:item.poids_vendu, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode, type_vente:nvTypeVente}
+        : {ref:item.article.id, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode, type_vente:nvTypeVente};
       const res=await fetch('/api/ventes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
       const data=await res.json();
       if(res.ok){ok++;if(item.article&&item.article.ismail_pierres)hadIsmail=true;}
@@ -1287,8 +1396,12 @@ function switchTabV(tab){
 
 function renderPeriodStatsV(p, label){
   document.getElementById('v-p-nb').textContent=p.nb;
-  document.getElementById('v-p-ca').textContent=fmtN(p.ca)+'';
-  document.getElementById('v-p-benef').textContent=fmtN(p.benef)+'';
+  document.getElementById('v-p-ca').textContent=fmtN(p.ca);
+  document.getElementById('v-p-benef').textContent=fmtN(p.benef);
+  document.getElementById('v-p-ca-service').textContent=fmtN(p.ca_service||0);
+  document.getElementById('v-p-benef-service').textContent=fmtN(p.benef_service||0);
+  document.getElementById('v-p-ca-total').textContent='CA : '+fmtN(p.ca_total||(p.ca+(p.ca_service||0)));
+  document.getElementById('v-p-benef-total').textContent='Bénéf : '+fmtN(p.benef_total||(p.benef+(p.benef_service||0)));
   document.getElementById('v-p-or').textContent=fmt(p.or_vendu)+' grs';
   const lbl=document.getElementById('v-period-label');
   if(label){lbl.textContent='📊 '+label;lbl.style.display='block';}

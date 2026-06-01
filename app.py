@@ -515,6 +515,10 @@ def calc_stats(articles):
         "perles": round(sum((a["perles"] or 0) * qty(a) for a in articles), 2),
     }
 
+def _is_service(v):
+    """Vente de type service : exclue du CA mais incluse dans le bénéfice."""
+    return (v.get("type_vente") or "produit") == "service"
+
 def ventes_stats(ventes, date_from=None, date_to=None):
     """Stats ventes filtrées par période."""
     filt = ventes
@@ -522,12 +526,18 @@ def ventes_stats(ventes, date_from=None, date_to=None):
         filt = [v for v in filt if (v.get("date_vente") or "") >= date_from]
     if date_to:
         filt = [v for v in filt if (v.get("date_vente") or "") <= date_to]
+    produits  = [v for v in filt if not _is_service(v)]
+    services  = [v for v in filt if _is_service(v)]
     return {
-        "nb": _nb_sessions(filt),           # ventes = sessions uniques client+jour
-        "nb_articles": len(filt),           # articles individuels vendus
-        "ca": round(sum(v.get("pv") or 0 for v in filt), 0),
-        "benef": round(sum(v.get("benef") or 0 for v in filt), 0),
-        "or_vendu": round(sum(v.get("or_grs") or 0 for v in filt), 2),
+        "nb":           _nb_sessions(filt),
+        "nb_articles":  len(filt),
+        "ca":           round(sum(v.get("pv")    or 0 for v in produits), 0),
+        "benef":        round(sum(v.get("benef") or 0 for v in produits), 0),
+        "ca_service":   round(sum(v.get("pv")    or 0 for v in services), 0),
+        "benef_service":round(sum(v.get("benef") or 0 for v in services), 0),
+        "ca_total":     round(sum(v.get("pv")    or 0 for v in filt),     0),
+        "benef_total":  round(sum(v.get("benef") or 0 for v in filt),     0),
+        "or_vendu":     round(sum(v.get("or_grs") or 0 for v in filt),    2),
     }
 
 def monthly_stats(ventes):
@@ -538,18 +548,26 @@ def monthly_stats(ventes):
         if not d:
             continue
         if d not in months:
-            months[d] = {"mois": d, "nb": 0, "nb_articles": 0, "ca": 0, "benef": 0, "or_vendu": 0, "_ventes": []}
+            months[d] = {"mois": d, "nb": 0, "nb_articles": 0, "ca": 0, "benef": 0, "ca_service": 0, "benef_service": 0, "or_vendu": 0, "_ventes": []}
         months[d]["nb_articles"] += 1
         months[d]["_ventes"].append(v)
-        months[d]["ca"] += v.get("pv") or 0
-        months[d]["benef"] += v.get("benef") or 0
+        if _is_service(v):
+            months[d]["ca_service"]    += v.get("pv")    or 0
+            months[d]["benef_service"] += v.get("benef") or 0
+        else:
+            months[d]["ca"]    += v.get("pv")    or 0
+            months[d]["benef"] += v.get("benef") or 0
         months[d]["or_vendu"] += v.get("or_grs") or 0
     result = sorted(months.values(), key=lambda x: x["mois"], reverse=True)
     for m in result:
         m["nb"] = _nb_sessions(m.pop("_ventes"))
-        m["ca"] = round(m["ca"], 0)
-        m["benef"] = round(m["benef"], 0)
-        m["or_vendu"] = round(m["or_vendu"], 2)
+        m["ca"]           = round(m["ca"], 0)
+        m["benef"]        = round(m["benef"], 0)
+        m["ca_service"]   = round(m["ca_service"], 0)
+        m["benef_service"]= round(m["benef_service"], 0)
+        m["ca_total"]     = round(m["ca"] + m["ca_service"], 0)
+        m["benef_total"]  = round(m["benef"] + m["benef_service"], 0)
+        m["or_vendu"]     = round(m["or_vendu"], 2)
     return result
 
 def annual_stats(ventes):
@@ -563,7 +581,8 @@ def annual_stats(ventes):
             years[d] = {"annee": d, "nb": 0, "nb_articles": 0, "ca": 0, "benef": 0, "_ventes": []}
         years[d]["nb_articles"] += 1
         years[d]["_ventes"].append(v)
-        years[d]["ca"] += v.get("pv") or 0
+        if not _is_service(v):
+            years[d]["ca"] += v.get("pv") or 0
         years[d]["benef"] += v.get("benef") or 0
     result = sorted(years.values(), key=lambda x: x["annee"], reverse=True)
     for y in result:
@@ -899,7 +918,7 @@ def handle_chat(message):
         filt = [v for v in ventes if (v.get('date_vente','') or '').startswith(prefix)]
         if not filt:
             return f"Aucune vente trouvée pour la période « {prefix} »."
-        ca = sum(v.get('pv') or 0 for v in filt)
+        ca = sum(v.get('pv') or 0 for v in filt if not _is_service(v))
         benef = sum(v.get('benef') or 0 for v in filt)
         lines = [f"📊 {len(filt)} vente(s) pour {prefix} :"]
         lines.append(f"• CA : {_fmt_mad(ca)} | Bénéfice : {_fmt_mad(benef)}")
@@ -998,9 +1017,9 @@ def handle_chat(message):
         now = datetime.now()
         prefix = now.strftime("%Y-%m")
         filt = [v for v in ventes if (v.get('date_vente','') or '').startswith(prefix)]
-        ca_mois = sum(v.get('pv') or 0 for v in filt)
+        ca_mois = sum(v.get('pv') or 0 for v in filt if not _is_service(v))
         benef_mois = sum(v.get('benef') or 0 for v in filt)
-        ca_tot = sum(v.get('pv') or 0 for v in ventes)
+        ca_tot = sum(v.get('pv') or 0 for v in ventes if not _is_service(v))
         benef_tot = sum(v.get('benef') or 0 for v in ventes)
         return (
             f"📈 Statistiques financières :\n"
@@ -1407,9 +1426,9 @@ function filter(type, btn) {{
             stats["nb_articles_vendus_total"] = len(ventes)
             stats["nb_ventes_today"] = _nb_sessions(ventes_today)
             stats["nb_articles_vendus_today"] = len(ventes_today)
-            stats["ca_today"] = round(sum(v.get("pv") or 0 for v in ventes_today), 0)
+            stats["ca_today"] = round(sum(v.get("pv") or 0 for v in ventes_today if not _is_service(v)), 0)
             stats["benef_today"] = round(sum(v.get("benef") or 0 for v in ventes_today), 0)
-            stats["ca_total"] = round(sum(v.get("pv") or 0 for v in ventes), 0)
+            stats["ca_total"] = round(sum(v.get("pv") or 0 for v in ventes if not _is_service(v)), 0)
             stats["benef_total"] = round(sum(v.get("benef") or 0 for v in ventes), 0)
             self.send_json(stats); return
 
@@ -1998,6 +2017,7 @@ function filter(type, btn) {{
                     "mode_paiement": str(data.get("mode_paiement", "")).strip(),
                     "avance": float(data["avance"]) if data.get("avance") not in (None, "") else None,
                     "commentaire": str(data.get("note", "")).strip(),
+                    "type_vente": str(data.get("type_vente", "produit")).strip() or "produit",
                 }
                 # Soustraire le poids vendu du stock
                 nouveau_poids = round(stock_actuel - poids_vendu, 3)
@@ -2047,6 +2067,7 @@ function filter(type, btn) {{
                     "mode_paiement": str(data.get("mode_paiement", "")).strip(),
                     "avance": float(data["avance"]) if data.get("avance") not in (None, "") else None,
                     "commentaire": str(data.get("note", "")).strip(),
+                    "type_vente": str(data.get("type_vente", "produit")).strip() or "produit",
                 }
                 qty = int(articles[idx].get("quantite") or 1)
                 if qty > 1:
@@ -2067,10 +2088,11 @@ function filter(type, btn) {{
             lignes = data.get("articles", [])
             if not lignes:
                 self.send_json({"error": "Au moins un article requis"}, 400); return
-            client  = str(data.get("client", "")).strip()
-            tel     = str(data.get("telephone", "")).strip()
-            note    = str(data.get("note", "")).strip()
-            mode    = str(data.get("mode_paiement", "")).strip()
+            client     = str(data.get("client", "")).strip()
+            tel        = str(data.get("telephone", "")).strip()
+            note       = str(data.get("note", "")).strip()
+            mode       = str(data.get("mode_paiement", "")).strip()
+            type_vente = str(data.get("type_vente", "produit")).strip() or "produit"
             now     = datetime.now()
             date_v  = str(data.get("date_vente") or now.strftime("%Y-%m-%d")).strip()
             try: datetime.strptime(date_v, "%Y-%m-%d")
@@ -2112,6 +2134,7 @@ function filter(type, btn) {{
                     "mode_paiement": mode,
                     "commentaire": note,
                     "source": "libre",
+                    "type_vente": type_vente,
                 }
                 new_ventes.append(v)
                 fac_articles.append({
