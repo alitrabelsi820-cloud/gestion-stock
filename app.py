@@ -3030,6 +3030,12 @@ def backup_loop():
             time.sleep(3600)  # toutes les heures
 
 if __name__ == "__main__":
+    # Sync OneDrive en arrière-plan (sauvegarde locale)
+    import subprocess as _sp, pathlib as _pl
+    _sync = _pl.Path(__file__).parent / "sync_onedrive.sh"
+    if _sync.exists():
+        _sp.Popen(["bash", str(_sync)], stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)
+
     # Synchroniser la DB depuis R2 avant tout (source de vérité unique)
     db.DATA_DIR.mkdir(parents=True, exist_ok=True)
     download_db_from_r2()
