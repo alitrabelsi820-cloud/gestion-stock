@@ -13,6 +13,7 @@ import os
 import re
 import secrets
 import threading
+import time
 import urllib.parse
 import urllib.request
 import hmac
@@ -383,6 +384,11 @@ def _upload_to_r2(filename, data_bytes):
 DB_R2_KEY     = "db/gestionstock.db"
 _db_sync_lock = threading.Lock()
 
+# Horodatage de la dernière sauvegarde réussie vers R2 (epoch, ou None)
+LAST_BACKUP_TS = None
+# Statut de la dernière tentative : "ok", "error", ou "local" (pas de R2 configuré)
+LAST_BACKUP_STATUS = "local"
+
 def _r2_has_creds():
     return bool(R2_ACCESS_KEY and R2_SECRET_KEY and R2_ACCOUNT_ID and R2_BUCKET_NAME)
 
@@ -428,7 +434,9 @@ def _r2_db_request(method, data=None):
 
 def upload_db_to_r2():
     """Upload la DB SQLite vers R2 (thread-safe, appelé en arrière-plan)."""
+    global LAST_BACKUP_TS, LAST_BACKUP_STATUS
     if not _r2_has_creds():
+        LAST_BACKUP_STATUS = "local"
         return
     with _db_sync_lock:
         try:
@@ -439,8 +447,11 @@ def upload_db_to_r2():
             data = db.DB_FILE.read_bytes()
             with urllib.request.urlopen(_r2_db_request("PUT", data), timeout=30):
                 pass
+            LAST_BACKUP_TS = time.time()
+            LAST_BACKUP_STATUS = "ok"
             print(f"☁️  DB → R2 ({len(data)//1024} Ko)")
         except Exception as e:
+            LAST_BACKUP_STATUS = "error"
             print(f"⚠️  Upload DB R2 : {e}")
 
 def download_db_from_r2():
@@ -456,6 +467,10 @@ def download_db_from_r2():
         tmp = db.DB_FILE.with_suffix(".tmp")
         tmp.write_bytes(data)
         tmp.replace(db.DB_FILE)
+        # Au démarrage : local == R2, donc considéré comme synchronisé maintenant
+        global LAST_BACKUP_TS, LAST_BACKUP_STATUS
+        LAST_BACKUP_TS = time.time()
+        LAST_BACKUP_STATUS = "ok"
         print(f"☁️  DB ← R2 ({len(data)//1024} Ko) — données à jour")
         return True
     except urllib.error.HTTPError as e:
@@ -1413,6 +1428,16 @@ function filter(type, btn) {{
                 self.send_json({"error": "Article introuvable"}, 404)
             except:
                 self.send_json({"error": "Référence invalide"}, 400)
+            return
+
+        # ── API dernière sauvegarde ────────────────────────────────────────────
+        if path == "/api/last-backup":
+            self.send_json({
+                "ts": LAST_BACKUP_TS,                       # epoch (secondes) ou None
+                "status": LAST_BACKUP_STATUS,               # "ok" | "error" | "local"
+                "iso": (datetime.fromtimestamp(LAST_BACKUP_TS).isoformat()
+                        if LAST_BACKUP_TS else None),
+            })
             return
 
         # ── API stats ─────────────────────────────────────────────────────────

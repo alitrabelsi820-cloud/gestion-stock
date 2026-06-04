@@ -227,6 +227,16 @@
     /* Actions */
     var actions = el('div', { className: 'gs-topbar-actions' });
 
+    /* Indicateur de sauvegarde */
+    var backupBtn = el('div', {
+      className: 'gs-backup-indic',
+      id: 'gs-backup-indic',
+      title: 'Vérification de la sauvegarde…',
+      innerHTML: '<span class="gs-backup-dot"></span>'
+               + '<span class="gs-backup-txt">Vérification…</span>',
+    });
+    actions.appendChild(backupBtn);
+
     var notifBtn = el('button', {
       className: 'gs-topbar-btn',
       id: 'gs-tb-notif',
@@ -403,6 +413,66 @@
     }
   }
 
+  /* ── Indicateur de sauvegarde (dernière sync R2) ── */
+  function _relTime(ts) {
+    var diff = Math.floor(Date.now() / 1000 - ts);
+    if (diff < 0) diff = 0;
+    if (diff < 10)   return "à l'instant";
+    if (diff < 60)   return 'il y a ' + diff + ' s';
+    if (diff < 3600) return 'il y a ' + Math.floor(diff / 60) + ' min';
+    if (diff < 86400) {
+      var h = Math.floor(diff / 3600);
+      return 'il y a ' + h + ' h';
+    }
+    var d = Math.floor(diff / 86400);
+    return 'il y a ' + d + ' j';
+  }
+
+  function _fullDate(ts) {
+    var dt = new Date(ts * 1000);
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+    return pad(dt.getDate()) + '/' + pad(dt.getMonth() + 1) + '/' + dt.getFullYear()
+         + ' à ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes());
+  }
+
+  function refreshBackupIndicator() {
+    var indic = document.getElementById('gs-backup-indic');
+    if (!indic) return;
+    var dot = indic.querySelector('.gs-backup-dot');
+    var txt = indic.querySelector('.gs-backup-txt');
+
+    fetch('/api/last-backup', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        indic.classList.remove('ok', 'warn', 'err', 'local');
+
+        if (d.status === 'error') {
+          indic.classList.add('err');
+          txt.textContent = 'Échec sauvegarde';
+          indic.title = '⚠️ La dernière sauvegarde a échoué — vérifiez la connexion.';
+          return;
+        }
+        if (d.status === 'local' || !d.ts) {
+          indic.classList.add('local');
+          txt.textContent = 'Local';
+          indic.title = 'Mode local — pas de sauvegarde cloud configurée.';
+          return;
+        }
+
+        var ageMin = (Date.now() / 1000 - d.ts) / 60;
+        indic.classList.add(ageMin > 60 ? 'warn' : 'ok');
+        txt.textContent = 'Sauvegardé ' + _relTime(d.ts);
+        indic.title = '✅ Données sauvegardées dans le cloud\nDernière sauvegarde : '
+                    + _fullDate(d.ts);
+      })
+      .catch(function () {
+        indic.classList.remove('ok', 'warn', 'local');
+        indic.classList.add('err');
+        txt.textContent = 'Hors ligne';
+        indic.title = 'Impossible de contacter le serveur.';
+      });
+  }
+
   /* ══════════════════════════════════════
      BOTTOM TAB BAR (mobile ≤860px)
   ══════════════════════════════════════ */
@@ -557,6 +627,10 @@
 
     /* Badge notification (après 300ms pour laisser la page charger) */
     setTimeout(syncNotifBadge, 300);
+
+    /* Indicateur de sauvegarde — au chargement puis toutes les 30 s */
+    refreshBackupIndicator();
+    setInterval(refreshBackupIndicator, 30000);
   }
 
   /* ── Lancer au bon moment ── */

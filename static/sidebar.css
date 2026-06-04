@@ -367,6 +367,74 @@
     border-color: rgba(192,57,43,.5);
   }
 
+  /* ── Indicateur de sauvegarde ── */
+  .gs-backup-indic {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(184,146,60,.22);
+    background: transparent;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #9a8e7e;
+    white-space: nowrap;
+    cursor: default;
+    transition: all .18s;
+    flex-shrink: 0;
+  }
+  .gs-backup-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #c9b88a;
+    flex-shrink: 0;
+    transition: background .18s, box-shadow .18s;
+  }
+  /* OK — vert, point pulsant */
+  .gs-backup-indic.ok {
+    border-color: rgba(39,174,96,.3);
+    color: #1e7e46;
+    background: rgba(39,174,96,.06);
+  }
+  .gs-backup-indic.ok .gs-backup-dot {
+    background: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39,174,96,.18);
+    animation: gs-backup-pulse 2.2s ease-in-out infinite;
+  }
+  /* Warn — ancien (>1h), orange */
+  .gs-backup-indic.warn {
+    border-color: rgba(230,126,34,.35);
+    color: #b9620f;
+    background: rgba(230,126,34,.06);
+  }
+  .gs-backup-indic.warn .gs-backup-dot { background: #e67e22; }
+  /* Err / hors ligne — rouge */
+  .gs-backup-indic.err {
+    border-color: rgba(192,57,43,.35);
+    color: #c0392b;
+    background: rgba(192,57,43,.06);
+  }
+  .gs-backup-indic.err .gs-backup-dot { background: #c0392b; }
+  /* Local — neutre */
+  .gs-backup-indic.local .gs-backup-dot { background: #9a8e7e; }
+
+  @keyframes gs-backup-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(39,174,96,.18); }
+    50%      { box-shadow: 0 0 0 5px rgba(39,174,96,.05); }
+  }
+
+  /* Masquer le texte sur petits écrans, garder le point */
+  @media (max-width: 1080px) {
+    .gs-backup-txt { display: none; }
+    .gs-backup-indic { padding: 6px 9px; }
+  }
+
+  body.sidebar-layout.dark .gs-backup-indic {
+    border-color: rgba(184,146,60,.25);
+    color: #b8a888;
+  }
+
   /* Badge notif */
   .gs-notif-badge {
     position: absolute;
