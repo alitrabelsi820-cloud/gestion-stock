@@ -620,14 +620,23 @@ function buildDevisHTML(numStr, client, articles) {
     if(a.em_clb) pierres.push(`Ém. Colombie · ${fmtF(a.em_clb)} ct`);
     if(a.perles) pierres.push(`Perles · ${fmtF(a.perles)} grs`);
 
-    const pvCell = a.pv > 0
-      ? (a.pvr > 0 && a.pvr !== a.pv
-          ? `<span style="text-decoration:line-through;color:#aaa;font-size:11px">${fmtN(a.pv)}</span>`
-          : `${fmtN(a.pv)}`)
-      : '—';
-    const pvrCell = (a.pvr > 0 && a.pvr !== a.pv)
-      ? `<span style="color:#1a7a40;font-weight:800">${fmtN(a.pvr)} MAD</span>`
-      : (a.pv > 0 ? `${fmtN(a.pv)} MAD` : '—');
+    let priceCells;
+    if (hasReduction) {
+      // Deux colonnes : prix initial barré + prix après réduction
+      const pvCell = a.pv > 0
+        ? (a.pvr > 0 && a.pvr !== a.pv
+            ? `<span style="text-decoration:line-through;color:#aaa;font-size:11px">${fmtN(a.pv)}</span>`
+            : `${fmtN(a.pv)}`)
+        : '—';
+      const pvrCell = (a.pvr > 0 && a.pvr !== a.pv)
+        ? `<span style="color:#1a7a40;font-weight:800">${fmtN(a.pvr)} MAD</span>`
+        : (a.pv > 0 ? `${fmtN(a.pv)} MAD` : '—');
+      priceCells = `<td class="dv-price">${pvCell}</td><td class="dv-price">${pvrCell}</td>`;
+    } else {
+      // Une seule colonne : Prix
+      const prix = a.pv > 0 ? `${fmtN(a.pv)} MAD` : '—';
+      priceCells = `<td class="dv-price">${prix}</td>`;
+    }
 
     return `<tr>
       <td style="color:#9a8060;font-size:11px;font-weight:700;vertical-align:top">${String(i+1).padStart(2,'0')}</td>
@@ -637,8 +646,7 @@ function buildDevisHTML(numStr, client, articles) {
         ${pierres.length ? `<div style="margin-top:4px">${pierres.map(p=>`<span style="font-size:10px;color:#6b5c4a;background:#f9f4e8;border-radius:3px;padding:1px 6px;display:inline-block;margin:1px 2px">${p}</span>`).join('')}</div>` : ''}
         ${a.note ? `<div style="font-size:11px;color:#7a6040;margin-top:4px;font-style:italic;">${a.note}</div>` : ''}
       </td>
-      <td class="dv-price">${pvCell}</td>
-      <td class="dv-price">${pvrCell}</td>
+      ${priceCells}
     </tr>`;
   }).join('');
 
@@ -682,7 +690,7 @@ function buildDevisHTML(numStr, client, articles) {
       </div>
       <div style="margin-bottom:10px"><div class="dv-lbl">Détail des articles proposés</div></div>
       <table class="dv-tbl">
-        <thead><tr><th>#</th><th>Article</th><th style="text-align:right">Prix initial</th><th style="text-align:right">Après réduction</th></tr></thead>
+        <thead><tr><th>#</th><th>Article</th>${hasReduction ? '<th style="text-align:right">Prix initial</th><th style="text-align:right">Après réduction</th>' : '<th style="text-align:right">Prix</th>'}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
       <div class="dv-totaux"><div class="dv-totaux-box">${totauxHtml}</div></div>
