@@ -490,6 +490,28 @@ def init_db():
         except Exception:
             pass
 
+        # Migration 8 : journal d'audit + corbeille (snapshot pour restauration)
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS audit_log (
+                id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                action    TEXT,          -- created | deleted | modified | restored
+                entity    TEXT,          -- vente | article | credit | cheque | fournisseur
+                ref       TEXT,
+                summary   TEXT,
+                role      TEXT,
+                ip        TEXT,
+                device    TEXT,
+                snapshot  TEXT,          -- JSON de l'objet (pour restaurer)
+                restored  INTEGER DEFAULT 0,
+                raw_ts    REAL,
+                ts        TEXT
+            );
+        """)
+        try:
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_log(raw_ts)")
+        except Exception:
+            pass
+
 
 # ─── ARTICLES ─────────────────────────────────────────────────────────────────
 
@@ -937,6 +959,79 @@ def search_logs_stats(since_ts):
             "SELECT COUNT(*) FROM search_logs WHERE raw_ts > ? AND found = 0", (since_ts,)
         ).fetchone()[0]
     return {"total": total, "introuvables": nf}
+
+
+# ─── JOURNAL D'AUDIT + CORBEILLE ──────────────────────────────────────────────
+
+def log_audit(action, entity, ref, summary, role="", ip="", device="", snapshot=None):
+    """Enregistre une action sensible (création/suppression/modif).
+    snapshot : objet Python sérialisable (pour pouvoir restaurer)."""
+    import time as _t
+    now = datetime.now()
+    try:
+        with get_conn() as conn:
+            conn.execute(
+                """INSERT INTO audit_log
+                   (action, entity, ref, summary, role, ip, device, snapshot, raw_ts, ts)
+                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                (action, entity, str(ref), summary, role, ip or "", device or "",
+                 json.dumps(snapshot, ensure_ascii=False) if snapshot is not None else None,
+                 _t.time(), now.strftime("%d/%m/%Y %H:%M:%S"))
+            )
+            # Purge : garder les 10000 dernières entrées
+            conn.execute("""DELETE FROM audit_log WHERE id NOT IN (
+                SELECT id FROM audit_log ORDER BY id DESC LIMIT 10000)""")
+    except Exception:
+        pass
+
+def get_audit_logs(limit=200, entity=None, action=None):
+    """Retourne les entrées d'audit récentes (plus récentes d'abord)."""
+    q = "SELECT * FROM audit_log WHERE 1=1"
+    args = []
+    if entity: q += " AND entity=?"; args.append(entity)
+    if action: q += " AND action=?"; args.append(action)
+    q += " ORDER BY id DESC LIMIT ?"; args.append(limit)
+    with get_conn() as conn:
+        rows = conn.execute(q, args).fetchall()
+    out = []
+    for r in rows:
+        out.append({
+            "id": r["id"], "action": r["action"], "entity": r["entity"],
+            "ref": r["ref"], "summary": r["summary"], "role": r["role"],
+            "ip": r["ip"], "device": r["device"],
+            "has_snapshot": bool(r["snapshot"]),
+            "restored": bool(r["restored"]),
+            "raw_ts": r["raw_ts"], "ts": r["ts"],
+        })
+    return out
+
+def get_audit_entry(audit_id):
+    """Retourne une entrée complète (avec snapshot désérialisé)."""
+    with get_conn() as conn:
+        r = conn.execute("SELECT * FROM audit_log WHERE id=?", (audit_id,)).fetchone()
+    if not r:
+        return None
+    d = dict(r)
+    d["snapshot"] = json.loads(r["snapshot"]) if r["snapshot"] else None
+    return d
+
+def mark_audit_restored(audit_id):
+    with get_conn() as conn:
+        conn.execute("UPDATE audit_log SET restored=1 WHERE id=?", (audit_id,))
+
+def get_trash(limit=200):
+    """Éléments supprimés et restaurables (snapshot présent, non restaurés)."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            """SELECT * FROM audit_log
+               WHERE action='deleted' AND snapshot IS NOT NULL AND restored=0
+               ORDER BY id DESC LIMIT ?""", (limit,)
+        ).fetchall()
+    return [{
+        "id": r["id"], "entity": r["entity"], "ref": r["ref"],
+        "summary": r["summary"], "role": r["role"], "device": r["device"],
+        "raw_ts": r["raw_ts"], "ts": r["ts"],
+    } for r in rows]
 
 
 # ─── Point d'entrée ───────────────────────────────────────────────────────────

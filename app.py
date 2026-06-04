@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "18"
+ASSET_VERSION = "19"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1313,6 +1313,16 @@ function filter(type, btn) {{
             self.send_response(404)
             self.end_headers()
 
+    def _actor(self):
+        """Retourne (role, ip, device) de l'auteur de la requête courante."""
+        try:
+            role = get_role(self.headers) or "?"
+            ip = _get_client_ip(self.headers)
+            dev, br = parse_ua(self.headers.get("User-Agent", ""))
+            return role, ip, f"{dev} · {br}"
+        except Exception:
+            return "?", "", ""
+
     def send_static(self, path):
         """Sert un fichier statique (png, json, js, ico)."""
         MIME = {
@@ -1478,6 +1488,8 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "activite_employes.html"); return
         if path == "/etiquettes":
             self.send_html(STATIC_DIR / "etiquettes.html"); return
+        if path == "/corbeille":
+            self.send_html(STATIC_DIR / "corbeille.html"); return
         if path == "/galerie":
             self.send_html(STATIC_DIR / "galerie.html"); return
         # ── API articles ──────────────────────────────────────────────────────
@@ -1545,6 +1557,23 @@ function filter(type, btn) {{
                 "logs": db.get_search_logs(limit=min(limit, 500), since_ts=since_ts),
                 "today": db.search_logs_stats(midnight),
             })
+            return
+
+        # ── API journal d'audit (admin) ─────────────────────────────────────────
+        if path == "/api/audit-log":
+            if not is_admin(self.headers):
+                self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
+            qs = urllib.parse.parse_qs(parsed.query)
+            entity = qs.get("entity", [None])[0]
+            action = qs.get("action", [None])[0]
+            self.send_json({"logs": db.get_audit_logs(limit=300, entity=entity, action=action)})
+            return
+
+        # ── API corbeille — éléments supprimés restaurables (admin) ─────────────
+        if path == "/api/trash":
+            if not is_admin(self.headers):
+                self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
+            self.send_json({"items": db.get_trash(limit=300)})
             return
 
         # ── API génération de QR code (SVG) ─────────────────────────────────────
@@ -2130,6 +2159,49 @@ function filter(type, btn) {{
         except:
             self.send_json({"error": "JSON invalide"}, 400); return
 
+        # ── Restaurer un élément supprimé (corbeille) ─────────────────────────
+        if path.startswith("/api/audit/restore/"):
+            try:
+                aid = int(path.split("/")[-1])
+            except:
+                self.send_json({"error": "ID invalide"}, 400); return
+            entry = db.get_audit_entry(aid)
+            if not entry or entry.get("action") != "deleted" or not entry.get("snapshot"):
+                self.send_json({"error": "Élément non restaurable"}, 404); return
+            if entry.get("restored"):
+                self.send_json({"error": "Déjà restauré"}, 409); return
+            snap = entry["snapshot"]; ent = entry["entity"]
+            try:
+                if ent == "vente":
+                    items = load_ventes()
+                    if not any(v.get("id_vente") == snap.get("id_vente") for v in items):
+                        items.append(snap); save_ventes(items)
+                elif ent == "article":
+                    items = load_articles()
+                    if not any(a.get("id") == snap.get("id") for a in items):
+                        items.append(snap); save_articles(items)
+                elif ent == "credit":
+                    items = load_credits()
+                    if not any(c.get("id") == snap.get("id") for c in items):
+                        items.append(snap); save_credits(items)
+                elif ent == "fournisseur":
+                    items = load_fournisseurs()
+                    if not any(f.get("id") == snap.get("id") for f in items):
+                        items.append(snap); save_fournisseurs(items)
+                elif ent == "cheque":
+                    items = load_cheques()
+                    if not any(c.get("id") == snap.get("id") for c in items):
+                        items.append(snap); save_cheques(items)
+                else:
+                    self.send_json({"error": "Type non restaurable"}, 400); return
+                db.mark_audit_restored(aid)
+                r_, ip_, dev_ = self._actor()
+                db.log_audit("restored", ent, entry.get("ref", ""),
+                             f"Restauration : {entry.get('summary','')}", r_, ip_, dev_)
+                self.send_json({"success": True}); return
+            except Exception as e:
+                self.send_json({"error": str(e)}, 400); return
+
         # ── Ajouter un article ────────────────────────────────────────────────
         if path == "/api/articles":
             articles = load_articles()
@@ -2214,6 +2286,11 @@ function filter(type, btn) {{
                 ventes = load_ventes()
                 ventes.append(vente)
                 save_ventes(ventes)
+                r_, ip_, dev_ = self._actor()
+                db.log_audit("created", "vente", vente.get("ref", ""),
+                             f"Vente #{vente.get('ref','')} — {vente.get('article','')} · "
+                             f"{vente.get('client','?')} · {vente.get('pv',0)} MAD",
+                             r_, ip_, dev_)
                 merge_duplicate_factures(); auto_generate_missing_factures()
                 if article.get("ismail_pierres"):
                     add_notif_ismail(article, vente["client"], article["id"])
@@ -2261,6 +2338,11 @@ function filter(type, btn) {{
                 ventes = load_ventes()
                 ventes.append(vente)
                 save_ventes(ventes)
+                r_, ip_, dev_ = self._actor()
+                db.log_audit("created", "vente", vente.get("ref", ""),
+                             f"Vente #{vente.get('ref','')} — {vente.get('article','')} · "
+                             f"{vente.get('client','?')} · {vente.get('pv',0)} MAD",
+                             r_, ip_, dev_)
                 merge_duplicate_factures(); auto_generate_missing_factures()
                 if article.get("ismail_pierres"):
                     add_notif_ismail(article, vente["client"], article["id"])
@@ -3070,8 +3152,12 @@ function filter(type, btn) {{
                 idx = next((i for i, a in enumerate(articles) if a["id"] == ref), None)
                 if idx is None:
                     self.send_json({"error": "Article introuvable"}, 404); return
-                articles.pop(idx)
+                removed = articles.pop(idx)
                 save_articles(articles)
+                r_, ip_, dev_ = self._actor()
+                db.log_audit("deleted", "article", ref,
+                             f"Article #{ref} — {removed.get('article','')}",
+                             r_, ip_, dev_, snapshot=removed)
                 self.send_json({"success": True}); return
             except:
                 self.send_json({"error": "Référence invalide"}, 400); return
@@ -3107,8 +3193,13 @@ function filter(type, btn) {{
                     articles.append(article)
                     save_articles(articles)
                 # Supprimer la vente
-                ventes.pop(idx)
+                removed = ventes.pop(idx)
                 save_ventes(ventes)
+                r_, ip_, dev_ = self._actor()
+                db.log_audit("deleted", "vente", removed.get("ref", id_vente),
+                             f"Vente #{removed.get('ref','')} — {removed.get('article','')} · "
+                             f"{removed.get('client','?')} · {removed.get('pv',0)} MAD",
+                             r_, ip_, dev_, snapshot=removed)
                 self.send_json({"success": True, "article_restored": article}); return
             except Exception as e:
                 self.send_json({"error": str(e)}, 400); return
@@ -3121,8 +3212,12 @@ function filter(type, btn) {{
                 idx = next((i for i, c in enumerate(credits) if c["id"] == id_credit), None)
                 if idx is None:
                     self.send_json({"error": "Crédit introuvable"}, 404); return
-                credits.pop(idx)
+                removed = credits.pop(idx)
                 save_credits(credits)
+                r_, ip_, dev_ = self._actor()
+                db.log_audit("deleted", "credit", id_credit,
+                             f"Crédit {removed.get('client','?')} — {removed.get('montant_total',0)} MAD",
+                             r_, ip_, dev_, snapshot=removed)
                 self.send_json({"success": True}); return
             except:
                 self.send_json({"error": "ID invalide"}, 400); return
@@ -3135,8 +3230,12 @@ function filter(type, btn) {{
                 idx = next((i for i, f in enumerate(fournisseurs) if f["id"] == id_f), None)
                 if idx is None:
                     self.send_json({"error": "Fournisseur introuvable"}, 404); return
-                fournisseurs.pop(idx)
+                removed = fournisseurs.pop(idx)
                 save_fournisseurs(fournisseurs)
+                r_, ip_, dev_ = self._actor()
+                db.log_audit("deleted", "fournisseur", id_f,
+                             f"Fournisseur {removed.get('nom') or removed.get('client') or id_f}",
+                             r_, ip_, dev_, snapshot=removed)
                 self.send_json({"success": True}); return
             except:
                 self.send_json({"error": "ID invalide"}, 400); return
@@ -3149,8 +3248,12 @@ function filter(type, btn) {{
                 idx = next((i for i, c in enumerate(cheques) if c["id"] == id_cheque), None)
                 if idx is None:
                     self.send_json({"error": "Chèque introuvable"}, 404); return
-                cheques.pop(idx)
+                removed = cheques.pop(idx)
                 save_cheques(cheques)
+                r_, ip_, dev_ = self._actor()
+                db.log_audit("deleted", "cheque", id_cheque,
+                             f"Chèque {removed.get('client','?')} — {removed.get('montant',0)} MAD",
+                             r_, ip_, dev_, snapshot=removed)
                 self.send_json({"success": True}); return
             except:
                 self.send_json({"error": "ID invalide"}, 400); return

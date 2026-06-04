@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#16191D">
+<meta name="apple-mobile-web-app-title" content="Trabelsi">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corbeille & Journal — TRABELSI</title>
+<style>
+:root{
+  --ink:#16191D;--ink-soft:#5C636B;--ink-faint:#8A9099;
+  --canvas:#F6F7F9;--surface:#FFFFFF;--surface-2:#F1F3F5;--line:#E4E7EB;
+  --pos:#15803D;--neg:#B42318;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,'Segoe UI',sans-serif;background:var(--canvas);color:var(--ink);min-height:100vh;font-variant-numeric:tabular-nums;}
+nav{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;text-decoration:none;color:inherit;}
+.nav-logo{width:40px;height:40px;background:var(--ink);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;}
+.nav-title{font-size:15px;font-weight:600;letter-spacing:2px;}
+.nav-links{display:flex;gap:6px;}
+.nav-links a{padding:8px 12px;border-radius:6px;color:var(--ink-soft);text-decoration:none;font-size:13px;}
+.nav-logout-btn{padding:7px 14px;border-radius:6px;border:1px solid rgba(180,35,24,.25);color:var(--neg);font-size:12px;font-weight:600;text-decoration:none;}
+.hamburger{display:none;}
+
+.page{padding:24px 28px 80px;max-width:1050px;margin:0 auto;}
+.page-title{font-size:22px;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--ink-soft);margin-bottom:20px;}
+
+.tabs{display:flex;gap:6px;margin-bottom:18px;}
+.tab{padding:9px 16px;border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;}
+.tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+.toolbar select{padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:13px;}
+.count{margin-left:auto;font-size:12px;color:var(--ink-faint);}
+
+.list{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.row{display:flex;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid var(--line);}
+.row:last-child{border-bottom:none;}
+.tag{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:4px;flex-shrink:0;min-width:74px;text-align:center;}
+.t-deleted{background:rgba(180,35,24,.10);color:var(--neg);}
+.t-created{background:rgba(21,128,61,.10);color:var(--pos);}
+.t-modified{background:var(--surface-2);color:var(--ink-soft);}
+.t-restored{background:rgba(21,128,61,.10);color:var(--pos);}
+.main{flex:1;min-width:0;}
+.main .s{font-size:14px;font-weight:500;}
+.main .m{font-size:11px;color:var(--ink-faint);margin-top:2px;}
+.time{font-size:12px;color:var(--ink-faint);white-space:nowrap;text-align:right;}
+.btn-restore{padding:7px 14px;border-radius:6px;border:1px solid var(--ink);background:var(--ink);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.btn-restore:hover{background:#2C3138;}
+.empty{text-align:center;padding:50px 20px;color:var(--ink-faint);}
+@media(max-width:760px){.page{padding:18px 14px 90px;}}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand"><div class="nav-logo">✦</div><div class="nav-title">GESTION STOCK</div></a>
+  <div class="nav-links" id="nav-links"><a href="/dashboard">Dashboard</a><a href="/vendu">Ventes</a><a href="/stock">Stock</a></div>
+  <button class="hamburger" id="hamburger-btn">☰</button>
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+  <div class="page-title">🗑️ Corbeille &amp; Journal d'audit</div>
+  <div class="page-sub">Tout ce qui est supprimé est récupérable. Chaque action est tracée (qui, quoi, quand).</div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-trash" onclick="switchTab('trash')">♻️ Corbeille (restaurable)</button>
+    <button class="tab" id="tab-audit" onclick="switchTab('audit')">📋 Journal complet</button>
+  </div>
+
+  <!-- CORBEILLE -->
+  <div id="view-trash">
+    <div class="toolbar">
+      <span class="count"><b id="cnt-trash">0</b> élément(s) supprimé(s) récupérable(s)</span>
+    </div>
+    <div class="list" id="trash-list"><div class="empty">⏳ Chargement…</div></div>
+  </div>
+
+  <!-- JOURNAL -->
+  <div id="view-audit" style="display:none">
+    <div class="toolbar">
+      <select id="f-entity" onchange="loadAudit()">
+        <option value="">Tous les types</option>
+        <option value="vente">Ventes</option>
+        <option value="article">Articles</option>
+        <option value="credit">Crédits</option>
+        <option value="cheque">Chèques</option>
+        <option value="fournisseur">Fournisseurs</option>
+      </select>
+      <select id="f-action" onchange="loadAudit()">
+        <option value="">Toutes les actions</option>
+        <option value="created">Créations</option>
+        <option value="deleted">Suppressions</option>
+        <option value="restored">Restaurations</option>
+      </select>
+      <span class="count"><b id="cnt-audit">0</b> action(s)</span>
+    </div>
+    <div class="list" id="audit-list"><div class="empty">⏳ Chargement…</div></div>
+  </div>
+</div>
+
+<script>
+function relTime(ts){let d=Math.floor(Date.now()/1000-ts);if(d<0)d=0;
+  if(d<60)return "à l'instant";if(d<3600)return 'il y a '+Math.floor(d/60)+' min';
+  if(d<86400)return 'il y a '+Math.floor(d/3600)+' h';return 'il y a '+Math.floor(d/86400)+' j';}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function who(r){return r==='admin'?'🔑 Admin':(r==='employe'?'👤 Employé':r||'?');}
+
+function switchTab(t){
+  document.getElementById('tab-trash').classList.toggle('active',t==='trash');
+  document.getElementById('tab-audit').classList.toggle('active',t==='audit');
+  document.getElementById('view-trash').style.display=t==='trash'?'block':'none';
+  document.getElementById('view-audit').style.display=t==='audit'?'block':'none';
+  if(t==='audit')loadAudit();else loadTrash();
+}
+
+async function loadTrash(){
+  try{
+    const d=await fetch('/api/trash',{cache:'no-store'}).then(r=>r.json());
+    if(d.error){document.getElementById('trash-list').innerHTML='<div class="empty">⛔ '+d.error+'</div>';return;}
+    const items=d.items||[];
+    document.getElementById('cnt-trash').textContent=items.length;
+    const box=document.getElementById('trash-list');
+    if(!items.length){box.innerHTML='<div class="empty">✅ La corbeille est vide — rien de supprimé.</div>';return;}
+    box.innerHTML=items.map(it=>
+      '<div class="row" id="trash-'+it.id+'">'
+      +'<span class="tag t-deleted">'+esc(it.entity)+'</span>'
+      +'<div class="main"><div class="s">'+esc(it.summary||('#'+it.ref))+'</div>'
+      +'<div class="m">Supprimé '+relTime(it.raw_ts)+' · '+who(it.role)+(it.device?' · '+esc(it.device):'')+'</div></div>'
+      +'<button class="btn-restore" onclick="restore('+it.id+')">↩️ Restaurer</button>'
+      +'</div>'
+    ).join('');
+  }catch(e){document.getElementById('trash-list').innerHTML='<div class="empty">⚠️ Erreur</div>';}
+}
+
+async function restore(id){
+  if(!confirm('Restaurer cet élément ?'))return;
+  try{
+    const r=await fetch('/api/audit/restore/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const d=await r.json();
+    if(r.ok){const el=document.getElementById('trash-'+id);if(el)el.remove();
+      const c=document.getElementById('cnt-trash');c.textContent=Math.max(0,parseInt(c.textContent)-1);}
+    else alert('Erreur : '+(d.error||'restauration impossible'));
+  }catch(e){alert('Erreur réseau');}
+}
+
+async function loadAudit(){
+  const ent=document.getElementById('f-entity').value;
+  const act=document.getElementById('f-action').value;
+  let url='/api/audit-log?';
+  if(ent)url+='entity='+ent+'&';
+  if(act)url+='action='+act;
+  try{
+    const d=await fetch(url,{cache:'no-store'}).then(r=>r.json());
+    if(d.error){document.getElementById('audit-list').innerHTML='<div class="empty">⛔ '+d.error+'</div>';return;}
+    const logs=d.logs||[];
+    document.getElementById('cnt-audit').textContent=logs.length;
+    const box=document.getElementById('audit-list');
+    if(!logs.length){box.innerHTML='<div class="empty">Aucune action enregistrée.</div>';return;}
+    const cls={deleted:'t-deleted',created:'t-created',modified:'t-modified',restored:'t-restored'};
+    const lbl={deleted:'Supprimé',created:'Créé',modified:'Modifié',restored:'Restauré'};
+    box.innerHTML=logs.map(l=>
+      '<div class="row">'
+      +'<span class="tag '+(cls[l.action]||'t-modified')+'">'+(lbl[l.action]||l.action)+'</span>'
+      +'<div class="main"><div class="s">'+esc(l.summary||(l.entity+' #'+l.ref))+'</div>'
+      +'<div class="m">'+who(l.role)+(l.device?' · '+esc(l.device):'')+' · '+esc(l.ts)
+      +(l.restored?' · <span style="color:var(--pos)">↩️ restauré</span>':'')+'</div></div>'
+      +'<div class="time">'+relTime(l.raw_ts)+'</div>'
+      +'</div>'
+    ).join('');
+  }catch(e){document.getElementById('audit-list').innerHTML='<div class="empty">⚠️ Erreur</div>';}
+}
+
+loadTrash();
+</script>
+</body>
+</html>
