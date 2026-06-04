@@ -470,6 +470,25 @@ def init_db():
             );
         """)
 
+        # Migration 7 : journal des recherches employés
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS search_logs (
+                id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                role    TEXT,
+                ref     TEXT,
+                article TEXT,
+                found   INTEGER DEFAULT 0,
+                ip      TEXT,
+                device  TEXT,
+                raw_ts  REAL,
+                ts      TEXT
+            );
+        """)
+        try:
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_search_logs_ts ON search_logs(raw_ts)")
+        except Exception:
+            pass
+
 
 # ─── ARTICLES ─────────────────────────────────────────────────────────────────
 
@@ -861,6 +880,62 @@ def cleanup_old_sessions(max_age_hours: int = 72):
     cutoff = (datetime.now() - timedelta(hours=max_age_hours)).isoformat()
     with get_conn() as conn:
         conn.execute("DELETE FROM sessions WHERE last_used < ?", (cutoff,))
+
+
+# ─── JOURNAL DES RECHERCHES EMPLOYÉS ──────────────────────────────────────────
+
+def log_search(role, ref, article, found, ip="", device=""):
+    """Enregistre une recherche de référence. NE déclenche PAS de sync R2
+    (appelé sur des requêtes GET uniquement)."""
+    import time as _t
+    now = datetime.now()
+    try:
+        with get_conn() as conn:
+            conn.execute(
+                "INSERT INTO search_logs (role, ref, article, found, ip, device, raw_ts, ts) VALUES (?,?,?,?,?,?,?,?)",
+                (role, str(ref), article or "", 1 if found else 0, ip or "", device or "",
+                 _t.time(), now.strftime("%d/%m/%Y %H:%M:%S"))
+            )
+            # Purge : ne garder que les 5000 dernières entrées
+            conn.execute("""
+                DELETE FROM search_logs WHERE id NOT IN (
+                    SELECT id FROM search_logs ORDER BY id DESC LIMIT 5000
+                )
+            """)
+    except Exception:
+        pass
+
+def get_search_logs(limit=100, since_ts=None):
+    """Retourne les recherches récentes (les plus récentes en premier)."""
+    with get_conn() as conn:
+        if since_ts is not None:
+            rows = conn.execute(
+                "SELECT * FROM search_logs WHERE raw_ts > ? ORDER BY id DESC LIMIT ?",
+                (since_ts, limit)
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM search_logs ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+    cols = rows[0].keys() if rows else []
+    return [{
+        "id": r["id"], "role": r["role"], "ref": r["ref"],
+        "article": r["article"], "found": bool(r["found"]),
+        "ip": (r["ip"] if "ip" in cols else ""),
+        "device": (r["device"] if "device" in cols else ""),
+        "raw_ts": r["raw_ts"], "ts": r["ts"],
+    } for r in rows]
+
+def search_logs_stats(since_ts):
+    """Compte total et introuvables depuis un timestamp donné."""
+    with get_conn() as conn:
+        total = conn.execute(
+            "SELECT COUNT(*) FROM search_logs WHERE raw_ts > ?", (since_ts,)
+        ).fetchone()[0]
+        nf = conn.execute(
+            "SELECT COUNT(*) FROM search_logs WHERE raw_ts > ? AND found = 0", (since_ts,)
+        ).fetchone()[0]
+    return {"total": total, "introuvables": nf}
 
 
 # ─── Point d'entrée ───────────────────────────────────────────────────────────

@@ -1395,6 +1395,8 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "catalogue.html"); return
         if path == "/historique-activite":
             self.send_html(STATIC_DIR / "historique_activite.html"); return
+        if path == "/activite-employes":
+            self.send_html(STATIC_DIR / "activite_employes.html"); return
         if path == "/galerie":
             self.send_html(STATIC_DIR / "galerie.html"); return
         # ── API articles ──────────────────────────────────────────────────────
@@ -1406,6 +1408,24 @@ function filter(type, btn) {{
                 ref = int(path.split("/")[-1])
                 articles = load_articles()
                 found = [a for a in articles if a["id"] == ref]
+                # Journaliser la recherche (employé ou admin) — GET, pas de sync R2
+                try:
+                    article_nom = found[0].get("article", "") if found else ""
+                    _is_found = bool(found)
+                    if not _is_found:
+                        # Vérifier aussi dans les ventes (article déjà vendu)
+                        _v = [v for v in load_ventes() if v.get("ref") == ref]
+                        if _v:
+                            article_nom = _v[-1].get("article", "")
+                            _is_found = True
+                    _ua = self.headers.get("User-Agent", "")
+                    _dev, _br = parse_ua(_ua)
+                    db.log_search(
+                        get_role(self.headers), ref, article_nom, _is_found,
+                        _get_client_ip(self.headers), f"{_dev} · {_br}"
+                    )
+                except Exception:
+                    pass
                 if found: self.send_json(found[0])
                 else: self.send_json({"error": "Article introuvable"}, 404)
             except:
@@ -1428,6 +1448,22 @@ function filter(type, btn) {{
                 self.send_json({"error": "Article introuvable"}, 404)
             except:
                 self.send_json({"error": "Référence invalide"}, 400)
+            return
+
+        # ── API journal des recherches employés (admin) ────────────────────────
+        if path == "/api/search-logs":
+            if not is_admin(self.headers):
+                self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
+            qs = urllib.parse.parse_qs(parsed.query)
+            limit = int((qs.get("limit", ["100"])[0]) or 100)
+            since = qs.get("since", [None])[0]
+            since_ts = float(since) if since else None
+            # Stats du jour (depuis minuit)
+            midnight = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+            self.send_json({
+                "logs": db.get_search_logs(limit=min(limit, 500), since_ts=since_ts),
+                "today": db.search_logs_stats(midnight),
+            })
             return
 
         # ── API dernière sauvegarde ────────────────────────────────────────────

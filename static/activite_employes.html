@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#c9a84c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trabelsi">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Activité Employés — TRABELSI</title>
+<style>
+:root{
+  --gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;
+  --bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;
+  --txt:#1a1612;--muted:#9a8e7e;
+  --green:#27ae60;--red:#e74c3c;--blue:#2980b9;--orange:#e67e22;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;text-decoration:none;color:inherit;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:6px;align-items:center;}
+.nav-links a{padding:8px 12px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;}
+.nav-logout-btn{padding:7px 14px;border-radius:8px;border:1px solid rgba(192,57,43,.3);background:transparent;color:#c0392b;font-size:12px;font-weight:600;text-decoration:none;}
+.hamburger{display:none;}
+
+.page{padding:24px 28px 80px;max-width:1100px;margin:0 auto;}
+.page-header{margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.page-title{font-size:22px;color:var(--gold-l);font-weight:800;display:flex;align-items:center;gap:10px;}
+.live-badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--green);background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);padding:5px 12px;border-radius:20px;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(39,174,96,.18);animation:pulse 1.8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(39,174,96,.18);}50%{box-shadow:0 0 0 6px rgba(39,174,96,.04);}}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.stat-card{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:18px 20px;}
+.stat-card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+.stat-card .val{font-size:28px;font-weight:800;color:var(--gold-l);line-height:1;}
+.stat-card.red .val{color:var(--red);}
+.stat-card .sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+.toolbar select,.toolbar input{padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:#fff;color:var(--txt);font-size:13px;outline:none;}
+.toolbar .count{margin-left:auto;font-size:12px;color:var(--muted);}
+
+.feed{background:#fff;border:1px solid var(--bd);border-radius:14px;overflow:hidden;}
+.feed-row{display:flex;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid var(--bd);transition:background .15s;}
+.feed-row:last-child{border-bottom:none;}
+.feed-row.fresh{animation:flash 1.5s ease-out;}
+@keyframes flash{0%{background:rgba(39,174,96,.12);}100%{background:transparent;}}
+.fr-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.fr-dot.ok{background:var(--green);}
+.fr-dot.no{background:var(--red);}
+.fr-main{flex:1;min-width:0;}
+.fr-ref{font-size:15px;font-weight:800;font-family:monospace;color:var(--gold-d);}
+.fr-art{font-size:13px;color:var(--txt);margin-left:8px;}
+.fr-art.no{color:var(--red);font-style:italic;}
+.fr-meta{font-size:11px;color:var(--muted);margin-top:3px;}
+.fr-time{font-size:12px;color:var(--muted);white-space:nowrap;text-align:right;}
+.fr-time .abs{font-size:10px;display:block;opacity:.7;}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:14px;}
+
+@media(max-width:760px){
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .page{padding:18px 14px 90px;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/stock">Stock</a>
+    <a href="/vendu">Ventes</a>
+    <a href="/clients">Clients</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn">☰</button>
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">👁️ Activité Employés</div>
+    <div class="live-badge"><span class="live-dot"></span> En direct</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="lbl">Recherches aujourd'hui</div>
+      <div class="val" id="st-total">—</div>
+      <div class="sub">depuis minuit</div>
+    </div>
+    <div class="stat-card red">
+      <div class="lbl">Réf. introuvables</div>
+      <div class="val" id="st-nf">—</div>
+      <div class="sub">à vérifier</div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl">Appareils actifs</div>
+      <div class="val" id="st-dev">—</div>
+      <div class="sub">aujourd'hui</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <select id="f-role" onchange="render()">
+      <option value="employe">👤 Employés seulement</option>
+      <option value="">Tout le monde</option>
+      <option value="admin">🔑 Admin seulement</option>
+    </select>
+    <select id="f-found" onchange="render()">
+      <option value="">Trouvées + introuvables</option>
+      <option value="ok">Trouvées seulement</option>
+      <option value="no">Introuvables seulement</option>
+    </select>
+    <span class="count"><span id="cnt">0</span> recherche(s)</span>
+  </div>
+
+  <div class="feed" id="feed">
+    <div class="empty">⏳ Chargement…</div>
+  </div>
+</div>
+
+<script>
+let ALL = [];
+let seenIds = new Set();
+let firstLoad = true;
+
+function relTime(ts){
+  let d = Math.floor(Date.now()/1000 - ts);
+  if(d<0)d=0;
+  if(d<10)return "à l'instant";
+  if(d<60)return 'il y a '+d+' s';
+  if(d<3600)return 'il y a '+Math.floor(d/60)+' min';
+  if(d<86400)return 'il y a '+Math.floor(d/3600)+' h';
+  return 'il y a '+Math.floor(d/86400)+' j';
+}
+
+async function load(){
+  try{
+    const data = await fetch('/api/search-logs?limit=200',{cache:'no-store'}).then(r=>r.json());
+    if(data.error){
+      document.getElementById('feed').innerHTML='<div class="empty">⛔ '+data.error+'</div>';
+      return;
+    }
+    ALL = data.logs||[];
+    document.getElementById('st-total').textContent = data.today?.total ?? 0;
+    document.getElementById('st-nf').textContent = data.today?.introuvables ?? 0;
+    // Appareils actifs aujourd'hui
+    const midnight = new Date(); midnight.setHours(0,0,0,0);
+    const mts = midnight.getTime()/1000;
+    const devs = new Set(ALL.filter(l=>l.raw_ts>mts).map(l=>l.device||l.ip));
+    document.getElementById('st-dev').textContent = devs.size;
+    render();
+  }catch(e){
+    document.getElementById('feed').innerHTML='<div class="empty">⚠️ Connexion impossible</div>';
+  }
+}
+
+function render(){
+  const fRole = document.getElementById('f-role').value;
+  const fFound = document.getElementById('f-found').value;
+  let rows = ALL.filter(l=>{
+    if(fRole && (l.role||'')!==fRole) return false;
+    if(fFound==='ok' && !l.found) return false;
+    if(fFound==='no' && l.found) return false;
+    return true;
+  });
+  document.getElementById('cnt').textContent = rows.length;
+  const feed = document.getElementById('feed');
+  if(!rows.length){
+    feed.innerHTML='<div class="empty">Aucune recherche pour ce filtre.</div>';
+    return;
+  }
+  feed.innerHTML = rows.map(l=>{
+    const isNew = !firstLoad && !seenIds.has(l.id);
+    const who = l.role==='admin' ? '🔑 Admin' : '👤 Employé';
+    const dev = l.device ? ' · '+l.device : '';
+    const art = l.found
+      ? '<span class="fr-art">'+(escapeHtml(l.article)||'—')+'</span>'
+      : '<span class="fr-art no">introuvable</span>';
+    return '<div class="feed-row'+(isNew?' fresh':'')+'">'
+      + '<span class="fr-dot '+(l.found?'ok':'no')+'"></span>'
+      + '<div class="fr-main">'
+      +   '<div><span class="fr-ref">#'+escapeHtml(l.ref)+'</span>'+art+'</div>'
+      +   '<div class="fr-meta">'+who+dev+'</div>'
+      + '</div>'
+      + '<div class="fr-time">'+relTime(l.raw_ts)+'<span class="abs">'+(l.ts||'').split(' ')[1]+'</span></div>'
+      + '</div>';
+  }).join('');
+  rows.forEach(l=>seenIds.add(l.id));
+  firstLoad = false;
+}
+
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+load();
+setInterval(load, 5000);   // rafraîchissement en direct toutes les 5s
+</script>
+</body>
+</html>

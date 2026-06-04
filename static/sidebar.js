@@ -59,6 +59,7 @@
         { label: 'Fournisseurs',        href: '/fournisseurs' },
         { label: 'Fiche référence',     href: '/fiche' },
         { label: '📅 Historique',       href: '/historique-activite' },
+        { label: '👁️ Activité employés', href: '/activite-employes' },
       ]
     },
   ];
@@ -502,6 +503,7 @@
       { icon: '🏭', label: 'Fournisseurs',        href: '/fournisseurs' },
       { icon: '🔍', label: 'Fiche référence',     href: '/fiche' },
       { icon: '📅', label: 'Historique activité', href: '/historique-activite' },
+      { icon: '👁️', label: 'Activité employés',   href: '/activite-employes' },
       { icon: '⎋',  label: 'Déconnexion',         href: '/logout' },
     ]},
   ];
