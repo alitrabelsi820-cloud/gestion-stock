@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "16"
+ASSET_VERSION = "17"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1272,6 +1272,21 @@ function filter(type, btn) {{
                 )
                 if '</body>' in content:
                     content = content.replace('</body>', mobile_nav_fix + '</body>', 1)
+
+            # Auto-mise à jour du service worker : force le remplacement de
+            # tout ancien SW et recharge UNE fois quand le nouveau prend la main.
+            sw_updater = (
+                '<script>'
+                'if("serviceWorker" in navigator){'
+                'navigator.serviceWorker.getRegistrations().then(function(rs){'
+                'rs.forEach(function(r){r.update();});});'
+                'var _r=false;'
+                'navigator.serviceWorker.addEventListener("controllerchange",function(){'
+                'if(_r)return;_r=true;location.reload();});}'
+                '</script>\n'
+            )
+            if '</head>' in content:
+                content = content.replace('</head>', sw_updater + '</head>', 1)
 
             # Cache-busting : ajoute ?v=VERSION à tous les CSS/JS statiques
             # → l'URL change à chaque déploiement, le navigateur recharge toujours.

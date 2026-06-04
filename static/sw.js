@@ -1,58 +1,43 @@
-const CACHE_NAME = 'trabelsi-v16';
+// ═══════════════════════════════════════════════════════════
+//  Service Worker — Trabelsi
+//  Réseau uniquement (jamais de cache bloquant pour HTML/CSS/JS)
+//  → les mises à jour sont TOUJOURS visibles immédiatement.
+//  Un petit cache sert uniquement de secours hors-ligne.
+// ═══════════════════════════════════════════════════════════
+const CACHE_NAME = 'trabelsi-v17';
 
-// Fichiers à mettre en cache pour usage hors-ligne basique
-const STATIC_ASSETS = [
-  '/accueil',
-  '/stock',
-  '/vendu',
-  '/dashboard',
-  '/credit',
-  '/fournisseurs',
-  '/static/manifest.json',
-  '/static/icons/icon-192.png',
-  '/static/icons/icon-512.png',
-];
-
-// Installation : mise en cache des assets statiques
+// Installation : prendre le contrôle immédiatement
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS).catch(() => {});
-    })
-  );
   self.skipWaiting();
 });
 
-// Activation : nettoyage des anciens caches
+// Activation : supprimer TOUS les anciens caches + prendre le contrôle
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    caches.keys()
+      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch : réseau en priorité, cache en fallback
+// Fetch : toujours le réseau. Cache utilisé seulement si hors-ligne.
 self.addEventListener('fetch', event => {
-  // Ne pas intercepter les appels API (toujours réseau)
-  if (event.request.url.includes('/api/')) {
-    return;
-  }
+  const req = event.request;
 
+  // Ne jamais intercepter les API (toujours réseau direct)
+  if (req.url.includes('/api/')) return;
+
+  // Pour la navigation + CSS/JS : réseau d'abord, secours offline
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // Mettre en cache les réponses réussies
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+    fetch(req)
+      .then(resp => {
+        // Garder une copie de secours pour le mode hors-ligne
+        if (resp && resp.status === 200 && req.method === 'GET') {
+          const clone = resp.clone();
+          caches.open(CACHE_NAME).then(c => c.put(req, clone)).catch(() => {});
         }
-        return response;
+        return resp;
       })
-      .catch(() => {
-        // Pas de réseau : utiliser le cache
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(req))   // hors-ligne uniquement
   );
 });
