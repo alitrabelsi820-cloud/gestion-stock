@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trabelsi-v15';
+const CACHE_NAME = 'trabelsi-v16';
 
 // Fichiers à mettre en cache pour usage hors-ligne basique
 const STATIC_ASSETS = [

@@ -42,6 +42,10 @@ STATIC_DIR = BASE_DIR / "static"
 # Port : Railway injecte la variable PORT, sinon 5500 en local
 PORT = int(os.environ.get("PORT", 5500))
 
+# Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
+# Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
+ASSET_VERSION = "16"
+
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
 # Ex: https://pub-xxxx.r2.dev  ou  https://photos.bijouterie-trabelsi.com
@@ -1268,6 +1272,14 @@ function filter(type, btn) {{
                 )
                 if '</body>' in content:
                     content = content.replace('</body>', mobile_nav_fix + '</body>', 1)
+
+            # Cache-busting : ajoute ?v=VERSION à tous les CSS/JS statiques
+            # → l'URL change à chaque déploiement, le navigateur recharge toujours.
+            content = re.sub(
+                r'(/static/[^"\'?#]+\.(?:css|js))(?=["\'?#])',
+                lambda m: f"{m.group(1)}?v={ASSET_VERSION}",
+                content,
+            )
 
             body = content.encode("utf-8")
             self.send_response(200)
