@@ -224,6 +224,18 @@ nav {
   filter: none !important;
 }
 .btn-gold:hover, .btn-primary:hover { background: var(--accent-2) !important; color: #FFFFFF !important; transform: none !important; filter: none !important; }
+
+/* Boutons primaires dorés codés en INLINE (dégradé var(--gold)) :
+   ex. "Nouvel article", "Enregistrer une vente"… → charbon + texte BLANC.
+   Corrige le texte sombre devenu illisible sur fond sombre. */
+[style*="linear-gradient(135deg,var(--gold)"],
+[style*="linear-gradient(135deg, var(--gold)"],
+[style*="linear-gradient(135deg,var(--gold-d)"],
+[style*="135deg,var(--gold),var(--gold-d)"] {
+  background: var(--accent) !important;
+  color: #FFFFFF !important;
+  border-color: var(--accent) !important;
+}
 .btn-outline, .btn-out {
   background: var(--surface) !important;
   border: 1px solid var(--line) !important;

@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "20"
+ASSET_VERSION = "21"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1303,6 +1303,15 @@ function filter(type, btn) {{
                 '/*sw-désactivé*/0',
                 content,
             )
+
+            # Neutraliser les teintes dorées codées en dur dans les styles inline
+            # (bordures, fonds, ombres) → gris sobre, sur toutes les pages.
+            for _gold, _gray in (
+                ("rgba(184,146,60,", "rgba(10,10,10,"),
+                ("rgba(201,168,76,", "rgba(10,10,10,"),
+                ("rgba(196,163,90,", "rgba(10,10,10,"),
+            ):
+                content = content.replace(_gold, _gray)
 
             # Cache-busting : ajoute ?v=VERSION à tous les CSS/JS statiques
             # → l'URL change à chaque déploiement, le navigateur recharge toujours.
