@@ -3,7 +3,7 @@
    Override pur CSS — ne touche à aucune logique ni donnée
    ═══════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ── FIX NAV DESKTOP : forcer l'affichage des liens nav ── */
 @media (min-width: 861px) {
@@ -49,25 +49,42 @@
   }
 }
 
-/* ── VARIABLES GLOBALES ─────────────────────────────────── */
+/* ── VARIABLES GLOBALES — palette sobre (niveaux de gris) ─── */
 :root {
-  --gold:    #C4A35A !important;
-  --gold-l:  #9A7A3A !important;
-  --gold-d:  #8A6A2A !important;
-  --gold-pale: rgba(196,163,90,0.10) !important;
+  /* Accent neutre (ex-or) : charbon */
+  --gold:    #33332F !important;
+  --gold-l:  #1A1A17 !important;
+  --gold-d:  #1A1A17 !important;
+  --gold-pale: rgba(0,0,0,0.05) !important;
   --bg:      #FAFAF8 !important;
   --bg2:     #FFFFFF !important;
   --bg3:     #F5F4F0 !important;
-  --bd:      rgba(10,10,10,0.09) !important;
+  --bd:      rgba(10,10,10,0.10) !important;
   --txt:     #0A0A0A !important;
-  --muted:   #888880 !important;
+  --muted:   #7A7A72 !important;
+  /* Accents secondaires neutralisés (bleu/orange/violet/teal → gris) */
+  --blue:    #44443E !important;
+  --orange:  #6B6B62 !important;
+  --purple:  #55554E !important;
+  --teal:    #4A4A44 !important;
+  --indigo:  #2B2B28 !important;
+  /* Montants : seules couleurs conservées (discrètes) */
+  --green:   #157347 !important;
+  --red:     #B42318 !important;
 }
 
-/* ── FONT GLOBALE ───────────────────────────────────────── */
+/* ── FONT GLOBALE + CHIFFRES ALIGNÉS (style comptable) ────── */
 body {
-  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
   background: #FAFAF8 !important;
   color: #0A0A0A !important;
+  font-feature-settings: "tnum" 1, "lnum" 1 !important;
+  font-variant-numeric: tabular-nums lining-nums !important;
+}
+/* Les chiffres s'alignent en colonnes partout */
+table, .stat-val, .card-val, .kpi-val, .val, td, th,
+.pv-col, .pa-col, .or-col, input, .lbl-ref, .lbl-price {
+  font-variant-numeric: tabular-nums lining-nums !important;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -82,12 +99,12 @@ nav {
 .nav-logo {
   background: #0A0A0A !important;
   border-radius: 4px !important;
-  color: #C4A35A !important;
-  font-family: 'Playfair Display', serif !important;
+  color: #33332F !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 .nav-title {
-  font-family: 'Playfair Display', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-weight: 500 !important;
   letter-spacing: 3px !important;
   font-size: 14px !important;
@@ -104,12 +121,12 @@ nav {
 }
 
 .nav-links a:hover {
-  color: #C4A35A !important;
+  color: #33332F !important;
   background: rgba(196,163,90,0.08) !important;
 }
 
 .nav-links a.active {
-  color: #C4A35A !important;
+  color: #33332F !important;
   background: rgba(196,163,90,0.10) !important;
   border: 1px solid rgba(196,163,90,0.22) !important;
 }
@@ -128,7 +145,7 @@ nav {
 }
 
 .page-header h1 {
-  font-family: 'Playfair Display', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-weight: 500 !important;
   font-size: 24px !important;
   color: #0A0A0A !important;
@@ -157,7 +174,7 @@ nav {
 }
 
 .card-val {
-  font-family: 'Playfair Display', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 26px !important;
   font-weight: 500 !important;
   color: #0A0A0A !important;
@@ -188,7 +205,7 @@ nav {
 
 .btn-gold {
   background: #0A0A0A !important;
-  color: #C4A35A !important;
+  color: #33332F !important;
   border: 1px solid #0A0A0A !important;
 }
 
@@ -205,8 +222,8 @@ nav {
 }
 
 .btn-outline:hover {
-  border-color: #C4A35A !important;
-  color: #C4A35A !important;
+  border-color: rgba(10,10,10,0.16) !important;
+  color: #33332F !important;
   background: transparent !important;
 }
 
@@ -248,7 +265,7 @@ tbody tr:last-child td {
 }
 
 td.ref-col {
-  font-family: 'Playfair Display', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 13px !important;
   font-weight: 500 !important;
   color: #0A0A0A !important;
@@ -270,15 +287,15 @@ td.ref-col {
 }
 
 .tab:hover {
-  border-color: #C4A35A !important;
-  color: #C4A35A !important;
+  border-color: rgba(10,10,10,0.16) !important;
+  color: #33332F !important;
   background: transparent !important;
 }
 
 .tab.active {
   background: #0A0A0A !important;
   border-color: #0A0A0A !important;
-  color: #C4A35A !important;
+  color: #33332F !important;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -302,7 +319,7 @@ select, textarea {
 
 .search-wrap input:focus,
 input:focus, select:focus, textarea:focus {
-  border-color: #C4A35A !important;
+  border-color: rgba(10,10,10,0.16) !important;
   outline: none !important;
   box-shadow: none !important;
 }
@@ -318,7 +335,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .modal h2 {
-  font-family: 'Playfair Display', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 18px !important;
   font-weight: 500 !important;
   color: #0A0A0A !important;
@@ -351,7 +368,7 @@ label, .mf label, .form-label {
 }
 
 .section-title, .panel h2, .panel-title {
-  font-family: 'Playfair Display', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-weight: 500 !important;
   color: #0A0A0A !important;
 }
@@ -374,7 +391,7 @@ label, .mf label, .form-label {
 }
 
 .brand-name {
-  font-family: 'Playfair Display', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-weight: 400 !important;
   letter-spacing: 10px !important;
   color: #0A0A0A !important;
@@ -408,7 +425,7 @@ label, .mf label, .form-label {
 }
 
 .module-name {
-  font-family: 'Playfair Display', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 15px !important;
   font-weight: 500 !important;
   color: #0A0A0A !important;
@@ -426,8 +443,8 @@ label, .mf label, .form-label {
 
 .module-badge {
   background: transparent !important;
-  border: 1px solid #C4A35A !important;
-  color: #C4A35A !important;
+  border: 1px solid rgba(10,10,10,0.16) !important;
+  color: #33332F !important;
   font-size: 8px !important;
   letter-spacing: 2px !important;
   border-radius: 2px !important;
@@ -456,7 +473,7 @@ label, .mf label, .form-label {
 
 .badge-gold {
   background: rgba(196,163,90,0.1) !important;
-  color: #9A7A3A !important;
+  color: #1A1A17 !important;
   border: 1px solid rgba(196,163,90,0.25) !important;
   border-radius: 3px !important;
 }
@@ -476,7 +493,7 @@ label, .mf label, .form-label {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: #FAFAF8; }
 ::-webkit-scrollbar-thumb { background: rgba(196,163,90,0.3); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #C4A35A; }
+::-webkit-scrollbar-thumb:hover { background: #2B2B28; }
 
 /* Sélection texte */
 ::selection { background: rgba(196,163,90,0.2); color: #0A0A0A; }
@@ -509,7 +526,7 @@ hr { border-color: rgba(10,10,10,0.08) !important; }
 }
 
 .ps-val, .benef-val, .tot-val {
-  font-family: 'Playfair Display', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-weight: 500 !important;
   color: #0A0A0A !important;
 }
@@ -534,7 +551,7 @@ hr { border-color: rgba(10,10,10,0.08) !important; }
 
   .nav-links a.active {
     background: rgba(196,163,90,0.1) !important;
-    color: #9A7A3A !important;
+    color: #1A1A17 !important;
   }
 
   .mob-logout {
@@ -572,7 +589,7 @@ html.dark nav {
   border-bottom-color: rgba(255,255,255,0.07) !important;
 }
 html.dark .nav-logo {
-  background: #C4A35A !important;
+  background: #2B2B28 !important;
   color: #0A0A0A !important;
 }
 html.dark .nav-title {
@@ -582,11 +599,11 @@ html.dark .nav-links a {
   color: #7A7A72 !important;
 }
 html.dark .nav-links a:hover {
-  color: #C4A35A !important;
+  color: #33332F !important;
   background: rgba(196,163,90,0.10) !important;
 }
 html.dark .nav-links a.active {
-  color: #C4A35A !important;
+  color: #33332F !important;
   background: rgba(196,163,90,0.12) !important;
   border-color: rgba(196,163,90,0.25) !important;
 }
@@ -608,18 +625,18 @@ html.dark .card-val { color: #F0EFE8 !important; }
 
 /* Boutons */
 html.dark .btn-gold {
-  background: #C4A35A !important;
+  background: #2B2B28 !important;
   color: #0A0A0A !important;
-  border-color: #C4A35A !important;
+  border-color: rgba(10,10,10,0.16) !important;
 }
-html.dark .btn-gold:hover { background: #D4B36A !important; }
+html.dark .btn-gold:hover { background: #44443E !important; }
 html.dark .btn-outline {
   border-color: rgba(255,255,255,0.12) !important;
   color: #7A7A72 !important;
 }
 html.dark .btn-outline:hover {
-  border-color: #C4A35A !important;
-  color: #C4A35A !important;
+  border-color: rgba(10,10,10,0.16) !important;
+  color: #33332F !important;
 }
 
 /* Tables */
@@ -637,10 +654,10 @@ html.dark .tab {
   border-color: rgba(255,255,255,0.10) !important;
   color: #7A7A72 !important;
 }
-html.dark .tab:hover { border-color: #C4A35A !important; color: #C4A35A !important; }
+html.dark .tab:hover { border-color: rgba(10,10,10,0.16) !important; color: #33332F !important; }
 html.dark .tab.active {
-  background: #C4A35A !important;
-  border-color: #C4A35A !important;
+  background: #2B2B28 !important;
+  border-color: rgba(10,10,10,0.16) !important;
   color: #0A0A0A !important;
 }
 
@@ -720,7 +737,7 @@ html.dark hr { border-color: rgba(255,255,255,0.07) !important; }
     border-top-color: rgba(196,163,90,0.15) !important;
   }
   html.dark .nav-links a { color: #F0EFE8 !important; }
-  html.dark .nav-links a.active { color: #C4A35A !important; }
+  html.dark .nav-links a.active { color: #33332F !important; }
   html.dark .mob-logout { border-top-color: rgba(255,255,255,0.06) !important; }
 }
 
@@ -740,4 +757,33 @@ html.dark hr { border-color: rgba(255,255,255,0.07) !important; }
 html.dark #dark-toggle {
   border-color: rgba(255,255,255,0.12) !important;
 }
-#dark-toggle:hover { border-color: #C4A35A !important; }
+#dark-toggle:hover { border-color: rgba(10,10,10,0.16) !important; }
+
+/* ══════════════════════════════════════════════════════════
+   SOBRIÉTÉ — Enforcement niveaux de gris (look relevé bancaire)
+   Seuls vert/rouge restent, et uniquement pour les montants.
+   ══════════════════════════════════════════════════════════ */
+
+/* Montants positifs / négatifs — vert & rouge discrets */
+.pos, .benef-pos, .trend-up, .s-val.green,
+[class*="benef-pos"] { color: #157347 !important; }
+.neg, .benef-neg, .trend-down,
+[class*="benef-neg"] { color: #B42318 !important; }
+
+/* Badges de type d'article (Bague, B.O, Pendentif…) → gris uniforme */
+.badge, .b-bag, .b-bra, .b-col, .b-pen, .b-bo, .b-oth {
+  background: #F0EFE8 !important;
+  color: #44443E !important;
+  border: 1px solid rgba(10,10,10,0.10) !important;
+}
+
+/* Pastilles de tendance neutres */
+.trend-flat { background: rgba(10,10,10,0.05) !important; color: #7A7A72 !important; }
+.trend-up   { background: rgba(21,115,71,0.10) !important; }
+.trend-down { background: rgba(180,35,24,0.10) !important; }
+
+/* Liens "bleus" → accent neutre charbon */
+a { color: #33332F; }
+
+/* Scrollbars discrètes */
+::-webkit-scrollbar-thumb { background: rgba(10,10,10,0.20) !important; }

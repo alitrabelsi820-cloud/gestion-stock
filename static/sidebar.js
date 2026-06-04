@@ -346,7 +346,7 @@
                 + '<span style="font-weight:600;font-size:13px">' + esc(a.nom || a.id) + '</span>'
                 + '<span style="color:#9a8e7e;font-size:11px;margin-left:8px">Réf. ' + esc(a.id) + '</span>'
                 + '</span>'
-                + '<span style="font-size:10px;color:#b8923c;font-weight:600;white-space:nowrap">Fiche →</span>'
+                + '<span style="font-size:10px;color:#33332F;font-weight:600;white-space:nowrap">Fiche →</span>'
                 + '</a>';
         });
       }
@@ -371,7 +371,7 @@
                 + '<span style="font-weight:600;font-size:13px">' + esc(c.nom) + '</span>'
                 + (c.telephone ? '<span style="color:#9a8e7e;font-size:11px;margin-left:8px">' + esc(c.telephone) + '</span>' : '')
                 + '</span>'
-                + '<span style="font-size:10px;color:#b8923c;font-weight:600;white-space:nowrap">Dossier →</span>'
+                + '<span style="font-size:10px;color:#33332F;font-weight:600;white-space:nowrap">Dossier →</span>'
                 + '</a>';
         });
       }
