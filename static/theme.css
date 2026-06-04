@@ -204,13 +204,14 @@ nav {
 }
 
 .btn-gold {
-  background: #0A0A0A !important;
-  color: #33332F !important;
-  border: 1px solid #0A0A0A !important;
+  background: #1A1A17 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #1A1A17 !important;
 }
 
 .btn-gold:hover {
-  background: #1A1A1A !important;
+  background: #33332F !important;
+  color: #FFFFFF !important;
   filter: none !important;
   transform: none !important;
 }
@@ -590,7 +591,7 @@ html.dark nav {
 }
 html.dark .nav-logo {
   background: #2B2B28 !important;
-  color: #0A0A0A !important;
+  color: #F0EFE8 !important;
 }
 html.dark .nav-title {
   color: #F0EFE8 !important;
@@ -625,11 +626,11 @@ html.dark .card-val { color: #F0EFE8 !important; }
 
 /* Boutons */
 html.dark .btn-gold {
-  background: #2B2B28 !important;
+  background: #E8E6DE !important;
   color: #0A0A0A !important;
-  border-color: rgba(10,10,10,0.16) !important;
+  border-color: #E8E6DE !important;
 }
-html.dark .btn-gold:hover { background: #44443E !important; }
+html.dark .btn-gold:hover { background: #FFFFFF !important; color: #0A0A0A !important; }
 html.dark .btn-outline {
   border-color: rgba(255,255,255,0.12) !important;
   color: #7A7A72 !important;
@@ -656,8 +657,8 @@ html.dark .tab {
 }
 html.dark .tab:hover { border-color: rgba(10,10,10,0.16) !important; color: #33332F !important; }
 html.dark .tab.active {
-  background: #2B2B28 !important;
-  border-color: rgba(10,10,10,0.16) !important;
+  background: #E8E6DE !important;
+  border-color: #E8E6DE !important;
   color: #0A0A0A !important;
 }
 
@@ -787,3 +788,44 @@ a { color: #33332F; }
 
 /* Scrollbars discrètes */
 ::-webkit-scrollbar-thumb { background: rgba(10,10,10,0.20) !important; }
+
+/* ══════════════════════════════════════════════════════════
+   SOBRIÉTÉ v2 — neutraliser les accents codés en dur des pages
+   ══════════════════════════════════════════════════════════ */
+
+/* Barres colorées en haut des cartes → trait gris uniforme */
+.card::before, .kpi::before,
+.c1::before, .c2::before, .c3::before, .c4::before {
+  background: rgba(10,10,10,0.22) !important;
+}
+
+/* Grandes valeurs des cartes/KPI → charbon (look relevé) */
+.card-val, .kpi-val,
+.c1 .card-val, .c2 .card-val, .c3 .card-val, .c4 .card-val {
+  color: #1A1A17 !important;
+}
+
+/* Badges de type d'article → gris uniforme (couvre couleurs en dur) */
+.badge, .b-bag, .b-bra, .b-col, .b-pen, .b-bo, .b-oth {
+  background: #F0EFE8 !important;
+  color: #44443E !important;
+  border: 1px solid rgba(10,10,10,0.10) !important;
+}
+
+/* Barres de progression / jauges → gris */
+.bar-fill, .credit-bar, .progress-fill { background: #888880 !important; }
+
+/* Logo nav (texte sur fond charbon) → clair */
+.nav-logo { color: #FFFFFF !important; }
+
+/* Boutons dorés codés en dur dans les pages → charbon + texte blanc */
+.btn-gold, button.btn-gold, .nv-confirm, .btn-primary {
+  background: #1A1A17 !important;
+  color: #FFFFFF !important;
+  border-color: #1A1A17 !important;
+}
+
+/* Montants : vert/rouge discrets, partout */
+.pos, .benef-pos, .pv-pos, [class*="pos"][class*="benef"],
+.s-val.green { color: #157347 !important; }
+.neg, .benef-neg, [class*="neg"][class*="benef"] { color: #B42318 !important; }
