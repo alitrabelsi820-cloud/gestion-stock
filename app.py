@@ -384,6 +384,11 @@ def _upload_to_r2(filename, data_bytes):
         if resp.status not in (200, 204):
             raise Exception(f"R2 upload failed: {resp.status}")
 
+# ─── Verrou d'écriture global ────────────────────────────────────────────────
+# Sérialise toutes les écritures (POST/PUT/DELETE) pour éviter que deux
+# enregistrements simultanés s'écrasent (perte de données). Réentrant.
+_WRITE_LOCK = threading.RLock()
+
 # ─── Synchronisation DB ↔ R2 ─────────────────────────────────────────────────
 DB_R2_KEY     = "db/gestionstock.db"
 _db_sync_lock = threading.Lock()
@@ -2070,6 +2075,11 @@ function filter(type, btn) {{
         self.end_headers()
 
     def do_POST(self):
+        # Verrou : une seule écriture à la fois (anti perte de données)
+        with _WRITE_LOCK:
+            self._handle_POST()
+
+    def _handle_POST(self):
         path = urllib.parse.urlparse(self.path).path
         length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(length)
@@ -2845,6 +2855,10 @@ function filter(type, btn) {{
         self.send_json({"error": "Route inconnue"}, 404)
 
     def do_PUT(self):
+        with _WRITE_LOCK:
+            self._handle_PUT()
+
+    def _handle_PUT(self):
         path = urllib.parse.urlparse(self.path).path
         length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(length)
@@ -3042,6 +3056,10 @@ function filter(type, btn) {{
         self.send_json({"error": "Route inconnue"}, 404)
 
     def do_DELETE(self):
+        with _WRITE_LOCK:
+            self._handle_DELETE()
+
+    def _handle_DELETE(self):
         path = urllib.parse.urlparse(self.path).path
 
         # ── Supprimer un article du stock ─────────────────────────────────────

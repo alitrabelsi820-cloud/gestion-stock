@@ -30,9 +30,10 @@ NOTIFS_FILE      = DATA_DIR / "notifs.json"
 
 @contextmanager
 def get_conn():
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE, timeout=15)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")   # écriture concurrente plus sûre
+    conn.execute("PRAGMA busy_timeout=15000") # attendre si la base est verrouillée
     conn.execute("PRAGMA foreign_keys=ON")
     try:
         yield conn
