@@ -64,6 +64,10 @@ PHOTOS_DIR_COMPRESSED = BASE_DIR / "photos_compressed"
 MOT_DE_PASSE_ADMIN   = os.environ.get("MOT_DE_PASSE_ADMIN",   "7868")
 MOT_DE_PASSE_EMPLOYE = os.environ.get("MOT_DE_PASSE_EMPLOYE", "    ")
 
+def _pwd_match(given, expected):
+    """Comparaison en temps constant (anti timing-attack)."""
+    return secrets.compare_digest(str(given or ""), str(expected or ""))
+
 # ─── Protection brute-force ───────────────────────────────────────────────────
 # {ip: {"count": int, "blocked_until": float}}
 _LOGIN_ATTEMPTS: dict = {}
@@ -2124,9 +2128,9 @@ function filter(type, btn) {{
             except:
                 self.send_json({"error": "Invalide"}, 400); return
             pwd = data.get("password", "")
-            if pwd == MOT_DE_PASSE_ADMIN:
+            if _pwd_match(pwd, MOT_DE_PASSE_ADMIN):
                 role = "admin"
-            elif pwd == MOT_DE_PASSE_EMPLOYE:
+            elif _pwd_match(pwd, MOT_DE_PASSE_EMPLOYE):
                 role = "employe"
             else:
                 _record_failed_login(ip)
