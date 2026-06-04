@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#c9a84c">
+<meta name="apple-mobile-web-app-title" content="Trabelsi">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Étiquettes QR — TRABELSI</title>
+<style>
+:root{
+  --gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;
+  --bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;
+  --txt:#1a1612;--muted:#9a8e7e;--blue:#2980b9;--green:#27ae60;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;text-decoration:none;color:inherit;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:6px;align-items:center;}
+.nav-links a{padding:8px 12px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;}
+.nav-logout-btn{padding:7px 14px;border-radius:8px;border:1px solid rgba(192,57,43,.3);background:transparent;color:#c0392b;font-size:12px;font-weight:600;text-decoration:none;}
+.hamburger{display:none;}
+
+.page{padding:24px 28px 80px;max-width:1200px;margin:0 auto;}
+.page-header{margin-bottom:18px;}
+.page-title{font-size:22px;color:var(--gold-l);font-weight:800;display:flex;align-items:center;gap:10px;}
+.page-sub{font-size:13px;color:var(--muted);margin-top:4px;}
+
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;}
+.toolbar input,.toolbar select{padding:9px 13px;border:1px solid var(--bd);border-radius:8px;background:var(--bg3);color:var(--txt);font-size:14px;outline:none;}
+.toolbar input{flex:1;min-width:200px;}
+.btn{padding:9px 16px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
+.btn-out{background:#fff;border:1px solid var(--bd);color:var(--muted);}
+.btn-print{background:linear-gradient(135deg,#1a5c8a,var(--blue));color:#fff;}
+.count{font-size:13px;color:var(--muted);}
+
+.opts{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:16px;font-size:13px;color:var(--muted);}
+.opts label{display:flex;align-items:center;gap:6px;cursor:pointer;}
+
+/* Grille des étiquettes à l'écran */
+.labels{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.label{
+  background:#fff;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;
+  display:flex;align-items:center;gap:12px;position:relative;
+}
+.label.off{opacity:.35;}
+.label .pick{position:absolute;top:6px;right:8px;width:18px;height:18px;cursor:pointer;}
+.label .qr{width:78px;height:78px;flex-shrink:0;}
+.label .qr img,.label .qr svg{width:100%;height:100%;display:block;}
+.label .info{min-width:0;flex:1;}
+.lbl-shop{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--gold-d);display:flex;align-items:center;gap:4px;}
+.lbl-ref{font-size:18px;font-weight:900;font-family:monospace;color:var(--txt);line-height:1.1;margin:2px 0;}
+.lbl-type{font-size:12px;color:var(--txt);}
+.lbl-meta{font-size:11px;color:var(--muted);}
+.lbl-price{font-size:13px;font-weight:800;color:var(--gold-l);margin-top:2px;}
+.empty{grid-column:1/-1;text-align:center;padding:50px;color:var(--muted);}
+
+/* ════ IMPRESSION ════ */
+@media print {
+  nav,.toolbar,.opts,.page-header,#gs-sidebar,#gs-topbar,#gs-bottombar{display:none!important;}
+  body{background:#fff;}
+  body.sidebar-layout{margin:0!important;}
+  .page{padding:0;max-width:none;margin:0;}
+  .labels{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;}
+  .label{
+    border:1px dashed #bbb;border-radius:4px;padding:3mm;break-inside:avoid;
+    page-break-inside:avoid;box-shadow:none;
+  }
+  .label.off{display:none!important;}
+  .label .pick{display:none!important;}
+  .label .qr{width:22mm;height:22mm;}
+  .lbl-ref{font-size:14pt;}
+}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand">
+    <div class="nav-logo">✦</div>
+    <div class="nav-title">GESTION STOCK</div>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/stock">Stock</a>
+    <a href="/vendu">Ventes</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn">☰</button>
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">🏷️ Étiquettes QR</div>
+    <div class="page-sub">Génère des étiquettes imprimables. Scanner le QR ouvre la fiche de l'article.</div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="q" placeholder="Filtrer par référence ou type d'article…" oninput="render()">
+    <select id="ftype" onchange="render()"><option value="">Tous les types</option></select>
+    <button class="btn btn-out" onclick="selectAll(true)">Tout cocher</button>
+    <button class="btn btn-out" onclick="selectAll(false)">Tout décocher</button>
+    <button class="btn btn-print" onclick="window.print()">🖨️ Imprimer la sélection</button>
+  </div>
+
+  <div class="opts">
+    <label><input type="checkbox" id="opt-price" checked onchange="render()"> Afficher le prix de vente conseillé</label>
+    <label><input type="checkbox" id="opt-weight" checked onchange="render()"> Afficher le poids</label>
+    <span class="count" style="margin-left:auto;"><b id="cnt-sel">0</b> sélectionnée(s) sur <span id="cnt-tot">0</span></span>
+  </div>
+
+  <div class="labels" id="labels"><div class="empty">⏳ Chargement du stock…</div></div>
+</div>
+
+<script>
+let ALL = [];
+let picked = new Set();      // refs sélectionnées pour impression
+const ORIGIN = window.location.origin;
+
+function fmtN(v){return v==null?'':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+async function load(){
+  try{
+    ALL = await fetch('/api/articles').then(r=>r.json());
+    // remplir filtre types
+    const types=[...new Set(ALL.map(a=>a.article).filter(Boolean))].sort();
+    const sel=document.getElementById('ftype');
+    types.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);});
+    // par défaut tout sélectionné
+    picked = new Set(ALL.map(a=>a.id));
+    render();
+  }catch(e){
+    document.getElementById('labels').innerHTML='<div class="empty">⚠️ Impossible de charger le stock.</div>';
+  }
+}
+
+function filtered(){
+  const q=document.getElementById('q').value.toLowerCase().trim();
+  const ft=document.getElementById('ftype').value;
+  return ALL.filter(a=>{
+    if(ft && a.article!==ft) return false;
+    if(q && !(String(a.id).includes(q) || (a.article||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+function render(){
+  const showPrice=document.getElementById('opt-price').checked;
+  const showWeight=document.getElementById('opt-weight').checked;
+  const rows=filtered();
+  const box=document.getElementById('labels');
+  if(!rows.length){box.innerHTML='<div class="empty">Aucun article ne correspond.</div>';}
+  else{
+    box.innerHTML=rows.map(a=>{
+      const on=picked.has(a.id);
+      const url=ORIGIN+'/fiche?ref='+encodeURIComponent(a.id);
+      const qr='/api/qr?scale=4&text='+encodeURIComponent(url);
+      const weight=(showWeight && a.or_grs!=null)?'<div class="lbl-meta">'+fmtN(a.or_grs)+' grs</div>':'';
+      const price=(showPrice && a.pv!=null && a.pv!=='')?'<div class="lbl-price">'+fmtN(a.pv)+' MAD</div>':'';
+      return '<div class="label'+(on?'':' off')+'" data-id="'+a.id+'">'
+        + '<input type="checkbox" class="pick" '+(on?'checked':'')+' onchange="togglePick('+a.id+',this.checked)">'
+        + '<div class="qr"><img loading="lazy" src="'+qr+'" alt="QR #'+a.id+'"></div>'
+        + '<div class="info">'
+        +   '<div class="lbl-shop">◆ TRABELSI</div>'
+        +   '<div class="lbl-ref">#'+esc(a.id)+'</div>'
+        +   '<div class="lbl-type">'+esc(a.article||'')+'</div>'
+        +   weight + price
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+  updateCount();
+}
+
+function togglePick(id,on){
+  if(on)picked.add(id);else picked.delete(id);
+  const card=document.querySelector('.label[data-id="'+id+'"]');
+  if(card)card.classList.toggle('off',!on);
+  updateCount();
+}
+
+function selectAll(on){
+  const rows=filtered();
+  rows.forEach(a=>{ if(on)picked.add(a.id); else picked.delete(a.id); });
+  render();
+}
+
+function updateCount(){
+  document.getElementById('cnt-sel').textContent=picked.size;
+  document.getElementById('cnt-tot').textContent=ALL.length;
+}
+
+load();
+</script>
+</body>
+</html>

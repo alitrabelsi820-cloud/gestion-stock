@@ -1444,6 +1444,8 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "historique_activite.html"); return
         if path == "/activite-employes":
             self.send_html(STATIC_DIR / "activite_employes.html"); return
+        if path == "/etiquettes":
+            self.send_html(STATIC_DIR / "etiquettes.html"); return
         if path == "/galerie":
             self.send_html(STATIC_DIR / "galerie.html"); return
         # ── API articles ──────────────────────────────────────────────────────
@@ -1511,6 +1513,32 @@ function filter(type, btn) {{
                 "logs": db.get_search_logs(limit=min(limit, 500), since_ts=since_ts),
                 "today": db.search_logs_stats(midnight),
             })
+            return
+
+        # ── API génération de QR code (SVG) ─────────────────────────────────────
+        if path == "/api/qr":
+            qs = urllib.parse.parse_qs(parsed.query)
+            text = qs.get("text", [""])[0]
+            try:
+                scale = max(1, min(20, int(qs.get("scale", ["4"])[0])))
+            except Exception:
+                scale = 4
+            if not text:
+                self.send_json({"error": "Paramètre 'text' requis"}, 400); return
+            try:
+                import segno, io as _io
+                qr = segno.make(text, error="m")
+                buf = _io.BytesIO()
+                qr.save(buf, kind="svg", scale=scale, border=1, dark="#1a1612")
+                svg = buf.getvalue()
+                self.send_response(200)
+                self.send_header("Content-Type", "image/svg+xml; charset=utf-8")
+                self.send_header("Content-Length", str(len(svg)))
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.end_headers()
+                self.wfile.write(svg)
+            except Exception as e:
+                self.send_json({"error": f"QR indisponible : {e}"}, 500)
             return
 
         # ── API détection d'anomalies ───────────────────────────────────────────

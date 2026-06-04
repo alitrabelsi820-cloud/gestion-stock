@@ -32,6 +32,7 @@
         { label: 'Voir le stock',       href: '/stock' },
         { label: 'Ajouter un article',  href: '/ajouter' },
         { label: '📷 Galerie photos',   href: '/galerie' },
+        { label: '🏷️ Étiquettes QR',    href: '/etiquettes' },
         { label: 'Catalogue',           href: '/catalogue' },
       ]
     },
@@ -483,6 +484,7 @@
       { icon: '📦', label: 'Voir le stock',       href: '/stock' },
       { icon: '➕', label: 'Ajouter un article',  href: '/ajouter' },
       { icon: '📷', label: 'Galerie photos',      href: '/galerie' },
+      { icon: '🏷️', label: 'Étiquettes QR',       href: '/etiquettes' },
       { icon: '📖', label: 'Catalogue PDF',       href: '/catalogue' },
     ]},
     { icon: '💰', label: 'Ventes',   id: 'ventes', links: [
