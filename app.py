@@ -534,6 +534,53 @@ def _is_service(v):
     """Vente de type service : exclue du CA mais incluse dans le bénéfice."""
     return (v.get("type_vente") or "produit") == "service"
 
+def detect_anomalies(ventes):
+    """Détecte les ventes à marge/prix anormaux. Retourne une liste triée
+    (plus récentes d'abord) de dicts {vente..., anomalies:[{code,label,severite}]}.
+    Les services sont exclus (économie différente)."""
+    out = []
+    for v in ventes:
+        if _is_service(v):
+            continue
+        pv    = float(v.get("pv") or 0)
+        pa    = float(v.get("pa") or 0)
+        benef = float(v.get("benef") if v.get("benef") is not None else (pv - pa))
+        flags = []
+
+        # Vente à perte
+        if benef < 0:
+            flags.append({"code": "perte", "severite": "alerte",
+                          "label": f"Vente à perte ({_fmt_mad(benef)})"})
+        # Prix de vente anormalement bas (probable faute de frappe : ex PV=1)
+        elif pv > 0 and pa > 0 and pv < pa * 0.5:
+            flags.append({"code": "pv_bas", "severite": "alerte",
+                          "label": "Prix de vente très bas vs revient"})
+        elif 0 < pv <= 100:
+            flags.append({"code": "pv_suspect", "severite": "alerte",
+                          "label": f"Prix de vente suspect ({_fmt_mad(pv)})"})
+        # Marge nulle (PV = PA exactement, possible oubli)
+        elif pv > 0 and abs(benef) < 1:
+            flags.append({"code": "marge_nulle", "severite": "attention",
+                          "label": "Marge nulle"})
+        # Marge anormalement élevée (probable faute de frappe sur le PV)
+        elif pa > 0 and benef > pa * 8:
+            flags.append({"code": "marge_haute", "severite": "attention",
+                          "label": f"Marge très élevée (×{round(benef/pa,1)})"})
+
+        # Prix de revient manquant alors qu'il y a un PV
+        if pa <= 0 and pv > 0 and not flags:
+            flags.append({"code": "pa_manquant", "severite": "attention",
+                          "label": "Prix de revient manquant"})
+
+        if flags:
+            d = dict(v)
+            d["anomalies"] = flags
+            d["_severite"] = "alerte" if any(f["severite"] == "alerte" for f in flags) else "attention"
+            out.append(d)
+
+    out.sort(key=lambda x: (x.get("date_vente") or ""), reverse=True)
+    return out
+
 def ventes_stats(ventes, date_from=None, date_to=None):
     """Stats ventes filtrées par période."""
     filt = ventes
@@ -1463,6 +1510,16 @@ function filter(type, btn) {{
             self.send_json({
                 "logs": db.get_search_logs(limit=min(limit, 500), since_ts=since_ts),
                 "today": db.search_logs_stats(midnight),
+            })
+            return
+
+        # ── API détection d'anomalies ───────────────────────────────────────────
+        if path == "/api/anomalies":
+            anomalies = detect_anomalies(load_ventes())
+            self.send_json({
+                "count": len(anomalies),
+                "alertes": sum(1 for a in anomalies if a.get("_severite") == "alerte"),
+                "anomalies": anomalies[:100],
             })
             return
 

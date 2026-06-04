@@ -287,6 +287,15 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     </div>
   </div>
 
+  <!-- ══ ALERTE ANOMALIES (visible uniquement s'il y en a) ══ -->
+  <div id="anomalies-panel" class="panel" style="display:none;margin-bottom:16px;border-color:rgba(231,76,60,.35);background:rgba(231,76,60,.03);">
+    <div class="panel-title" style="color:#c0392b;border-color:rgba(231,76,60,.2);">
+      <span>⚠️ Ventes à vérifier — <span id="anom-count">0</span></span>
+      <button id="anom-toggle" onclick="toggleAnomalies()" style="background:none;border:1px solid rgba(231,76,60,.3);color:#c0392b;border-radius:7px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;text-transform:none;letter-spacing:0;">Afficher</button>
+    </div>
+    <div id="anom-list" style="display:none;"></div>
+  </div>
+
   <!-- ══ SECTION 1+3 : VUE PRINCIPALE (deux colonnes) ══ -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" id="dashboard-main">
 
@@ -729,7 +738,53 @@ async function load(){
     renderAnnual(advanced.annual);
     renderPeriodStats(moisCur, nomMois);
 
+    // ── Anomalies ──
+    loadAnomalies();
+
   }catch(e){ console.error(e); }
+}
+
+// ── Détection d'anomalies ──
+let _anomShown = false;
+async function loadAnomalies(){
+  try{
+    const data = await fetch('/api/anomalies',{cache:'no-store'}).then(r=>r.json());
+    const panel = document.getElementById('anomalies-panel');
+    if(!data.count){ panel.style.display='none'; return; }
+    panel.style.display='block';
+    document.getElementById('anom-count').textContent =
+      data.count + (data.alertes ? ' · ' + data.alertes + ' urgente(s)' : '');
+    const fmtD = d => { if(!d) return '—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+    document.getElementById('anom-list').innerHTML = data.anomalies.map(a=>{
+      const urgent = a._severite==='alerte';
+      const tags = a.anomalies.map(f=>
+        '<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;margin-left:6px;'
+        + (f.severite==='alerte'
+            ? 'background:rgba(231,76,60,.12);color:#c0392b;border:1px solid rgba(231,76,60,.3);'
+            : 'background:rgba(230,126,34,.12);color:#b9620f;border:1px solid rgba(230,126,34,.3);')
+        + '">'+f.label+'</span>'
+      ).join('');
+      return '<div style="display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--bd);">'
+        + '<span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+(urgent?'#c0392b':'#e67e22')+';"></span>'
+        + '<div style="flex:1;min-width:0;">'
+        +   '<div><span style="font-weight:800;font-family:monospace;color:var(--gold-d);">#'+a.ref+'</span> '
+        +     '<span style="font-size:13px;">'+(a.article||'—')+'</span>'+tags+'</div>'
+        +   '<div style="font-size:11px;color:var(--muted);margin-top:2px;">'
+        +     (a.client||'—')+' · '+fmtD(a.date_vente)
+        +     ' · P.R '+fmtN(a.pa)+' → P.V '+fmtN(a.pv)+' = '
+        +     '<span style="font-weight:700;color:'+((a.benef||0)<0?'#c0392b':'#1e7e46')+'">'+fmtN(a.benef)+'</span>'
+        +   '</div>'
+        + '</div>'
+        + '<a href="/vendu" style="font-size:11px;color:var(--blue);font-weight:600;white-space:nowrap;text-decoration:none;">Voir →</a>'
+        + '</div>';
+    }).join('');
+  }catch(e){ /* silencieux */ }
+}
+
+function toggleAnomalies(){
+  _anomShown = !_anomShown;
+  document.getElementById('anom-list').style.display = _anomShown ? 'block' : 'none';
+  document.getElementById('anom-toggle').textContent = _anomShown ? 'Masquer' : 'Afficher';
 }
 
 function renderComparison(cur, prev){
