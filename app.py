@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "21"
+ASSET_VERSION = "22"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -2433,6 +2433,19 @@ function filter(type, btn) {{
 
             ventes.extend(new_ventes)
             save_ventes(ventes)
+
+            # Audit
+            r_, ip_, dev_ = self._actor()
+            for v in new_ventes:
+                db.log_audit("created", "vente", v.get("ref", 0),
+                             f"{'Service' if type_vente=='service' else 'Vente libre'} — "
+                             f"{v.get('article','')} · {client or '?'} · {v.get('pv',0)} MAD "
+                             f"(bénéf {v.get('benef',0)})", r_, ip_, dev_)
+
+            # Service : pas de facture (l'or appartient au client)
+            if type_vente == "service":
+                self.send_json({"success": True, "service": True,
+                                "nb_ventes": len(new_ventes)}); return
 
             # Créer la facture automatiquement
             factures = load_factures()

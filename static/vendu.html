@@ -546,8 +546,37 @@ td.has{color:#82e0aa;}
       </div>
     </div>
 
-    <!-- SECTION 2 — ARTICLES -->
-    <div style="border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px">
+    <!-- SECTION SERVICE — vente d'or d'un client (commission) -->
+    <div id="nv-service-section" style="display:none;border:1px solid rgba(52,152,219,.3);border-radius:10px;padding:14px;margin-bottom:14px;background:rgba(52,152,219,.03)">
+      <div style="font-size:11px;font-weight:700;color:#2980b9;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">🔧 Détails du service (or du client)</div>
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group">
+          <label>OR vendu (grs) *</label>
+          <input type="number" id="sv-or" placeholder="ex: 5" min="0" step="0.01"
+            style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
+        </div>
+        <div class="form-group">
+          <label>Montant donné au client *</label>
+          <input type="number" id="sv-client" placeholder="ex: 10000" min="0" oninput="calcSV()"
+            style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group">
+          <label>Montant vendu (prix total) *</label>
+          <input type="number" id="sv-vendu" placeholder="ex: 12000" min="0" oninput="calcSV()"
+            style="padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%">
+        </div>
+        <div class="form-group">
+          <label>Mon bénéfice (commission)</label>
+          <div id="sv-benef" style="padding:8px 12px;background:var(--bg2);border:1px solid rgba(46,204,113,.4);border-radius:7px;font-size:16px;font-weight:800;color:var(--green)">—</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted)">Bénéfice = Montant vendu − Montant donné au client. Le CA (montant vendu) est comptabilisé dans les Services et le Total.</div>
+    </div>
+
+    <!-- SECTION 2 — ARTICLES (produit) -->
+    <div id="nv-product-section" style="border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">🛍️ Ajouter des Articles</div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <input type="number" id="nv-ref-input" placeholder="Référence article…" min="1"
@@ -1081,6 +1110,22 @@ function setNVType(type){
     ? 'flex:1;padding:10px;border-radius:9px;border:2px solid #2980b9;background:rgba(52,152,219,.15);color:#2980b9;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s'
     : 'flex:1;padding:10px;border-radius:9px;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s';
   document.getElementById('nv-service-info').style.display = isProd ? 'none' : 'block';
+  // Basculer les sections produit / service
+  const prodSec = document.getElementById('nv-product-section');
+  const svcSec  = document.getElementById('nv-service-section');
+  const panier  = document.getElementById('nv-panier-card');
+  if(prodSec) prodSec.style.display = isProd ? 'block' : 'none';
+  if(svcSec)  svcSec.style.display  = isProd ? 'none' : 'block';
+  if(panier && !isProd) panier.style.display = 'none';
+}
+
+function calcSV(){
+  const client = parseFloat(document.getElementById('sv-client').value)||0;
+  const vendu  = parseFloat(document.getElementById('sv-vendu').value)||0;
+  const benef  = vendu - client;
+  const el = document.getElementById('sv-benef');
+  el.textContent = (benef>=0?'+':'') + benef.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' MAD';
+  el.style.color = benef>=0 ? 'var(--green)' : 'var(--red)';
 }
 
 async function loadNVConfig(){
@@ -1265,6 +1310,9 @@ function openNVModal(preRef){
   document.getElementById('nv-note').value='';
   document.getElementById('nv-reste-display').textContent='—';
   document.getElementById('nv-st-total').checked=true;
+  // Réinitialiser les champs service
+  ['sv-or','sv-client','sv-vendu'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const svb=document.getElementById('sv-benef'); if(svb){svb.textContent='—';svb.style.color='var(--green)';}
   onNVStatutChange();
   setNVType('produit');
   document.getElementById('ov-nv').classList.add('open');
@@ -1333,6 +1381,8 @@ function calcNVReste(){
 }
 
 async function submitNV(){
+  // ── Cas SERVICE (vente d'or d'un client) ──
+  if(nvTypeVente==='service'){ return submitService(); }
   if(!nvPanier.length){toast('Le panier est vide — ajoutez au moins un article','error');return;}
   const statut=document.querySelector('input[name="nv-statut"]:checked').value;
   const avance=parseFloat(document.getElementById('nv-avance').value)||0;
@@ -1381,6 +1431,41 @@ async function submitNV(){
     if(hadIsmail) setTimeout(()=>{document.getElementById('ov-ismail').style.display='flex';},600);
     await load();
   }
+  btn.disabled=false;btn.textContent='✅ Confirmer la vente';
+}
+
+// ── Enregistrement d'un SERVICE (vente d'or appartenant à un client) ──
+async function submitService(){
+  const or     = parseFloat(document.getElementById('sv-or').value)||0;
+  const client = parseFloat(document.getElementById('sv-client').value)||0;
+  const vendu  = parseFloat(document.getElementById('sv-vendu').value)||0;
+  if(or<=0){toast('Entrez l\'OR vendu (grs)','error');return;}
+  if(vendu<=0){toast('Entrez le montant vendu','error');return;}
+  if(client<0){toast('Montant client invalide','error');return;}
+  const benef = vendu - client;
+  const clientNom=document.getElementById('nv-client').value.trim();
+  const contact=document.getElementById('nv-contact').value.trim();
+  const date_vente=document.getElementById('nv-date').value||new Date().toISOString().split('T')[0];
+  const note=document.getElementById('nv-note').value.trim();
+  const mode=document.getElementById('nv-mode-global').value;
+  const btn=document.getElementById('nv-confirm-btn');
+  btn.disabled=true;btn.textContent='⏳ Traitement…';
+  try{
+    const payload={
+      client:clientNom||'Client', telephone:contact, date_vente, note, mode_paiement:mode,
+      type_vente:'service',
+      articles:[{ article:'Service — vente d\'or client', or_grs:or, pa:client, pv:vendu }],
+    };
+    const res=await fetch('/api/ventes/manuel',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    if(res.ok){
+      toast(`✅ Service enregistré — bénéfice ${benef.toLocaleString('fr-FR')} MAD`,'success');
+      closeNVModal();
+      await load();
+    } else {
+      toast('Erreur : '+(data.error||'enregistrement impossible'),'error');
+    }
+  }catch(e){ toast('Erreur réseau','error'); }
   btn.disabled=false;btn.textContent='✅ Confirmer la vente';
 }
 
