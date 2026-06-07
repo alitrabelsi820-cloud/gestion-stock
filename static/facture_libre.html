@@ -50,8 +50,18 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
   .nav-search-btn{display:none;}
   .nav-search-wrap{display:none!important;}
 }
-.page{max-width:900px;margin:0 auto;padding:28px 20px 80px;}
+.page{max-width:1400px;margin:0 auto;padding:28px 20px 80px;}
 .page-header{margin-bottom:24px;}
+/* Layout 2 colonnes : formulaire + aperçu en direct */
+.fl-grid{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:24px;align-items:start;}
+.fl-preview{position:sticky;top:80px;}
+.lp-panel{background:#fff;border:1px solid var(--bd);border-radius:14px;overflow:hidden;}
+.lp-bar{padding:12px 16px;border-bottom:1px solid var(--bd);background:var(--bg3);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);}
+.lp-body{padding:16px;max-height:calc(100vh - 160px);overflow-y:auto;background:#faf9f7;}
+.lp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:60px 20px;color:var(--muted);font-size:13px;text-align:center;}
+.lp-empty span{font-size:40px;opacity:.3;}
+.lp-body .invoice{box-shadow:none;max-width:none;}
+@media(max-width:1100px){.fl-grid{grid-template-columns:1fr;}.fl-preview{position:static;}}
 .page-header h1{font-size:22px;color:var(--gold-l);margin-bottom:4px;}
 .page-header p{font-size:13px;color:var(--muted);}
 .card{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:22px;margin-bottom:16px;}
@@ -201,27 +211,30 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
     <p>Crée une facture pour des articles hors stock (commandes, dépôt-vente, articles de passage…). Le CA et le bénéfice sont comptabilisés automatiquement.</p>
   </div>
 
+  <div class="fl-grid">
+   <div class="fl-form">
+
   <!-- CLIENT -->
   <div class="card">
     <div class="card-title">👤 Client</div>
     <div class="form-row">
       <div class="form-group">
         <label>Nom du client *</label>
-        <input type="text" id="f-client" placeholder="ex: Mme Fatima Zahra">
+        <input type="text" id="f-client" placeholder="ex: Mme Fatima Zahra" oninput="renderLivePreview()">
       </div>
       <div class="form-group">
         <label>Téléphone</label>
-        <input type="text" id="f-tel" placeholder="ex: 0661…">
+        <input type="text" id="f-tel" placeholder="ex: 0661…" oninput="renderLivePreview()">
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label>Date de vente</label>
-        <input type="date" id="f-date">
+        <input type="date" id="f-date" oninput="renderLivePreview()">
       </div>
       <div class="form-group">
         <label>Mode de paiement</label>
-        <select id="f-mode">
+        <select id="f-mode" onchange="renderLivePreview()">
           <option value="">—</option>
           <option>Cash</option>
           <option>Chèque</option>
@@ -269,6 +282,18 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
     <a href="/vendu" class="btn btn-outline">Annuler</a>
     <button class="btn btn-gold" onclick="confirmer()" style="font-size:15px;padding:12px 32px;">✅ Générer la Facture</button>
   </div>
+
+   </div><!-- /fl-form -->
+
+   <aside class="fl-preview">
+     <div class="lp-panel">
+       <div class="lp-bar">Aperçu en direct</div>
+       <div class="lp-body" id="live-preview-body">
+         <div class="lp-empty"><span>🧾</span>Remplis la facture pour voir l'aperçu ici.</div>
+       </div>
+     </div>
+   </aside>
+  </div><!-- /fl-grid -->
 </div>
 
 <!-- MODAL FACTURE -->
@@ -449,6 +474,7 @@ function getLigneData(l) {
 }
 
 function updateTotaux() {
+  renderLivePreview();
   if(!lignes.length) { document.getElementById('totaux-bar').style.display='none'; return; }
   const pgVal = parseFloat(document.getElementById('pg-montant').value)||0;
   let totPV=0, totPA=0, totOR=0;
@@ -544,7 +570,7 @@ async function confirmer() {
   }
 }
 
-function buildPreview(facture, payload) {
+function buildInvoiceHTML(facture) {
   const articles = facture.articles || [];
   const pgOn = !!facture.prix_global && facture.total_global > 0;
   const totalAff = pgOn ? facture.total_global : facture.total;
@@ -635,8 +661,38 @@ function buildPreview(facture, payload) {
     </div>
   </div>`;
 
-  document.getElementById('fac-preview').innerHTML = html;
+  return html;
+}
+
+function buildPreview(facture, payload) {
+  document.getElementById('fac-preview').innerHTML = buildInvoiceHTML(facture);
   document.getElementById('fac-title').textContent = `${facture.numero} — ${facture.client}`;
+}
+
+// Aperçu en direct (panneau de droite) — construit depuis le formulaire
+function renderLivePreview() {
+  const body = document.getElementById('live-preview-body');
+  if (!body) return;
+  const client = document.getElementById('f-client').value.trim();
+  const articles = lignes.map(l => getLigneData(l)).filter(a => a.article || a.pv || a.offert);
+  if (!client && !articles.length) {
+    body.innerHTML = '<div class="lp-empty"><span>🧾</span>Remplis la facture pour voir l\'aperçu ici.</div>';
+    return;
+  }
+  const pgVal = parseFloat(document.getElementById('pg-montant').value) || 0;
+  const total = pgVal > 0 ? pgVal : articles.reduce((s,a)=>s+(a.pv||0),0);
+  const pseudo = {
+    numero: 'Aperçu',
+    client: client || '—',
+    telephone: document.getElementById('f-tel').value.trim(),
+    mode_paiement: document.getElementById('f-mode').value,
+    date: document.getElementById('f-date').value,
+    articles: articles,
+    total: total,
+    prix_global: pgVal > 0 ? 1 : 0,
+    total_global: pgVal,
+  };
+  body.innerHTML = buildInvoiceHTML(pseudo);
 }
 
 function printFac() {
