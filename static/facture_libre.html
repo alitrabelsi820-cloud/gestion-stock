@@ -339,6 +339,9 @@ function renderLignes() {
         <div class="form-group">
           <label>Prix de Vente</label>
           <input type="number" id="art-${l.id}-pv" min="0" step="100" placeholder="ex: 25 000" oninput="updateTotaux()">
+          <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;color:var(--txt);font-weight:500">
+            <input type="checkbox" id="art-${l.id}-offert" onchange="toggleOffert(${l.id})" style="width:auto;margin:0"> 🎁 Article offert (gratuit)
+          </label>
         </div>
         <div class="form-group">
           <label>Prix d'Achat / Coût</label>
@@ -399,12 +402,30 @@ async function chargerRef(id) {
   }
 }
 
+function toggleOffert(id) {
+  const chk = document.getElementById(`art-${id}-offert`);
+  const pv  = document.getElementById(`art-${id}-pv`);
+  if (chk.checked) {
+    pv.value = '';
+    pv.disabled = true;
+    pv.placeholder = '🎁 Offert';
+    pv.style.opacity = '.5';
+  } else {
+    pv.disabled = false;
+    pv.placeholder = 'ex: 25 000';
+    pv.style.opacity = '1';
+  }
+  updateTotaux();
+}
+
 function getLigneData(l) {
   const g = id => { const el = document.getElementById(id); return el ? parseFloat(el.value)||0 : 0; };
   const s = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const offert = (() => { const e = document.getElementById(`art-${l.id}-offert`); return e ? e.checked : false; })();
   return {
+    offert: offert,
     article: s(`art-${l.id}-type`),
-    pv:  g(`art-${l.id}-pv`),
+    pv:  offert ? 0 : g(`art-${l.id}-pv`),
     pa:  g(`art-${l.id}-pa`),
     or_grs: g(`art-${l.id}-or`),
     d:  g(`art-${l.id}-d`) || null,
@@ -469,8 +490,8 @@ async function confirmer() {
 
   const articles = lignes.map(l => getLigneData(l));
   const pgVal = parseFloat(document.getElementById('pg-montant').value)||0;
-  const hasPrix = articles.some(a => a.pv > 0) || pgVal > 0;
-  if(!hasPrix) { alert('Renseignez au moins un prix de vente ou un prix global.'); return; }
+  const hasPrix = articles.some(a => a.pv > 0 || a.offert) || pgVal > 0;
+  if(!hasPrix) { alert('Renseignez au moins un prix de vente, un article offert, ou un prix global.'); return; }
 
   const total = pgVal > 0 ? pgVal : articles.reduce((s,a)=>s+(a.pv||0),0);
   const payload = {
@@ -531,7 +552,7 @@ function buildPreview(facture, payload) {
     if(a.s)      pierres.push(`Saphirs · ${fmtF(a.s)} ct`);
     if(a.em_clb) pierres.push(`Ém. Colombie · ${fmtF(a.em_clb)} ct`);
     if(a.perles) pierres.push(`Perles · ${fmtF(a.perles)} grs`);
-    const prixCell = pgOn ? '' : `<td class="inv-price">${fmtN(a.pv)}</td>`;
+    const prixCell = pgOn ? '' : `<td class="inv-price">${a.offert ? '<span style="color:#157347;font-weight:700">Offert 🎁</span>' : fmtN(a.pv)}</td>`;
     const pierresCell = hasPierres
       ? `<td style="vertical-align:middle">${pierres.map(p=>`<span style="font-size:10px;color:#6b5c4a;background:#f9f4e8;border-radius:3px;padding:1px 6px;display:inline-block;margin:1px 2px">${p}</span>`).join('')||'—'}</td>`
       : '';
