@@ -156,7 +156,17 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
 .dv-sign-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#9a8060;margin-bottom:8px;}
 .dv-sign-line{border-bottom:1px solid #b8923c;height:40px;}
 
-@media print{body>*{display:none!important;}#dv-print-zone{display:block!important;position:fixed;inset:0;background:#fff;z-index:9999;overflow:auto;padding:20px;}#dv-print-zone .devis-doc{box-shadow:none;border:none;}}
+@media print{
+  body>*{display:none!important;}
+  /* IMPORTANT : position static (pas fixed) sinon l'impression se limite à 1 page */
+  #dv-print-zone{display:block!important;position:static!important;inset:auto!important;background:#fff;overflow:visible!important;padding:0;z-index:auto;}
+  #dv-print-zone .devis-doc{box-shadow:none!important;border:none!important;max-width:none!important;width:100%!important;margin:0!important;}
+  /* Empêcher de couper une ligne d'article entre deux pages */
+  #dv-print-zone .dv-tbl tr{break-inside:avoid;page-break-inside:avoid;}
+  #dv-print-zone .dv-tbl thead{display:table-header-group;} /* en-tête répété sur chaque page */
+  #dv-print-zone .dv-header,#dv-print-zone .dv-totaux,#dv-print-zone .dv-conditions{break-inside:avoid;page-break-inside:avoid;}
+  @page{margin:14mm;}
+}
 </style>
 <link rel="stylesheet" href="/static/theme.css">
 </head>
