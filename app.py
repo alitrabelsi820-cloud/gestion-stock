@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "26"
+ASSET_VERSION = "27"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -2662,6 +2662,7 @@ function filter(type, btn) {{
             source = str(data.get("source", "")).strip()
             date_vente = str(data.get("date_vente") or now.strftime("%Y-%m-%d")).strip()
             total_val = float(data.get("total_global") or data.get("total") or 0)
+            fac_articles = data.get("articles", [])
             facture = {
                 "id": new_id,
                 "numero": numero,
@@ -2669,7 +2670,7 @@ function filter(type, btn) {{
                 "telephone": str(data.get("telephone", "")).strip() or None,
                 "email": str(data.get("email", "")).strip() or None,
                 "ville": str(data.get("ville", "")).strip() or None,
-                "articles": data.get("articles", []),
+                "articles": fac_articles,
                 "total": total_val,
                 "avance": float(data.get("avance") or 0),
                 "mode_paiement": str(data.get("mode_paiement", "")).strip() or None,
@@ -2681,6 +2682,82 @@ function filter(type, btn) {{
                 "prix_global": int(data.get("prix_global") or 0),
                 "total_global": float(data.get("total_global") or 0),
             }
+
+            # Facture libre : enregistrer la vente (CA/bénéfice) + déduire le stock
+            if source == "libre":
+                cfg = load_config()
+                prix_or_achat = cfg.get("prix_or_achat", 1000)
+                articles_stock = load_articles()
+                ventes = load_ventes()
+                client_nom = facture["client"]
+                stock_touche = False
+                new_ventes = []
+                for i, a in enumerate(fac_articles):
+                    ref     = int(a.get("ref") or 0)
+                    pv      = float(a.get("pv") or 0)
+                    or_grs  = float(a.get("or_grs") or 0)
+                    pa      = float(a.get("pa") or 0)
+                    # Déduire du stock si l'article provient du stock (ref connue)
+                    if ref > 0:
+                        sidx = next((j for j, s in enumerate(articles_stock) if s.get("id") == ref), None)
+                        if sidx is not None:
+                            sart = articles_stock[sidx]
+                            if is_poids_article(sart):
+                                # Vente au poids : déduire le poids vendu du stock
+                                stock_w = float(sart.get("or_grs") or 0)
+                                if pa <= 0:
+                                    pa = round(or_grs * prix_or_achat, 2)
+                                nouveau = round(stock_w - or_grs, 3)
+                                if nouveau <= 0.001:
+                                    articles_stock.pop(sidx)
+                                else:
+                                    articles_stock[sidx]["or_grs"] = nouveau
+                                    articles_stock[sidx]["pa"] = round(nouveau * prix_or_achat, 2)
+                            else:
+                                # Article unitaire : décrémenter la quantité
+                                if pa <= 0:
+                                    pa = float(sart.get("pa") or 0)
+                                qty = int(sart.get("quantite") or 1)
+                                if qty > 1:
+                                    articles_stock[sidx]["quantite"] = qty - 1
+                                else:
+                                    articles_stock.pop(sidx)
+                            stock_touche = True
+                    benef = round(pv - pa, 2)
+                    new_ventes.append({
+                        "id_vente": int(now.timestamp() * 1000) + i,
+                        "date_achat": date_vente, "date_vente": date_vente,
+                        "ref": ref,
+                        "article": str(a.get("article") or "Article"),
+                        "or_grs": or_grs or None,
+                        "vente_au_poids": False, "prix_or_achat": None,
+                        "pa": pa or None,
+                        "d":  float(a["d"])  if a.get("d")  else None,
+                        "em": float(a["em"]) if a.get("em") else None,
+                        "r":  float(a["r"])  if a.get("r")  else None,
+                        "s":  float(a["s"])  if a.get("s")  else None,
+                        "p_fines": None, "rosaces": None,
+                        "em_clb": float(a["em_clb"]) if a.get("em_clb") else None,
+                        "perles": float(a["perles"]) if a.get("perles") else None,
+                        "pv": pv, "benef": benef,
+                        "client": client_nom,
+                        "telephone": facture["telephone"] or "",
+                        "mode_paiement": facture["mode_paiement"] or "",
+                        "commentaire": facture["note"],
+                        "source": "libre",
+                        "type_vente": "produit",
+                        "offert": bool(a.get("offert")),
+                    })
+                ventes.extend(new_ventes)
+                save_ventes(ventes)
+                if stock_touche:
+                    save_articles(articles_stock)
+                facture["vente_validee"] = True
+                r_, ip_, dev_ = self._actor()
+                db.log_audit("created", "vente", "facture",
+                             f"Facture libre {numero} — {client_nom} · {len(new_ventes)} article(s) · {total_val} MAD",
+                             r_, ip_, dev_)
+
             factures.append(facture)
             save_factures(factures)
             self.send_json({"success": True, "facture": facture}); return

@@ -384,19 +384,29 @@ async function chargerRef(id) {
       const e = document.getElementById(`art-${id}-${suffix}`);
       if (e && val != null && val !== '') e.value = val;
     };
+    const auPoids = !(a.d || a.em || a.r || a.s || a.em_clb || a.perles);
     setv('type', a.article || '');
-    setv('pa',   a.pa || '');
-    setv('or',   a.or_grs || '');
-    setv('d',    a.d || '');
-    setv('em',   a.em || '');
-    setv('r',    a.r || '');
-    setv('s',    a.s || '');
-    setv('ec',   a.em_clb || '');
-    setv('perles', a.perles || '');
-    msg.textContent = `✓ ${a.article || 'Article'} chargé — saisissez le prix de vente`;
-    msg.style.color = 'var(--green)';
+    if (auPoids) {
+      // Article au poids (ex: chaîne) : entrer le poids VENDU, pas le stock total
+      const orEl = document.getElementById(`art-${id}-or`);
+      if (orEl) { orEl.value = ''; orEl.placeholder = `poids vendu (stock: ${a.or_grs||0} grs)`; }
+      msg.innerHTML = `✓ ${a.article||'Article'} (au poids) — <b>entrez le poids vendu</b>. Stock dispo : ${a.or_grs||0} grs. Le P.A se calcule auto.`;
+      msg.style.color = '#2980b9';
+      if (orEl) orEl.focus();
+    } else {
+      setv('pa',   a.pa || '');
+      setv('or',   a.or_grs || '');
+      setv('d',    a.d || '');
+      setv('em',   a.em || '');
+      setv('r',    a.r || '');
+      setv('s',    a.s || '');
+      setv('ec',   a.em_clb || '');
+      setv('perles', a.perles || '');
+      msg.textContent = `✓ ${a.article || 'Article'} chargé — saisissez le prix de vente`;
+      msg.style.color = 'var(--green)';
+      const pvEl = document.getElementById(`art-${id}-pv`); if (pvEl) pvEl.focus();
+    }
     updateTotaux();
-    const pvEl = document.getElementById(`art-${id}-pv`); if (pvEl) pvEl.focus();
   } catch (e) {
     msg.textContent = 'Erreur de connexion'; msg.style.color = 'var(--red)';
   }
@@ -424,6 +434,7 @@ function getLigneData(l) {
   const offert = (() => { const e = document.getElementById(`art-${l.id}-offert`); return e ? e.checked : false; })();
   return {
     offert: offert,
+    ref: (() => { const e = document.getElementById(`art-${l.id}-ref`); return e ? (parseInt(e.value)||0) : 0; })(),
     article: s(`art-${l.id}-type`),
     pv:  offert ? 0 : g(`art-${l.id}-pv`),
     pa:  g(`art-${l.id}-pa`),
