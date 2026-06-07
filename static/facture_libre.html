@@ -318,6 +318,19 @@ function renderLignes() {
       </div>
       <div class="form-row">
         <div class="form-group" style="grid-column:span 2">
+          <label>Réf. article (charger depuis le stock)</label>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="art-${l.id}-ref" placeholder="ex: 4085" min="1"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();chargerRef(${l.id});}"
+              style="flex:1">
+            <button type="button" onclick="chargerRef(${l.id})"
+              style="padding:8px 16px;border-radius:8px;border:none;background:#16191D;color:#fff;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap">🔍 Charger</button>
+          </div>
+          <div id="art-${l.id}-refmsg" style="font-size:11px;margin-top:4px;min-height:14px"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="grid-column:span 2">
           <label>Type d'article *</label>
           <input type="text" id="art-${l.id}-type" placeholder="ex: Bague, B.O, Collier, Pendentif…" oninput="updateTotaux()">
         </div>
@@ -353,6 +366,37 @@ function renderLignes() {
   `).join('');
 
   document.getElementById('prix-global-bloc').style.display = lignes.length > 0 ? 'block' : 'none';
+}
+
+async function chargerRef(id) {
+  const refEl = document.getElementById(`art-${id}-ref`);
+  const msg   = document.getElementById(`art-${id}-refmsg`);
+  const ref   = parseInt(refEl.value);
+  if (!ref) { msg.textContent = 'Entrez une référence'; msg.style.color = 'var(--red)'; return; }
+  msg.textContent = 'Recherche…'; msg.style.color = 'var(--muted)';
+  try {
+    const a = await fetch('/api/articles/' + ref).then(r => r.json());
+    if (a.error) { msg.textContent = `❌ Article #${ref} introuvable en stock`; msg.style.color = 'var(--red)'; return; }
+    const setv = (suffix, val) => {
+      const e = document.getElementById(`art-${id}-${suffix}`);
+      if (e && val != null && val !== '') e.value = val;
+    };
+    setv('type', a.article || '');
+    setv('pa',   a.pa || '');
+    setv('or',   a.or_grs || '');
+    setv('d',    a.d || '');
+    setv('em',   a.em || '');
+    setv('r',    a.r || '');
+    setv('s',    a.s || '');
+    setv('ec',   a.em_clb || '');
+    setv('perles', a.perles || '');
+    msg.textContent = `✓ ${a.article || 'Article'} chargé — saisissez le prix de vente`;
+    msg.style.color = 'var(--green)';
+    updateTotaux();
+    const pvEl = document.getElementById(`art-${id}-pv`); if (pvEl) pvEl.focus();
+  } catch (e) {
+    msg.textContent = 'Erreur de connexion'; msg.style.color = 'var(--red)';
+  }
 }
 
 function getLigneData(l) {
