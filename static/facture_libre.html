@@ -320,6 +320,17 @@ let factureCourante = null;
 document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
 addLigne();
 
+function resetFactureForm() {
+  document.getElementById('f-client').value = '';
+  document.getElementById('f-tel').value = '';
+  document.getElementById('f-note').value = '';
+  const mode = document.getElementById('f-mode'); if (mode) mode.value = '';
+  const pg = document.getElementById('pg-montant'); if (pg) pg.value = '';
+  lignes = [];
+  addLigne();          // repart avec une ligne vide
+  updateTotaux();
+}
+
 function addLigne() {
   saveLignesState();           // garder les valeurs déjà saisies
   const id = Date.now();
@@ -580,6 +591,8 @@ async function confirmer() {
     document.getElementById('fac-overlay').classList.add('open');
     btn.textContent = '✅ Générer la Facture';
     btn.disabled = false;
+    // Vider le formulaire pour éviter de regénérer (et dupliquer) la même facture
+    resetFactureForm();
   } catch(e) {
     alert('Erreur réseau.');
     document.querySelector('.btn-gold[onclick="confirmer()"]').textContent='✅ Générer la Facture';
