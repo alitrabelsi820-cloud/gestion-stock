@@ -321,6 +321,7 @@ document.getElementById('f-date').value = new Date().toISOString().split('T')[0]
 addLigne();
 
 function addLigne() {
+  saveLignesState();           // garder les valeurs déjà saisies
   const id = Date.now();
   lignes.push({ id });
   renderLignes();
@@ -328,10 +329,26 @@ function addLigne() {
 }
 
 function removeLigne(id) {
+  saveLignesState();
   lignes = lignes.filter(l => l.id !== id);
   renderLignes();
   updateTotaux();
 }
+
+// Sauvegarde les valeurs saisies (DOM) dans les objets lignes avant un re-render
+function saveLignesState() {
+  const fields = ['ref','type','pv','pa','or','d','em','r','s','ec','perles'];
+  lignes.forEach(l => {
+    fields.forEach(f => {
+      const e = document.getElementById(`art-${l.id}-${f}`);
+      if (e) l[f] = e.value;
+    });
+    const off = document.getElementById(`art-${l.id}-offert`);
+    if (off) l.offert = off.checked;
+  });
+}
+
+function attr(v) { return (v == null ? '' : String(v)).replace(/"/g, '&quot;'); }
 
 function renderLignes() {
   const container = document.getElementById('lignes-container');
@@ -345,7 +362,7 @@ function renderLignes() {
         <div class="form-group" style="grid-column:span 2">
           <label>Réf. article (charger depuis le stock)</label>
           <div style="display:flex;gap:8px">
-            <input type="number" id="art-${l.id}-ref" placeholder="ex: 4085" min="1"
+            <input type="number" id="art-${l.id}-ref" placeholder="ex: 4085" min="1" value="${attr(l.ref)}"
               onkeydown="if(event.key==='Enter'){event.preventDefault();chargerRef(${l.id});}"
               style="flex:1">
             <button type="button" onclick="chargerRef(${l.id})"
@@ -357,37 +374,37 @@ function renderLignes() {
       <div class="form-row">
         <div class="form-group" style="grid-column:span 2">
           <label>Type d'article *</label>
-          <input type="text" id="art-${l.id}-type" placeholder="ex: Bague, B.O, Collier, Pendentif…" oninput="updateTotaux()">
+          <input type="text" id="art-${l.id}-type" placeholder="ex: Bague, B.O, Collier, Pendentif…" value="${attr(l.type)}" oninput="updateTotaux()">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Prix de Vente</label>
-          <input type="number" id="art-${l.id}-pv" min="0" step="100" placeholder="ex: 25 000" oninput="updateTotaux()">
+          <input type="number" id="art-${l.id}-pv" min="0" step="100" placeholder="ex: 25 000" value="${attr(l.pv)}" ${l.offert?'disabled style="opacity:.5"':''} oninput="updateTotaux()">
           <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;color:var(--txt);font-weight:500">
-            <input type="checkbox" id="art-${l.id}-offert" onchange="toggleOffert(${l.id})" style="width:auto;margin:0"> 🎁 Article offert (gratuit)
+            <input type="checkbox" id="art-${l.id}-offert" ${l.offert?'checked':''} onchange="toggleOffert(${l.id})" style="width:auto;margin:0"> 🎁 Article offert (gratuit)
           </label>
         </div>
         <div class="form-group">
           <label>Prix d'Achat / Coût</label>
-          <input type="number" id="art-${l.id}-pa" min="0" step="100" placeholder="ex: 15 000 (pour bénéfice)" oninput="updateTotaux()">
+          <input type="number" id="art-${l.id}-pa" min="0" step="100" placeholder="ex: 15 000 (pour bénéfice)" value="${attr(l.pa)}" oninput="updateTotaux()">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>OR (grs)</label>
-          <input type="number" id="art-${l.id}-or" min="0" step="0.01" placeholder="ex: 5.2">
+          <input type="number" id="art-${l.id}-or" min="0" step="0.01" placeholder="ex: 5.2" value="${attr(l.or)}" oninput="updateTotaux()">
         </div>
       </div>
       <details style="margin-top:4px;">
         <summary style="font-size:11px;color:var(--gold);cursor:pointer;font-weight:600;letter-spacing:.5px;">💎 Pierres précieuses (optionnel)</summary>
         <div class="pierres-grid" style="margin-top:10px;">
-          <div class="form-group"><label>Diamants (ct)</label><input type="number" id="art-${l.id}-d" min="0" step="0.01" placeholder="0.00"></div>
-          <div class="form-group"><label>Émeraudes (ct)</label><input type="number" id="art-${l.id}-em" min="0" step="0.01" placeholder="0.00"></div>
-          <div class="form-group"><label>Rubis (ct)</label><input type="number" id="art-${l.id}-r" min="0" step="0.01" placeholder="0.00"></div>
-          <div class="form-group"><label>Saphirs (ct)</label><input type="number" id="art-${l.id}-s" min="0" step="0.01" placeholder="0.00"></div>
-          <div class="form-group"><label>Ém. Colombie (ct)</label><input type="number" id="art-${l.id}-ec" min="0" step="0.01" placeholder="0.00"></div>
-          <div class="form-group"><label>Perles (grs)</label><input type="number" id="art-${l.id}-perles" min="0" step="0.01" placeholder="0.00"></div>
+          <div class="form-group"><label>Diamants (ct)</label><input type="number" id="art-${l.id}-d" min="0" step="0.01" placeholder="0.00" value="${attr(l.d)}" oninput="updateTotaux()"></div>
+          <div class="form-group"><label>Émeraudes (ct)</label><input type="number" id="art-${l.id}-em" min="0" step="0.01" placeholder="0.00" value="${attr(l.em)}" oninput="updateTotaux()"></div>
+          <div class="form-group"><label>Rubis (ct)</label><input type="number" id="art-${l.id}-r" min="0" step="0.01" placeholder="0.00" value="${attr(l.r)}" oninput="updateTotaux()"></div>
+          <div class="form-group"><label>Saphirs (ct)</label><input type="number" id="art-${l.id}-s" min="0" step="0.01" placeholder="0.00" value="${attr(l.s)}" oninput="updateTotaux()"></div>
+          <div class="form-group"><label>Ém. Colombie (ct)</label><input type="number" id="art-${l.id}-ec" min="0" step="0.01" placeholder="0.00" value="${attr(l.ec)}" oninput="updateTotaux()"></div>
+          <div class="form-group"><label>Perles (grs)</label><input type="number" id="art-${l.id}-perles" min="0" step="0.01" placeholder="0.00" value="${attr(l.perles)}" oninput="updateTotaux()"></div>
         </div>
       </details>
     </div>
