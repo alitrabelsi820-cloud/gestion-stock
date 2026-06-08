@@ -2225,6 +2225,32 @@ function filter(type, btn) {{
             except Exception as e:
                 self.send_json({"error": str(e)}, 400); return
 
+        # ── Fusionner deux clients (variations de nom) ────────────────────────
+        if path == "/api/clients/merge":
+            src = (data.get("from") or "").strip()
+            dst = (data.get("to") or "").strip()
+            if not src or not dst:
+                self.send_json({"error": "Paramètres 'from' et 'to' requis"}, 400); return
+            if src.lower() == dst.lower():
+                self.send_json({"error": "Les deux noms sont identiques"}, 400); return
+            src_l = src.lower()
+            def _rename(items, save):
+                n = 0
+                for it in items:
+                    if (it.get("client") or "").strip().lower() == src_l:
+                        it["client"] = dst; n += 1
+                if n: save(items)
+                return n
+            ventes = load_ventes();      nv = _rename(ventes, save_ventes)
+            factures = load_factures();  _rename(factures, save_factures)
+            credits = load_credits();    _rename(credits, save_credits)
+            cheques = load_cheques();    _rename(cheques, save_cheques)
+            r_, ip_, dev_ = self._actor()
+            db.log_audit("modified", "client", dst,
+                         f"Fusion client : « {src} » → « {dst} » ({nv} vente(s))",
+                         r_, ip_, dev_)
+            self.send_json({"success": True, "renamed": nv, "from": src, "to": dst}); return
+
         # ── Ajouter un article ────────────────────────────────────────────────
         if path == "/api/articles":
             articles = load_articles()
