@@ -1225,6 +1225,9 @@ function filter(type, btn) {{
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", len(body))
         self.send_header("Access-Control-Allow-Origin", "*")
+        # Jamais de cache pour les données API → toujours à jour
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+        self.send_header("Pragma", "no-cache")
         self.end_headers()
         self.wfile.write(body)
         # Sync DB → R2 après chaque écriture réussie (POST/DELETE)
