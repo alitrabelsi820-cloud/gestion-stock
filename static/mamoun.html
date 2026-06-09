@@ -488,7 +488,13 @@ function imprimerCredits(){
     </table>
     <div class="print-footer">Trabelsi Bijouterie · Document interne · ${dateStr}</div>
   `;
+  // Nom du fichier PDF = date du jour (Chrome utilise le titre de la page)
+  const pad = n => String(n).padStart(2,'0');
+  const nomFichier = `Crédits Clients ${pad(now.getDate())}-${pad(now.getMonth()+1)}-${now.getFullYear()}`;
+  const ancienTitre = document.title;
+  document.title = nomFichier;
   window.print();
+  setTimeout(() => { document.title = ancienTitre; }, 800);
 }
 
 function toggle(id){
