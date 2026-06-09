@@ -502,8 +502,8 @@ function filter() {
   document.getElementById('cnt-avance').textContent= counts.avance;
   document.getElementById('cnt-solde').textContent = counts.solde;
 
-  // Trier par date d'enregistrement : le plus ancien en premier, le plus récent en dernier
-  list = [...list].sort((a, b) => new Date(a.date_achat||0) - new Date(b.date_achat||0));
+  // Trier par ordre d'ajout (identifiant croissant) : premier ajouté en haut, dernier en bas
+  list = [...list].sort((a, b) => (a.id || 0) - (b.id || 0));
 
   render(list);
 }
