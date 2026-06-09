@@ -357,15 +357,30 @@ async function load(){
     if(ouverts.length === 0){
       list.innerHTML = '<div class="empty">Aucun crédit en cours</div>';
     } else {
-      ouverts.sort((a,b) => new Date(a.date||0) - new Date(b.date||0));
-      list.innerHTML = ouverts.map(c => {
+      // Regrouper par client (même personne → additionner les restes)
+      const cmap = new Map();
+      ouverts.forEach(c => {
+        const key = (c.client||'?').trim().toLowerCase();
+        if(cmap.has(key)){
+          const e = cmap.get(key);
+          e.reste += (c.reste||0);
+          e.minId = Math.min(e.minId, c.id||0);
+          e.nb += 1;
+        } else {
+          cmap.set(key, {client:c.client||'—', reste:(c.reste||0), minId:(c.id||0), date:c.date, nb:1});
+        }
+      });
+      // Trier par ordre d'ajout (premier crédit en haut)
+      const groupes = [...cmap.values()].sort((a,b) => a.minId - b.minId);
+      list.innerHTML = groupes.map(c => {
         const initials = (c.client||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
         const date = c.date ? new Date(c.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
+        const badge = c.nb > 1 ? ` <span style="font-size:10px;color:var(--muted);font-weight:600">(${c.nb} crédits)</span>` : '';
         return `
           <div class="client-row">
             <div class="client-avatar">${initials}</div>
             <div class="client-info">
-              <div class="client-name">${c.client||'—'}</div>
+              <div class="client-name">${c.client||'—'}${badge}</div>
               <div class="client-date">${date}</div>
             </div>
             <div class="client-amount">${fmtN(c.reste)} MAD</div>
