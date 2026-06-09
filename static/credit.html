@@ -549,6 +549,7 @@ function render(list) {
         <td><span class="st ${stClass}">${stLabel}</span></td>
         <td><div class="actions">
           <button class="btn btn-sm btn-green" onclick="openDetail(${c.id})">💳 Paiement</button>
+          ${(c.statut==='solde' || (c.paiements && c.paiements.length)) ? `<button class="btn btn-sm btn-outline" onclick="annulerSolde(${c.id})" title="Annuler les paiements et remettre en crédit">↺ Annuler solde</button>` : ''}
           <button class="btn btn-sm btn-outline" onclick="openEdit(${c.id})">✏️</button>
           <button class="btn btn-sm btn-danger" onclick="deleteCredit(${c.id})">🗑</button>
         </div></td>
@@ -762,6 +763,19 @@ async function deleteCredit(id) {
     const r = await fetch(`/api/credits/${id}`, {method:'DELETE'});
     const d = await r.json();
     if (d.success) { toast('Crédit supprimé','ok'); load(); }
+    else toast(d.error||'Erreur','err');
+  } catch(e) { toast('Erreur de connexion','err'); }
+}
+
+async function annulerSolde(id) {
+  if (!confirm('Annuler les paiements de ce crédit et le remettre en crédit ouvert (statut « Rien ») ?')) return;
+  try {
+    const r = await fetch(`/api/credits/${id}`, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ paiements: [] })
+    });
+    const d = await r.json();
+    if (d.success) { toast('Crédit remis en cours','ok'); load(); }
     else toast(d.error||'Erreur','err');
   } catch(e) { toast('Erreur de connexion','err'); }
 }

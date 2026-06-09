@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "32"
+ASSET_VERSION = "33"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -3166,6 +3166,10 @@ function filter(type, btn) {{
                     if field in data: c[field] = data[field] or None
                 if "montant_total" in data and data["montant_total"] not in (None, ""):
                     c["montant_total"] = float(data["montant_total"])
+                # Remplacer la liste des paiements (ex: [] pour annuler un solde/avance)
+                if "paiements" in data and isinstance(data["paiements"], list):
+                    c["paiements"] = data["paiements"]
+                    c["date_solde"] = None
                 recalc_credit(c)
                 credits[idx] = c
                 save_credits(credits)
