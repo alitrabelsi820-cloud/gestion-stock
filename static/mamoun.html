@@ -463,7 +463,6 @@ function imprimerCredits(){
     lignes += `<tr>
       <td style="color:#9a8e7e;font-size:12px">${idx+1}</td>
       <td><strong>${c.nom}</strong></td>
-      <td>${c.date||'—'}</td>
       <td>${montantFmt}</td>
     </tr>`;
   });
@@ -483,7 +482,7 @@ function imprimerCredits(){
     </div>
     <table class="print-table">
       <thead><tr>
-        <th>#</th><th>Client</th><th>Date</th><th style="text-align:right">Montant restant</th>
+        <th>#</th><th>Client</th><th style="text-align:right">Montant restant</th>
       </tr></thead>
       <tbody>${lignes}</tbody>
     </table>
