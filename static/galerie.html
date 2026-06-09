@@ -239,6 +239,10 @@ html.dark .toolbar-count{color:#7A7A72!important;}
     <button class="filter-pill" data-filter="vendu" onclick="setFilter('vendu',this)">🏷 Vendu</button>
     <button class="filter-pill" data-filter="new" onclick="setFilter('new',this)">✨ Derniers ajouts</button>
   </div>
+  <select id="g-type" onchange="applyFilters()"
+    style="padding:7px 12px;border:1px solid var(--bd);border-radius:20px;background:var(--bg3);color:var(--txt);font-size:12px;font-weight:600;outline:none;cursor:pointer;">
+    <option value="">Tous les types</option>
+  </select>
   <div class="search-box">
     <input type="text" id="g-search" placeholder="Réf ou article…" oninput="applyFilters()">
   </div>
@@ -276,6 +280,7 @@ async function loadGallery() {
       const da = a.date || '', db = b.date || '';
       return db.localeCompare(da);
     });
+    populateTypes();
     applyFilters();
   } catch(e) {
     document.getElementById('g-grid').innerHTML = `
@@ -295,8 +300,19 @@ function setFilter(f, btn) {
   applyFilters();
 }
 
+function populateTypes() {
+  const sel = document.getElementById('g-type');
+  if(!sel) return;
+  const types = [...new Set(_allArticles.map(a => (a.article||'').trim()).filter(Boolean))].sort();
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tous les types</option>' +
+    types.map(t => `<option value="${t.replace(/"/g,'&quot;')}">${t}</option>`).join('');
+  sel.value = cur;
+}
+
 function applyFilters() {
   const q = (document.getElementById('g-search').value || '').toLowerCase().trim();
+  const typeF = (document.getElementById('g-type') || {}).value || '';
   const today = new Date();
   const cutoff = new Date(today);
   cutoff.setDate(cutoff.getDate() - NEW_DAYS);
@@ -311,6 +327,11 @@ function applyFilters() {
     list = list.filter(a => (parseInt(a.quantite) || 0) === 0);
   } else if(_activeFilter === 'new') {
     list = list.filter(a => (a.date||'') >= cutStr);
+  }
+
+  // Filtre par type d'article
+  if(typeF) {
+    list = list.filter(a => (a.article||'').trim() === typeF);
   }
 
   // Recherche texte
