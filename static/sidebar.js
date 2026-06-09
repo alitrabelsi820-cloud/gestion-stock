@@ -62,6 +62,7 @@
         { label: '📅 Historique',       href: '/historique-activite' },
         { label: '👁️ Activité employés', href: '/activite-employes' },
         { label: '🗑️ Corbeille & Audit', href: '/corbeille' },
+        { label: '📊 Résumé Mamoun',     href: '/mamoun' },
       ]
     },
   ];
@@ -508,6 +509,7 @@
       { icon: '📅', label: 'Historique activité', href: '/historique-activite' },
       { icon: '👁️', label: 'Activité employés',   href: '/activite-employes' },
       { icon: '🗑️', label: 'Corbeille & Audit',   href: '/corbeille' },
+      { icon: '📊', label: 'Résumé Mamoun',        href: '/mamoun' },
       { icon: '⎋',  label: 'Déconnexion',         href: '/logout' },
     ]},
   ];
