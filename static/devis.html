@@ -329,12 +329,17 @@ function removeLigne(id) {
 }
 
 function renderLignes() {
-  const fields = ['type','pv','pvr','pa','or','note','d','em','r','s','ec','perles'];
+  const fields = ['type','pv','pvr','pa','or','note','d','em','r','s','ec','perles','ref-0'];
   const saved = {};
-  lignes.forEach(l => fields.forEach(f => {
-    const el = document.getElementById(`art-${l.id}-${f}`);
-    if(el) saved[`art-${l.id}-${f}`] = el.value;
-  }));
+  const savedReprise = {};
+  lignes.forEach(l => {
+    fields.forEach(f => {
+      const el = document.getElementById(`art-${l.id}-${f}`);
+      if(el) saved[`art-${l.id}-${f}`] = el.value;
+    });
+    const rep = document.getElementById(`art-${l.id}-reprise`);
+    if(rep) savedReprise[l.id] = rep.checked;
+  });
 
   document.getElementById('lignes-container').innerHTML = lignes.map((l, i) => `
     <div class="article-row" id="ligne-${l.id}">
@@ -382,6 +387,11 @@ function renderLignes() {
           <label>Prix de revient (MAD)</label>
           <input type="number" id="art-${l.id}-pa" min="0" step="100" placeholder="Coût d'achat" oninput="updateTotaux()">
         </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.25);border-radius:8px;padding:9px 12px;width:100%;text-transform:none;letter-spacing:0;color:var(--txt);font-weight:600;font-size:13px;">
+            <input type="checkbox" id="art-${l.id}-reprise" onchange="updateTotaux()" style="width:auto;margin:0;"> ↩️ Reprise / retour (soustraire du total)
+          </label>
+        </div>
       </div>
       <div class="form-group" style="margin-top:8px;">
         <label>Note / Description (optionnel)</label>
@@ -405,6 +415,10 @@ function renderLignes() {
     const el = document.getElementById(id);
     if(el) el.value = val;
   });
+  Object.entries(savedReprise).forEach(([lid, checked]) => {
+    const el = document.getElementById(`art-${lid}-reprise`);
+    if(el) el.checked = checked;
+  });
 }
 
 function getRefs(lid) {
@@ -424,7 +438,9 @@ function getRefs(lid) {
 function getLigneData(l) {
   const g = id => { const el = document.getElementById(id); return el ? parseFloat(el.value)||0 : 0; };
   const s = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const repEl = document.getElementById(`art-${l.id}-reprise`);
   return {
+    reprise: repEl ? repEl.checked : false,
     article: s(`art-${l.id}-type`),
     pv:     g(`art-${l.id}-pv`),
     pvr:    g(`art-${l.id}-pvr`),
@@ -523,9 +539,10 @@ function updateTotaux() {
   let totInitial=0, totReduit=0, totOR=0;
   lignes.forEach(l => {
     const d = getLigneData(l);
-    totInitial += d.pv;
-    totReduit  += d.pvr > 0 ? d.pvr : d.pv;
-    totOR      += d.or_grs;
+    const sign = d.reprise ? -1 : 1;
+    totInitial += sign * d.pv;
+    totReduit  += sign * (d.pvr > 0 ? d.pvr : d.pv);
+    totOR      += sign * d.or_grs;
   });
   document.getElementById('tot-initial').textContent = totInitial > 0 ? fmtN(totInitial) : '—';
   const elR = document.getElementById('tot-reduit');
@@ -550,8 +567,8 @@ async function enregistrerDevis() {
   const articles = lignes.map(l => getLigneData(l));
   if(!articles.some(a => a.article)) { alert('Renseignez au moins un type d\'article.'); return; }
 
-  const totInitial = articles.reduce((s,a) => s + a.pv, 0);
-  const totReduit  = articles.reduce((s,a) => s + (a.pvr > 0 ? a.pvr : a.pv), 0);
+  const totInitial = articles.reduce((s,a) => s + (a.reprise?-1:1)*a.pv, 0);
+  const totReduit  = articles.reduce((s,a) => s + (a.reprise?-1:1)*(a.pvr > 0 ? a.pvr : a.pv), 0);
   const btn = document.getElementById('btn-save');
   btn.textContent = '⏳ Enregistrement…'; btn.disabled = true;
 
@@ -611,10 +628,10 @@ function resetForm() {
 }
 
 function buildDevisHTML(numStr, client, articles) {
-  const orTotal      = articles.reduce((s,a) => s + (a.or_grs||0), 0);
-  const totInitial   = articles.reduce((s,a) => s + a.pv, 0);
-  const totReduit    = articles.reduce((s,a) => s + (a.pvr > 0 ? a.pvr : a.pv), 0);
-  const hasReduction = articles.some(a => a.pvr > 0 && a.pvr !== a.pv);
+  const orTotal      = articles.reduce((s,a) => s + (a.reprise?-1:1)*(a.or_grs||0), 0);
+  const totInitial   = articles.reduce((s,a) => s + (a.reprise?-1:1)*a.pv, 0);
+  const totReduit    = articles.reduce((s,a) => s + (a.reprise?-1:1)*(a.pvr > 0 ? a.pvr : a.pv), 0);
+  const hasReduction = articles.some(a => !a.reprise && a.pvr > 0 && a.pvr !== a.pv);
 
   const dateStr = document.getElementById('f-date').value;
   const dateFmt = dateStr ? (([y,m,d])=>d+'/'+m+'/'+y)(dateStr.split('-')) : new Date().toLocaleDateString('fr-FR');
@@ -630,8 +647,13 @@ function buildDevisHTML(numStr, client, articles) {
     if(a.em_clb) pierres.push(`Ém. Colombie · ${fmtF(a.em_clb)} ct`);
     if(a.perles) pierres.push(`Perles · ${fmtF(a.perles)} grs`);
 
+    const montantRep = (a.pvr > 0 ? a.pvr : a.pv);
     let priceCells;
-    if (hasReduction) {
+    if (a.reprise) {
+      // Ligne de reprise/retour : montant en négatif (rouge)
+      const neg = montantRep > 0 ? `<span style="color:#c0392b;font-weight:800">− ${fmtN(montantRep)} MAD</span>` : '—';
+      priceCells = hasReduction ? `<td class="dv-price">—</td><td class="dv-price">${neg}</td>` : `<td class="dv-price">${neg}</td>`;
+    } else if (hasReduction) {
       // Deux colonnes : prix initial barré + prix après réduction
       const pvCell = a.pv > 0
         ? (a.pvr > 0 && a.pvr !== a.pv
@@ -651,7 +673,7 @@ function buildDevisHTML(numStr, client, articles) {
     return `<tr>
       <td style="color:#9a8060;font-size:11px;font-weight:700;vertical-align:top">${String(i+1).padStart(2,'0')}</td>
       <td>
-        <span class="dv-art">${expandArt(a.article)||'—'}</span>
+        <span class="dv-art">${a.reprise ? '↩️ Reprise : ' : ''}${expandArt(a.article)||'—'}</span>
         ${a.or_grs ? `<div style="font-size:10px;color:#9a8060;margin-top:2px">${fmtF(a.or_grs)} grs OR</div>` : ''}
         ${pierres.length ? `<div style="margin-top:4px">${pierres.map(p=>`<span style="font-size:10px;color:#6b5c4a;background:#f9f4e8;border-radius:3px;padding:1px 6px;display:inline-block;margin:1px 2px">${p}</span>`).join('')}</div>` : ''}
         ${a.note ? `<div style="font-size:11px;color:#7a6040;margin-top:4px;font-style:italic;">${a.note}</div>` : ''}
@@ -717,14 +739,19 @@ function buildDevisHTML(numStr, client, articles) {
 function sharerWA() {
   const client   = document.getElementById('f-client').value.trim() || 'Client';
   const articles = lignes.map(l => getLigneData(l));
-  const totInitial   = articles.reduce((s,a) => s + a.pv, 0);
-  const totReduit    = articles.reduce((s,a) => s + (a.pvr > 0 ? a.pvr : a.pv), 0);
-  const hasReduction = articles.some(a => a.pvr > 0 && a.pvr !== a.pv);
+  const totInitial   = articles.reduce((s,a) => s + (a.reprise?-1:1)*a.pv, 0);
+  const totReduit    = articles.reduce((s,a) => s + (a.reprise?-1:1)*(a.pvr > 0 ? a.pvr : a.pv), 0);
+  const hasReduction = articles.some(a => !a.reprise && a.pvr > 0 && a.pvr !== a.pv);
 
   let msg = `💍 *TRABELSI Joaillerie & Diamantaire*\n_Mega Mall · Rabat · 05 37 75 24 34_\n\n`;
   msg += `*Devis — ${client}*\n\n*Articles proposés :*\n`;
   articles.forEach(a => {
     if(!a.article) return;
+    if(a.reprise){
+      const m = a.pvr > 0 ? a.pvr : a.pv;
+      msg += `• ↩️ Reprise : ${expandArt(a.article)} — *− ${fmtN(m)} MAD*\n`;
+      return;
+    }
     let ligne = `• ${expandArt(a.article)}`;
     if(a.pv > 0) ligne += ` — ${fmtN(a.pv)} MAD`;
     if(a.pvr > 0 && a.pvr !== a.pv) ligne += ` ➜ *${fmtN(a.pvr)} MAD*`;
