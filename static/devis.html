@@ -671,7 +671,7 @@ function buildDevisHTML(numStr, client, articles) {
     }
 
     return `<tr>
-      <td style="color:#9a8060;font-size:11px;font-weight:700;vertical-align:top">${String(i+1).padStart(2,'0')}</td>
+      <td style="color:#9a8060;font-size:11px;font-weight:700;vertical-align:top;white-space:nowrap">${(a.refs && a.refs.length) ? a.refs.map(r=>'#'+r).join(', ') : String(i+1).padStart(2,'0')}</td>
       <td>
         <span class="dv-art">${a.reprise ? '↩️ Reprise : ' : ''}${expandArt(a.article)||'—'}</span>
         ${a.or_grs ? `<div style="font-size:10px;color:#9a8060;margin-top:2px">${fmtF(a.or_grs)} grs OR</div>` : ''}
@@ -722,7 +722,7 @@ function buildDevisHTML(numStr, client, articles) {
       </div>
       <div style="margin-bottom:10px"><div class="dv-lbl">Détail des articles proposés</div></div>
       <table class="dv-tbl">
-        <thead><tr><th>#</th><th>Article</th>${hasReduction ? '<th style="text-align:right">Prix initial</th><th style="text-align:right">Après réduction</th>' : '<th style="text-align:right">Prix</th>'}</tr></thead>
+        <thead><tr><th>Réf.</th><th>Article</th>${hasReduction ? '<th style="text-align:right">Prix initial</th><th style="text-align:right">Après réduction</th>' : '<th style="text-align:right">Prix</th>'}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
       <div class="dv-totaux"><div class="dv-totaux-box">${totauxHtml}</div></div>
