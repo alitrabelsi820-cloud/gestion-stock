@@ -547,11 +547,11 @@ function render(list) {
         <td style="color:var(--green)">${totalPaye>0?fmtN(totalPaye):'—'}</td>
         <td style="color:${c.reste>0?'var(--red)':'var(--green)'};font-weight:700">${c.reste>0?fmtN(c.reste):'✓ Soldé'}</td>
         <td><span class="st ${stClass}">${stLabel}</span></td>
-        <td><div class="actions">
+        <td><div class="actions" style="width:100%">
           <button class="btn btn-sm btn-green" onclick="openDetail(${c.id})">💳 Paiement</button>
-          ${(c.statut==='solde' || (c.paiements && c.paiements.length)) ? `<button class="btn btn-sm btn-outline" onclick="annulerSolde(${c.id})" title="Annuler les paiements et remettre en crédit">↺ Annuler solde</button>` : ''}
           <button class="btn btn-sm btn-outline" onclick="openEdit(${c.id})">✏️</button>
           <button class="btn btn-sm btn-danger" onclick="deleteCredit(${c.id})">🗑</button>
+          ${(c.statut==='solde' || (c.paiements && c.paiements.length)) ? `<button class="btn btn-sm btn-outline" onclick="annulerSolde(${c.id})" title="Annuler les paiements et remettre en crédit" style="margin-left:auto">↺ Annuler solde</button>` : ''}
         </div></td>
       </tr>`;
     } else {
