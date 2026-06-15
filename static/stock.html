@@ -545,6 +545,20 @@ td.has{color:#82e0aa;}
           </div>
         </div>
       </div>
+      <div class="form-section-title" style="margin-top:14px">Photo</div>
+      <div class="form-row" style="margin-bottom:4px;align-items:center;gap:16px">
+        <div style="flex-shrink:0">
+          <img id="e-photo-preview" src="" alt=""
+            style="width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);background:var(--bg3);display:none">
+          <div id="e-photo-empty" style="width:96px;height:96px;border-radius:10px;border:1px dashed var(--bd);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--muted)">📷</div>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>Ajouter / changer la photo</label>
+          <input type="file" id="e-photo-input" accept="image/*" onchange="previewEditPhoto()"
+            style="width:100%;padding:8px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:13px">
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">La photo sera enregistrée en cliquant sur « Enregistrer ».</div>
+        </div>
+      </div>
       <div class="modal-actions" style="margin-top:20px">
         <button type="submit" class="btn btn-gold">💾 Enregistrer</button>
         <button type="button" class="btn btn-outline" onclick="closeEditModal()">Annuler</button>
@@ -812,7 +826,28 @@ function openEdit(idx) {
   document.getElementById('e-quantite').value = a.quantite || 1;
   document.getElementById('e-note').value = a.note || '';
   setIsmail('e', a.ismail_pierres);
+  // Photo : afficher la photo actuelle (si existe) + réinitialiser le champ
+  const input = document.getElementById('e-photo-input'); if(input) input.value = '';
+  const prev = document.getElementById('e-photo-preview');
+  const empty = document.getElementById('e-photo-empty');
+  const img = new Image();
+  img.onload = () => { prev.src = img.src; prev.style.display = 'block'; empty.style.display = 'none'; };
+  img.onerror = () => { prev.style.display = 'none'; empty.style.display = 'flex'; };
+  img.src = `/api/photo/${a.id}?t=${Date.now()}`;
   document.getElementById('ov-edit').classList.add('open');
+}
+
+function previewEditPhoto() {
+  const input = document.getElementById('e-photo-input');
+  if(!input.files.length) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById('e-photo-preview');
+    prev.src = e.target.result;
+    prev.style.display = 'block';
+    document.getElementById('e-photo-empty').style.display = 'none';
+  };
+  reader.readAsDataURL(input.files[0]);
 }
 
 function closeEditModal(e){if(!e||e.target===document.getElementById('ov-edit'))document.getElementById('ov-edit').classList.remove('open');}
@@ -847,6 +882,22 @@ async function submitEdit(e) {
     });
     const data = await res.json();
     if(data.success) {
+      // Upload de la nouvelle photo si sélectionnée
+      const photoInput = document.getElementById('e-photo-input');
+      if(photoInput && photoInput.files.length > 0) {
+        const file = photoInput.files[0];
+        const ext = file.name.split('.').pop().toLowerCase();
+        await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = async ev => {
+            const b64 = ev.target.result.split(',')[1];
+            try { await fetch('/api/photo/upload', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ref, photo_base64:b64, ext})}); }
+            catch(e) {}
+            resolve();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
       toast('Article modifié avec succès !', 'success');
       closeEditModal();
       await load();
