@@ -304,7 +304,7 @@ td.has{color:#82e0aa;}
   <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
 </nav>
 
-<div class="cards" style="grid-template-columns:repeat(5,1fr)">
+<div class="cards" style="grid-template-columns:repeat(6,1fr)">
   <!-- Ventes du mois -->
   <div class="card c1">
     <div class="card-ico">📋</div>
@@ -331,6 +331,17 @@ td.has{color:#82e0aa;}
     <div class="card-sub" style="font-size:11px;color:var(--muted);margin-top:4px">CA</div>
     <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(52,152,219,.2)">
       <div style="font-size:13px;font-weight:700;color:var(--green)" id="s-benef-service">—</div>
+      <div style="font-size:10px;color:var(--muted)">Bénéfice</div>
+    </div>
+  </div>
+  <!-- CA + Bénéf Réparations -->
+  <div class="card" style="background:rgba(230,126,34,.06);border-color:rgba(230,126,34,.25)">
+    <div class="card-ico">🔧</div>
+    <div class="card-lbl" style="color:#b9620f">Réparations</div>
+    <div class="card-val" style="color:#b9620f" id="s-ca-reparation">—</div>
+    <div class="card-sub" style="font-size:11px;color:var(--muted);margin-top:4px">CA</div>
+    <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(230,126,34,.2)">
+      <div style="font-size:13px;font-weight:700;color:var(--green)" id="s-benef-reparation">—</div>
       <div style="font-size:10px;color:var(--muted)">Bénéfice</div>
     </div>
   </div>
@@ -854,9 +865,12 @@ async function load(){
     // Services
     document.getElementById('s-ca-service').textContent=fmtN(moisData.ca_service||0);
     document.getElementById('s-benef-service').textContent=fmtN(moisData.benef_service||0);
+    // Réparations
+    document.getElementById('s-ca-reparation').textContent=fmtN(moisData.ca_reparation||0);
+    document.getElementById('s-benef-reparation').textContent=fmtN(moisData.benef_reparation||0);
     // Total combiné
-    document.getElementById('s-ca-total').textContent=fmtN(moisData.ca_total||(moisData.ca+(moisData.ca_service||0)));
-    document.getElementById('s-benef').textContent=fmtN(moisData.benef_total||(moisData.benef+(moisData.benef_service||0)));
+    document.getElementById('s-ca-total').textContent=fmtN(moisData.ca_total||(moisData.ca+(moisData.ca_service||0)+(moisData.ca_reparation||0)));
+    document.getElementById('s-benef').textContent=fmtN(moisData.benef_total||(moisData.benef+(moisData.benef_service||0)+(moisData.benef_reparation||0)));
 
     // Analyses financières — initialiser sur mois courant
     renderMonthlyV(advanced.monthly);
@@ -910,8 +924,10 @@ function filter(){
     set('s-benef-prod', fmtN(moisData.benef));
     set('s-ca-service', fmtN(moisData.ca_service||0));
     set('s-benef-service', fmtN(moisData.benef_service||0));
-    set('s-ca-total', fmtN(moisData.ca_total||(moisData.ca+(moisData.ca_service||0))));
-    set('s-benef', fmtN(moisData.benef_total||(moisData.benef+(moisData.benef_service||0))));
+    set('s-ca-reparation', fmtN(moisData.ca_reparation||0));
+    set('s-benef-reparation', fmtN(moisData.benef_reparation||0));
+    set('s-ca-total', fmtN(moisData.ca_total||(moisData.ca+(moisData.ca_service||0)+(moisData.ca_reparation||0))));
+    set('s-benef', fmtN(moisData.benef_total||(moisData.benef+(moisData.benef_service||0)+(moisData.benef_reparation||0))));
   }
 
   page=1;

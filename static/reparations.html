@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#16191D">
+<meta name="apple-mobile-web-app-title" content="Trabelsi">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réparations — TRABELSI</title>
+<style>
+:root{
+  --ink:#16191D;--ink-soft:#5C636B;--ink-faint:#8A9099;
+  --canvas:#F6F7F9;--surface:#FFFFFF;--surface-2:#F1F3F5;--line:#E4E7EB;
+  --pos:#15803D;--neg:#B42318;--gold:#16191D;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,'Segoe UI',sans-serif;background:var(--canvas);color:var(--ink);min-height:100vh;font-variant-numeric:tabular-nums;}
+nav{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;text-decoration:none;color:inherit;}
+.nav-logo{width:40px;height:40px;background:var(--ink);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;}
+.nav-title{font-size:15px;font-weight:600;letter-spacing:2px;}
+.nav-links{display:flex;gap:6px;}
+.nav-links a{padding:8px 12px;border-radius:6px;color:var(--ink-soft);text-decoration:none;font-size:13px;}
+.nav-logout-btn{padding:7px 14px;border-radius:6px;border:1px solid rgba(180,35,24,.25);color:var(--neg);font-size:12px;font-weight:600;text-decoration:none;}
+.hamburger{display:none;}
+
+.page{padding:24px 28px 80px;max-width:1400px;margin:0 auto;}
+.page-title{font-size:22px;font-weight:600;display:flex;align-items:center;gap:10px;}
+.page-sub{font-size:13px;color:var(--ink-soft);margin:4px 0 20px;}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:24px;align-items:start;}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-group label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-faint);display:block;margin-bottom:6px;}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:14px;outline:none;font-family:inherit;}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--ink);background:#fff;}
+.benef-box{padding:10px 14px;border:1px solid rgba(21,128,61,.3);border-radius:8px;background:rgba(21,128,61,.06);font-size:18px;font-weight:800;color:var(--pos);}
+.btn{padding:11px 22px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700;}
+.btn-gold{background:var(--ink);color:#fff;}
+.btn-outline{background:#fff;border:1px solid var(--line);color:var(--ink-soft);}
+.preview-side{position:sticky;top:80px;}
+.lp-panel{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.lp-bar{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface-2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center;}
+.btn-wa{background:#25d366;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+.lp-body{padding:16px;background:#faf9f7;}
+
+/* Facture réparation */
+.inv{background:#fff;border-radius:10px;color:#2c2010;font-family:'Georgia',serif;}
+.inv-head{display:flex;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:16px;}
+.inv-brand{font-size:30px;font-weight:700;letter-spacing:1px;}
+.inv-sub{font-size:10px;letter-spacing:2px;color:#7a6040;text-transform:uppercase;}
+.inv-addr{font-size:11px;color:#7a6040;margin-top:6px;font-family:'Inter',sans-serif;}
+.inv-word{font-size:22px;font-style:italic;text-align:right;}
+.inv-date{font-size:11px;color:#7a6040;text-align:right;font-family:'Inter',sans-serif;}
+.inv-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#9a8060;margin-bottom:4px;font-family:'Inter',sans-serif;}
+.inv-client{font-size:16px;font-weight:700;margin-bottom:16px;}
+.inv-tbl{width:100%;border-collapse:collapse;margin:12px 0;font-family:'Inter',sans-serif;}
+.inv-tbl th{text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#9a8060;border-bottom:1px solid #e8d9b0;padding:8px 6px;}
+.inv-tbl td{padding:10px 6px;border-bottom:1px solid #f0e8d4;font-size:13px;}
+.inv-total{display:flex;justify-content:space-between;font-size:17px;font-weight:800;margin-top:14px;padding-top:12px;border-top:2px solid var(--ink);}
+.inv-foot{margin-top:20px;text-align:center;font-size:10px;color:#9a8060;font-family:'Inter',sans-serif;}
+
+@media print{
+  body>*{display:none!important;}
+  #print-zone{display:block!important;position:static!important;overflow:visible!important;}
+  #print-zone .inv{box-shadow:none;max-width:none;width:100%;padding:0;}
+  @page{margin:16mm;}
+}
+@media(max-width:1100px){.grid{grid-template-columns:1fr;}.preview-side{position:static;}}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand"><div class="nav-logo">✦</div><div class="nav-title">GESTION STOCK</div></a>
+  <div class="nav-links" id="nav-links"><a href="/dashboard">Dashboard</a><a href="/vendu">Ventes</a></div>
+  <button class="hamburger" id="hamburger-btn">☰</button>
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+  <div class="page-title">🔧 Réparations</div>
+  <div class="page-sub">Crée une facture de réparation. Le montant facturé et le coût sont comptabilisés dans ton CA et ton bénéfice (catégorie Réparations).</div>
+
+  <div class="grid">
+   <div>
+    <div class="card">
+      <div class="card-title">👤 Client</div>
+      <div class="form-row">
+        <div class="form-group"><label>Nom du client *</label><input type="text" id="r-client" placeholder="ex: Mohamed Alami" oninput="preview()"></div>
+        <div class="form-group"><label>Téléphone</label><input type="text" id="r-tel" placeholder="ex: 0661…" oninput="preview()"></div>
+      </div>
+      <div class="form-group"><label>Date</label><input type="date" id="r-date" oninput="preview()"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔧 Réparation</div>
+      <div class="form-group" style="margin-bottom:12px"><label>Description de la réparation *</label>
+        <textarea id="r-desc" rows="2" placeholder="ex: Remise à taille bague + polissage, changement fermoir collier…" oninput="preview()" style="resize:vertical"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Montant facturé au client (MAD) *</label><input type="number" id="r-pv" min="0" step="50" placeholder="ex: 500" oninput="calc()"></div>
+        <div class="form-group"><label>Ce que ça t'a coûté (MAD)</label><input type="number" id="r-pa" min="0" step="50" placeholder="ex: 150" oninput="calc()"></div>
+      </div>
+      <div class="form-group">
+        <label>Ton bénéfice</label>
+        <div class="benef-box" id="r-benef">—</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="resetForm()">Effacer</button>
+      <button class="btn btn-gold" id="r-save" onclick="enregistrer()">✅ Enregistrer la réparation</button>
+    </div>
+   </div>
+
+   <aside class="preview-side">
+     <div class="lp-panel">
+       <div class="lp-bar"><span>Aperçu de la facture</span>
+         <button class="btn-wa" onclick="partagerWA()">💬 WhatsApp</button>
+       </div>
+       <div class="lp-body" id="preview-body"></div>
+       <div style="padding:12px 16px;border-top:1px solid var(--line)">
+         <button class="btn btn-outline" style="width:100%" onclick="imprimer()">🖨️ Imprimer / PDF</button>
+       </div>
+     </div>
+   </aside>
+  </div>
+</div>
+
+<div id="print-zone" style="display:none"></div>
+
+<script>
+const fmtN = v => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+document.getElementById('r-date').value = new Date().toISOString().split('T')[0];
+
+function calc(){
+  const pv = parseFloat(document.getElementById('r-pv').value)||0;
+  const pa = parseFloat(document.getElementById('r-pa').value)||0;
+  const b = pv - pa;
+  const el = document.getElementById('r-benef');
+  el.textContent = (b>=0?'+':'') + fmtN(b) + ' MAD';
+  el.style.color = b>=0 ? 'var(--pos)' : 'var(--neg)';
+  preview();
+}
+
+function buildInvoice(){
+  const client = document.getElementById('r-client').value.trim() || 'Client';
+  const tel = document.getElementById('r-tel').value.trim();
+  const desc = document.getElementById('r-desc').value.trim() || 'Réparation';
+  const pv = parseFloat(document.getElementById('r-pv').value)||0;
+  const ds = document.getElementById('r-date').value;
+  const dateFmt = ds ? (([y,m,d])=>d+'/'+m+'/'+y)(ds.split('-')) : new Date().toLocaleDateString('fr-FR');
+  return `<div class="inv">
+    <div class="inv-head">
+      <div><div class="inv-brand">Trabelsi</div><div class="inv-sub">Joaillerie &amp; Diamantaire</div>
+        <div class="inv-addr">Mega Mall · Rabat<br>05 37 75 24 34</div></div>
+      <div><div class="inv-word">Réparation</div><div class="inv-date">Le ${dateFmt}</div></div>
+    </div>
+    <div class="inv-lbl">Facturé à</div>
+    <div class="inv-client">${esc(client)}${tel?` <span style="font-size:12px;color:#7a6040">· ${esc(tel)}</span>`:''}</div>
+    <table class="inv-tbl">
+      <thead><tr><th>Prestation</th><th style="text-align:right">Montant</th></tr></thead>
+      <tbody><tr><td>${esc(desc)}</td><td style="text-align:right;font-weight:700">${pv>0?fmtN(pv)+' MAD':'—'}</td></tr></tbody>
+    </table>
+    <div class="inv-total"><span>Total à payer</span><span>${pv>0?fmtN(pv)+' MAD':'—'}</span></div>
+    <div class="inv-foot">Merci de votre confiance · Trabelsi Joaillerie &amp; Diamantaire</div>
+  </div>`;
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function preview(){ document.getElementById('preview-body').innerHTML = buildInvoice(); }
+
+async function enregistrer(){
+  const client = document.getElementById('r-client').value.trim();
+  const desc = document.getElementById('r-desc').value.trim();
+  const pv = parseFloat(document.getElementById('r-pv').value)||0;
+  const pa = parseFloat(document.getElementById('r-pa').value)||0;
+  if(!client){ alert('Nom du client requis'); return; }
+  if(pv<=0){ alert('Entrez le montant facturé'); return; }
+  const btn = document.getElementById('r-save');
+  btn.disabled = true; btn.textContent = '⏳ Enregistrement…';
+  try{
+    const payload = {
+      client, telephone: document.getElementById('r-tel').value.trim(),
+      date_vente: document.getElementById('r-date').value,
+      note: desc, type_vente: 'reparation',
+      articles: [{ article: 'Réparation — ' + (desc||'prestation'), pv, pa }]
+    };
+    const res = await fetch('/api/ventes/manuel',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const d = await res.json();
+    if(res.ok){ alert('✅ Réparation enregistrée — bénéfice '+fmtN(pv-pa)+' MAD'); resetForm(); }
+    else alert('Erreur : '+(d.error||'enregistrement impossible'));
+  }catch(e){ alert('Erreur réseau'); }
+  btn.disabled = false; btn.textContent = '✅ Enregistrer la réparation';
+}
+
+function resetForm(){
+  ['r-client','r-tel','r-desc','r-pv','r-pa'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('r-benef').textContent='—';
+  document.getElementById('r-date').value = new Date().toISOString().split('T')[0];
+  preview();
+}
+
+function imprimer(){
+  const z = document.getElementById('print-zone');
+  z.innerHTML = buildInvoice();
+  z.style.display = 'block';
+  const t = document.title;
+  const now = new Date(); const p = n=>String(n).padStart(2,'0');
+  document.title = `Réparation ${p(now.getDate())}-${p(now.getMonth()+1)}-${now.getFullYear()}`;
+  window.print();
+  setTimeout(()=>{ z.style.display='none'; z.innerHTML=''; document.title=t; }, 800);
+}
+
+function partagerWA(){
+  const client = document.getElementById('r-client').value.trim() || 'Client';
+  const desc = document.getElementById('r-desc').value.trim() || 'Réparation';
+  const pv = parseFloat(document.getElementById('r-pv').value)||0;
+  let msg = `💍 *TRABELSI Joaillerie & Diamantaire*\n_Mega Mall · Rabat · 05 37 75 24 34_\n\n`;
+  msg += `*Facture de réparation — ${client}*\n\n• ${desc}`;
+  if(pv>0) msg += ` — *${fmtN(pv)} MAD*`;
+  msg += `\n\nMerci de votre confiance 🙏`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg));
+}
+
+preview();
+</script>
+</body>
+</html>

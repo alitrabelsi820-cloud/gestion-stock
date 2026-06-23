@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "41"
+ASSET_VERSION = "42"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -544,16 +544,20 @@ def calc_stats(articles):
     }
 
 def _is_service(v):
-    """Vente de type service : exclue du CA mais incluse dans le bénéfice."""
+    """Vente de type service : exclue du CA produits mais comptée à part."""
     return (v.get("type_vente") or "produit") == "service"
+
+def _is_reparation(v):
+    """Vente de type réparation : comptée dans sa propre catégorie."""
+    return (v.get("type_vente") or "produit") == "reparation"
 
 def detect_anomalies(ventes):
     """Détecte les ventes à marge/prix anormaux. Retourne une liste triée
     (plus récentes d'abord) de dicts {vente..., anomalies:[{code,label,severite}]}.
-    Les services sont exclus (économie différente)."""
+    Les services et réparations sont exclus (économie différente)."""
     out = []
     for v in ventes:
-        if _is_service(v):
+        if _is_service(v) or _is_reparation(v):
             continue
         pv    = float(v.get("pv") or 0)
         pa    = float(v.get("pa") or 0)
@@ -601,8 +605,9 @@ def ventes_stats(ventes, date_from=None, date_to=None):
         filt = [v for v in filt if (v.get("date_vente") or "") >= date_from]
     if date_to:
         filt = [v for v in filt if (v.get("date_vente") or "") <= date_to]
-    produits  = [v for v in filt if not _is_service(v)]
-    services  = [v for v in filt if _is_service(v)]
+    produits    = [v for v in filt if not _is_service(v) and not _is_reparation(v)]
+    services    = [v for v in filt if _is_service(v)]
+    reparations = [v for v in filt if _is_reparation(v)]
     return {
         "nb":           _nb_sessions(filt),
         "nb_articles":  len(filt),
@@ -610,6 +615,8 @@ def ventes_stats(ventes, date_from=None, date_to=None):
         "benef":        round(sum(v.get("benef") or 0 for v in produits), 0),
         "ca_service":   round(sum(v.get("pv")    or 0 for v in services), 0),
         "benef_service":round(sum(v.get("benef") or 0 for v in services), 0),
+        "ca_reparation":   round(sum(v.get("pv")    or 0 for v in reparations), 0),
+        "benef_reparation":round(sum(v.get("benef") or 0 for v in reparations), 0),
         "ca_total":     round(sum(v.get("pv")    or 0 for v in filt),     0),
         "benef_total":  round(sum(v.get("benef") or 0 for v in filt),     0),
         "or_vendu":     round(sum(v.get("or_grs") or 0 for v in filt),    2),
@@ -623,12 +630,15 @@ def monthly_stats(ventes):
         if not d:
             continue
         if d not in months:
-            months[d] = {"mois": d, "nb": 0, "nb_articles": 0, "ca": 0, "benef": 0, "ca_service": 0, "benef_service": 0, "or_vendu": 0, "_ventes": []}
+            months[d] = {"mois": d, "nb": 0, "nb_articles": 0, "ca": 0, "benef": 0, "ca_service": 0, "benef_service": 0, "ca_reparation": 0, "benef_reparation": 0, "or_vendu": 0, "_ventes": []}
         months[d]["nb_articles"] += 1
         months[d]["_ventes"].append(v)
         if _is_service(v):
             months[d]["ca_service"]    += v.get("pv")    or 0
             months[d]["benef_service"] += v.get("benef") or 0
+        elif _is_reparation(v):
+            months[d]["ca_reparation"]    += v.get("pv")    or 0
+            months[d]["benef_reparation"] += v.get("benef") or 0
         else:
             months[d]["ca"]    += v.get("pv")    or 0
             months[d]["benef"] += v.get("benef") or 0
@@ -640,8 +650,10 @@ def monthly_stats(ventes):
         m["benef"]        = round(m["benef"], 0)
         m["ca_service"]   = round(m["ca_service"], 0)
         m["benef_service"]= round(m["benef_service"], 0)
-        m["ca_total"]     = round(m["ca"] + m["ca_service"], 0)
-        m["benef_total"]  = round(m["benef"] + m["benef_service"], 0)
+        m["ca_reparation"]   = round(m["ca_reparation"], 0)
+        m["benef_reparation"]= round(m["benef_reparation"], 0)
+        m["ca_total"]     = round(m["ca"] + m["ca_service"] + m["ca_reparation"], 0)
+        m["benef_total"]  = round(m["benef"] + m["benef_service"] + m["benef_reparation"], 0)
         m["or_vendu"]     = round(m["or_vendu"], 2)
     return result
 
@@ -1511,6 +1523,8 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "activite_employes.html"); return
         if path == "/etiquettes":
             self.send_html(STATIC_DIR / "etiquettes.html"); return
+        if path == "/reparations":
+            self.send_html(STATIC_DIR / "reparations.html"); return
         if path == "/corbeille":
             self.send_html(STATIC_DIR / "corbeille.html"); return
         if path == "/galerie":
@@ -2465,15 +2479,16 @@ function filter(type, btn) {{
 
             # Audit
             r_, ip_, dev_ = self._actor()
+            _libelle = {"service": "Service", "reparation": "Réparation"}.get(type_vente, "Vente libre")
             for v in new_ventes:
                 db.log_audit("created", "vente", v.get("ref", 0),
-                             f"{'Service' if type_vente=='service' else 'Vente libre'} — "
+                             f"{_libelle} — "
                              f"{v.get('article','')} · {client or '?'} · {v.get('pv',0)} MAD "
                              f"(bénéf {v.get('benef',0)})", r_, ip_, dev_)
 
-            # Service : pas de facture (l'or appartient au client)
-            if type_vente == "service":
-                self.send_json({"success": True, "service": True,
+            # Service / Réparation : pas de facture de vente générée (compta uniquement)
+            if type_vente in ("service", "reparation"):
+                self.send_json({"success": True, type_vente: True,
                                 "nb_ventes": len(new_ventes)}); return
 
             # Créer la facture automatiquement

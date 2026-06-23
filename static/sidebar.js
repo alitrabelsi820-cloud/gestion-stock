@@ -42,6 +42,7 @@
         { label: 'Ventes',              href: '/vendu' },
         { label: 'Factures',            href: '/facture' },
         { label: '📝 Facture Libre',    href: '/facture-libre' },
+        { label: '🔧 Réparations',      href: '/reparations' },
         { label: '📋 Devis',            href: '/devis' },
         { label: '🗂 Historique Devis', href: '/historique-devis' },
       ]
@@ -494,6 +495,7 @@
       { icon: '🛒', label: 'Nouvelle vente',      href: '/vendu?new=1' },
       { icon: '🧾', label: 'Factures',            href: '/facture' },
       { icon: '📝', label: 'Facture libre',       href: '/facture-libre' },
+      { icon: '🔧', label: 'Réparations',         href: '/reparations' },
       { icon: '📋', label: 'Devis',               href: '/devis' },
       { icon: '🗂',  label: 'Historique Devis',   href: '/historique-devis' },
     ]},

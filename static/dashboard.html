@@ -398,6 +398,8 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
                 🛍️ Produits : <span style="font-weight:700;color:var(--gold-l)" id="v-ca-prod">—</span>
                 &nbsp;·&nbsp;
                 🔧 Services : <span style="font-weight:700;color:#2980b9" id="v-ca-serv">—</span>
+                &nbsp;·&nbsp;
+                🔧 Réparations : <span style="font-weight:700;color:#b9620f" id="v-ca-rep">—</span>
               </div>
             </td>
           </tr>
@@ -410,6 +412,8 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
                 🛍️ Produits : <span style="font-weight:700;color:#1a7a40" id="v-b-prod">—</span>
                 &nbsp;·&nbsp;
                 🔧 Services : <span style="font-weight:700;color:#2980b9" id="v-b-serv">—</span>
+                &nbsp;·&nbsp;
+                🔧 Réparations : <span style="font-weight:700;color:#b9620f" id="v-b-rep">—</span>
               </div>
             </td>
           </tr>
@@ -661,8 +665,10 @@ async function load(){
     document.getElementById('v-b-month').textContent   = fmtN(moisCur.benef_total ?? (moisCur.benef + (moisCur.benef_service||0))) +'';
     document.getElementById('v-ca-prod').textContent   = fmtN(moisCur.ca) +' MAD';
     document.getElementById('v-ca-serv').textContent   = fmtN(moisCur.ca_service||0) +' MAD';
+    document.getElementById('v-ca-rep').textContent    = fmtN(moisCur.ca_reparation||0) +' MAD';
     document.getElementById('v-b-prod').textContent    = fmtN(moisCur.benef) +' MAD';
     document.getElementById('v-b-serv').textContent    = fmtN(moisCur.benef_service||0) +' MAD';
+    document.getElementById('v-b-rep').textContent     = fmtN(moisCur.benef_reparation||0) +' MAD';
     document.getElementById('v-or-month').textContent  = fmt(moisCur.or_vendu||0) + ' grs';
     const nbV = moisCur.nb || 0;
     const nbA = moisCur.nb_articles || 0;
