@@ -33,9 +33,17 @@ nav{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;display:f
 .card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
 .form-group label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-faint);display:block;margin-bottom:6px;}
-.form-group input,.form-group textarea,.form-group select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:14px;outline:none;font-family:inherit;}
+.form-group input,.form-group textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:14px;outline:none;font-family:inherit;}
 .form-group input:focus,.form-group textarea:focus{border-color:var(--ink);background:#fff;}
-.benef-box{padding:10px 14px;border:1px solid rgba(21,128,61,.3);border-radius:8px;background:rgba(21,128,61,.06);font-size:18px;font-weight:800;color:var(--pos);}
+.rep-row{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;background:var(--surface-2);}
+.rep-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.rep-num{font-size:12px;font-weight:700;color:var(--ink-soft);}
+.btn-remove{background:none;border:1px solid rgba(180,35,24,.3);color:var(--neg);border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;}
+.btn-add{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;border:2px dashed var(--line);background:#fff;color:var(--ink-soft);font-size:13px;font-weight:600;border-radius:9px;cursor:pointer;}
+.btn-add:hover{border-color:var(--ink-faint);color:var(--ink);}
+.totaux{display:flex;gap:20px;background:var(--surface-2);border-radius:10px;padding:14px 16px;margin-top:14px;flex-wrap:wrap;}
+.totaux div span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-faint);}
+.totaux div b{font-size:18px;font-weight:800;}
 .btn{padding:11px 22px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700;}
 .btn-gold{background:var(--ink);color:#fff;}
 .btn-outline{background:#fff;border:1px solid var(--line);color:var(--ink-soft);}
@@ -45,7 +53,6 @@ nav{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;display:f
 .btn-wa{background:#25d366;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;}
 .lp-body{padding:16px;background:#faf9f7;}
 
-/* Facture réparation */
 .inv{background:#fff;border-radius:10px;color:#2c2010;font-family:'Georgia',serif;}
 .inv-head{display:flex;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:16px;}
 .inv-brand{font-size:30px;font-weight:700;letter-spacing:1px;}
@@ -65,6 +72,7 @@ nav{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;display:f
   body>*{display:none!important;}
   #print-zone{display:block!important;position:static!important;overflow:visible!important;}
   #print-zone .inv{box-shadow:none;max-width:none;width:100%;padding:0;}
+  #print-zone .inv-tbl tr{break-inside:avoid;}
   @page{margin:16mm;}
 }
 @media(max-width:1100px){.grid{grid-template-columns:1fr;}.preview-side{position:static;}}
@@ -83,7 +91,7 @@ nav{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;display:f
 
 <div class="page">
   <div class="page-title">🔧 Réparations</div>
-  <div class="page-sub">Crée une facture de réparation. Le montant facturé et le coût sont comptabilisés dans ton CA et ton bénéfice (catégorie Réparations).</div>
+  <div class="page-sub">Crée une facture de réparation (plusieurs prestations possibles). Le montant facturé et le coût sont comptabilisés dans ton CA et ton bénéfice (catégorie Réparations).</div>
 
   <div class="grid">
    <div>
@@ -97,17 +105,13 @@ nav{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;display:f
     </div>
 
     <div class="card">
-      <div class="card-title">🔧 Réparation</div>
-      <div class="form-group" style="margin-bottom:12px"><label>Description de la réparation *</label>
-        <textarea id="r-desc" rows="2" placeholder="ex: Remise à taille bague + polissage, changement fermoir collier…" oninput="preview()" style="resize:vertical"></textarea>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Montant facturé au client (MAD) *</label><input type="number" id="r-pv" min="0" step="50" placeholder="ex: 500" oninput="calc()"></div>
-        <div class="form-group"><label>Ce que ça t'a coûté (MAD)</label><input type="number" id="r-pa" min="0" step="50" placeholder="ex: 150" oninput="calc()"></div>
-      </div>
-      <div class="form-group">
-        <label>Ton bénéfice</label>
-        <div class="benef-box" id="r-benef">—</div>
+      <div class="card-title">🔧 Prestations de réparation</div>
+      <div id="lignes"></div>
+      <button class="btn-add" onclick="addLigne()">+ Ajouter une réparation</button>
+      <div class="totaux">
+        <div><span>Total facturé</span><b id="t-pv">—</b></div>
+        <div><span>Total coût</span><b id="t-pa" style="color:var(--ink-soft)">—</b></div>
+        <div><span>Bénéfice</span><b id="t-benef" style="color:var(--pos)">—</b></div>
       </div>
     </div>
 
@@ -135,25 +139,80 @@ nav{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;display:f
 
 <script>
 const fmtN = v => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function attr(v){return (v==null?'':String(v)).replace(/"/g,'&quot;');}
 document.getElementById('r-date').value = new Date().toISOString().split('T')[0];
 
+let lignes = [];
+
+function addLigne(){
+  saveState();
+  lignes.push({id:Date.now()});
+  renderLignes();
+  calc();
+}
+function removeLigne(id){
+  saveState();
+  lignes = lignes.filter(l=>l.id!==id);
+  if(!lignes.length) lignes.push({id:Date.now()});
+  renderLignes();
+  calc();
+}
+function saveState(){
+  lignes.forEach(l=>{
+    ['desc','pv','pa'].forEach(f=>{
+      const e=document.getElementById(`l-${l.id}-${f}`);
+      if(e) l[f]=e.value;
+    });
+  });
+}
+function renderLignes(){
+  document.getElementById('lignes').innerHTML = lignes.map((l,i)=>`
+    <div class="rep-row" id="row-${l.id}">
+      <div class="rep-head">
+        <span class="rep-num">Réparation ${i+1}</span>
+        ${lignes.length>1?`<button class="btn-remove" onclick="removeLigne(${l.id})">✕ Retirer</button>`:''}
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Description *</label>
+        <textarea id="l-${l.id}-desc" rows="2" placeholder="ex: Remise à taille bague + polissage…" oninput="preview()" style="resize:vertical">${attr(l.desc)}</textarea>
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <div class="form-group"><label>Montant facturé (MAD) *</label><input type="number" id="l-${l.id}-pv" min="0" step="50" placeholder="ex: 500" value="${attr(l.pv)}" oninput="calc()"></div>
+        <div class="form-group"><label>Coût (MAD)</label><input type="number" id="l-${l.id}-pa" min="0" step="50" placeholder="ex: 150" value="${attr(l.pa)}" oninput="calc()"></div>
+      </div>
+    </div>
+  `).join('');
+}
+function getData(){
+  return lignes.map(l=>({
+    desc:(document.getElementById(`l-${l.id}-desc`)?.value||'').trim(),
+    pv:parseFloat(document.getElementById(`l-${l.id}-pv`)?.value)||0,
+    pa:parseFloat(document.getElementById(`l-${l.id}-pa`)?.value)||0,
+  }));
+}
 function calc(){
-  const pv = parseFloat(document.getElementById('r-pv').value)||0;
-  const pa = parseFloat(document.getElementById('r-pa').value)||0;
-  const b = pv - pa;
-  const el = document.getElementById('r-benef');
-  el.textContent = (b>=0?'+':'') + fmtN(b) + ' MAD';
-  el.style.color = b>=0 ? 'var(--pos)' : 'var(--neg)';
+  const arts=getData();
+  const tpv=arts.reduce((s,a)=>s+a.pv,0);
+  const tpa=arts.reduce((s,a)=>s+a.pa,0);
+  document.getElementById('t-pv').textContent=tpv>0?fmtN(tpv)+' MAD':'—';
+  document.getElementById('t-pa').textContent=tpa>0?fmtN(tpa)+' MAD':'—';
+  const b=tpv-tpa;
+  const el=document.getElementById('t-benef');
+  el.textContent=(b>=0?'+':'')+fmtN(b)+' MAD';
+  el.style.color=b>=0?'var(--pos)':'var(--neg)';
   preview();
 }
 
 function buildInvoice(){
-  const client = document.getElementById('r-client').value.trim() || 'Client';
-  const tel = document.getElementById('r-tel').value.trim();
-  const desc = document.getElementById('r-desc').value.trim() || 'Réparation';
-  const pv = parseFloat(document.getElementById('r-pv').value)||0;
-  const ds = document.getElementById('r-date').value;
-  const dateFmt = ds ? (([y,m,d])=>d+'/'+m+'/'+y)(ds.split('-')) : new Date().toLocaleDateString('fr-FR');
+  const client=document.getElementById('r-client').value.trim()||'Client';
+  const tel=document.getElementById('r-tel').value.trim();
+  const ds=document.getElementById('r-date').value;
+  const dateFmt=ds?(([y,m,d])=>d+'/'+m+'/'+y)(ds.split('-')):new Date().toLocaleDateString('fr-FR');
+  const arts=getData().filter(a=>a.desc||a.pv>0);
+  const total=arts.reduce((s,a)=>s+a.pv,0);
+  const rows=arts.map(a=>`<tr><td>${esc(a.desc||'Réparation')}</td><td style="text-align:right;font-weight:700">${a.pv>0?fmtN(a.pv)+' MAD':'—'}</td></tr>`).join('')
+    || `<tr><td>Réparation</td><td style="text-align:right">—</td></tr>`;
   return `<div class="inv">
     <div class="inv-head">
       <div><div class="inv-brand">Trabelsi</div><div class="inv-sub">Joaillerie &amp; Diamantaire</div>
@@ -164,69 +223,73 @@ function buildInvoice(){
     <div class="inv-client">${esc(client)}${tel?` <span style="font-size:12px;color:#7a6040">· ${esc(tel)}</span>`:''}</div>
     <table class="inv-tbl">
       <thead><tr><th>Prestation</th><th style="text-align:right">Montant</th></tr></thead>
-      <tbody><tr><td>${esc(desc)}</td><td style="text-align:right;font-weight:700">${pv>0?fmtN(pv)+' MAD':'—'}</td></tr></tbody>
+      <tbody>${rows}</tbody>
     </table>
-    <div class="inv-total"><span>Total à payer</span><span>${pv>0?fmtN(pv)+' MAD':'—'}</span></div>
+    <div class="inv-total"><span>Total à payer</span><span>${total>0?fmtN(total)+' MAD':'—'}</span></div>
     <div class="inv-foot">Merci de votre confiance · Trabelsi Joaillerie &amp; Diamantaire</div>
   </div>`;
 }
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function preview(){ document.getElementById('preview-body').innerHTML = buildInvoice(); }
 
 async function enregistrer(){
-  const client = document.getElementById('r-client').value.trim();
-  const desc = document.getElementById('r-desc').value.trim();
-  const pv = parseFloat(document.getElementById('r-pv').value)||0;
-  const pa = parseFloat(document.getElementById('r-pa').value)||0;
+  const client=document.getElementById('r-client').value.trim();
   if(!client){ alert('Nom du client requis'); return; }
-  if(pv<=0){ alert('Entrez le montant facturé'); return; }
-  const btn = document.getElementById('r-save');
-  btn.disabled = true; btn.textContent = '⏳ Enregistrement…';
+  const arts=getData().filter(a=>a.pv>0 || a.desc);
+  if(!arts.some(a=>a.pv>0)){ alert('Entrez au moins un montant facturé'); return; }
+  const btn=document.getElementById('r-save');
+  btn.disabled=true; btn.textContent='⏳ Enregistrement…';
   try{
-    const payload = {
-      client, telephone: document.getElementById('r-tel').value.trim(),
-      date_vente: document.getElementById('r-date').value,
-      note: desc, type_vente: 'reparation',
-      articles: [{ article: 'Réparation — ' + (desc||'prestation'), pv, pa }]
+    const payload={
+      client, telephone:document.getElementById('r-tel').value.trim(),
+      date_vente:document.getElementById('r-date').value, type_vente:'reparation',
+      note: arts.map(a=>a.desc).filter(Boolean).join(' · '),
+      articles: arts.map(a=>({ article:'Réparation — '+(a.desc||'prestation'), pv:a.pv, pa:a.pa }))
     };
-    const res = await fetch('/api/ventes/manuel',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const d = await res.json();
-    if(res.ok){ alert('✅ Réparation enregistrée — bénéfice '+fmtN(pv-pa)+' MAD'); resetForm(); }
-    else alert('Erreur : '+(d.error||'enregistrement impossible'));
+    const res=await fetch('/api/ventes/manuel',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const d=await res.json();
+    if(res.ok){
+      const tot=arts.reduce((s,a)=>s+(a.pv-a.pa),0);
+      alert('✅ Réparation enregistrée ('+arts.length+' prestation(s)) — bénéfice '+fmtN(tot)+' MAD');
+      resetForm();
+    } else alert('Erreur : '+(d.error||'enregistrement impossible'));
   }catch(e){ alert('Erreur réseau'); }
-  btn.disabled = false; btn.textContent = '✅ Enregistrer la réparation';
+  btn.disabled=false; btn.textContent='✅ Enregistrer la réparation';
 }
 
 function resetForm(){
-  ['r-client','r-tel','r-desc','r-pv','r-pa'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('r-benef').textContent='—';
-  document.getElementById('r-date').value = new Date().toISOString().split('T')[0];
-  preview();
+  ['r-client','r-tel'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('r-date').value=new Date().toISOString().split('T')[0];
+  lignes=[{id:Date.now()}];
+  renderLignes();
+  calc();
 }
 
 function imprimer(){
-  const z = document.getElementById('print-zone');
-  z.innerHTML = buildInvoice();
-  z.style.display = 'block';
-  const t = document.title;
-  const now = new Date(); const p = n=>String(n).padStart(2,'0');
-  document.title = `Réparation ${p(now.getDate())}-${p(now.getMonth()+1)}-${now.getFullYear()}`;
+  const z=document.getElementById('print-zone');
+  z.innerHTML=buildInvoice();
+  z.style.display='block';
+  const t=document.title;
+  const now=new Date(); const p=n=>String(n).padStart(2,'0');
+  document.title=`Réparation ${p(now.getDate())}-${p(now.getMonth()+1)}-${now.getFullYear()}`;
   window.print();
-  setTimeout(()=>{ z.style.display='none'; z.innerHTML=''; document.title=t; }, 800);
+  setTimeout(()=>{ z.style.display='none'; z.innerHTML=''; document.title=t; },800);
 }
 
 function partagerWA(){
-  const client = document.getElementById('r-client').value.trim() || 'Client';
-  const desc = document.getElementById('r-desc').value.trim() || 'Réparation';
-  const pv = parseFloat(document.getElementById('r-pv').value)||0;
-  let msg = `💍 *TRABELSI Joaillerie & Diamantaire*\n_Mega Mall · Rabat · 05 37 75 24 34_\n\n`;
-  msg += `*Facture de réparation — ${client}*\n\n• ${desc}`;
-  if(pv>0) msg += ` — *${fmtN(pv)} MAD*`;
-  msg += `\n\nMerci de votre confiance 🙏`;
+  const client=document.getElementById('r-client').value.trim()||'Client';
+  const arts=getData().filter(a=>a.desc||a.pv>0);
+  const total=arts.reduce((s,a)=>s+a.pv,0);
+  let msg=`💍 *TRABELSI Joaillerie & Diamantaire*\n_Mega Mall · Rabat · 05 37 75 24 34_\n\n`;
+  msg+=`*Facture de réparation — ${client}*\n\n`;
+  arts.forEach(a=>{ msg+=`• ${a.desc||'Réparation'}${a.pv>0?` — *${fmtN(a.pv)} MAD*`:''}\n`; });
+  if(total>0) msg+=`\n*Total : ${fmtN(total)} MAD*`;
+  msg+=`\n\nMerci de votre confiance 🙏`;
   window.open('https://wa.me/?text='+encodeURIComponent(msg));
 }
 
-preview();
+lignes=[{id:Date.now()}];
+renderLignes();
+calc();
 </script>
 </body>
 </html>
