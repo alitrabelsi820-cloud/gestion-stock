@@ -97,6 +97,20 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
 .zbl .z-qr{width:9mm;height:9mm;display:block;}
 .zbl .z-qr img{width:100%;height:100%;}
 
+/* ── Cartes article + actions impression ── */
+.lbl-stones{margin-top:4px;font-size:13px;font-weight:600;color:#1a1a1a;}
+.lbl-stones .no-st{color:#aaa;font-weight:400;font-style:italic;}
+.lbl-actions{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.st-toggle{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#444;cursor:pointer;}
+.btn-mini{background:#16191D;color:#fff;border:none;border-radius:8px;
+  padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-left:auto;}
+.btn-mini:hover{background:#000;}
+.btn-mini:disabled{opacity:.7;cursor:default;}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+  background:#16191D;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;
+  box-shadow:0 6px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.25s;z-index:9999;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
 @media print{
   body.zebra-printing #gs-sidebar,
   body.zebra-printing #gs-topbar,
@@ -128,30 +142,19 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
 
 <div class="page">
   <div class="page-header">
-    <div class="page-title">🏷️ Étiquettes QR</div>
-    <div class="page-sub">Génère des étiquettes imprimables. Scanner le QR ouvre la fiche de l'article.</div>
+    <div class="page-title">🏷️ Étiquettes bijou (Zebra)</div>
+    <div class="page-sub">Cliquez « Imprimer » sur un article : l'étiquette part à l'imprimante Zebra du Mac.
+      L'app <b>Imprimer étiquettes</b> doit tourner sur le Mac (Bureau) et l'imprimante allumée.</div>
   </div>
 
   <div class="toolbar">
     <input type="text" id="q" placeholder="Filtrer par référence ou type d'article…" oninput="render()">
     <select id="ftype" onchange="render()"><option value="">Tous les types</option></select>
-    <button class="btn btn-out" onclick="selectAll(true)">Tout cocher</button>
-    <button class="btn btn-out" onclick="selectAll(false)">Tout décocher</button>
-    <button class="btn btn-print" onclick="window.print()">🖨️ Imprimer la sélection (A4)</button>
-    <button class="btn" style="background:#16191D;color:#fff" onclick="printZebraOne()">🏷️ Tester 1 étiquette (Zebra)</button>
-  </div>
-
-  <div class="opts">
-    <label><input type="checkbox" id="opt-price" checked onchange="render()"> Afficher le prix de vente conseillé</label>
-    <label><input type="checkbox" id="opt-weight" checked onchange="render()"> Afficher le poids</label>
-    <span class="count" style="margin-left:auto;"><b id="cnt-sel">0</b> sélectionnée(s) sur <span id="cnt-tot">0</span></span>
+    <span class="count" style="margin-left:auto;"><span id="cnt-tot">0</span> articles</span>
   </div>
 
   <div class="labels" id="labels"><div class="empty">⏳ Chargement du stock…</div></div>
 </div>
-
-<!-- Zone d'impression Zebra (étiquette bijou haltère) — enfant direct de body -->
-<div id="zebra-zone"></div>
 
 <script>
 let ALL = [];
@@ -187,26 +190,24 @@ function filtered(){
 }
 
 function render(){
-  const showPrice=document.getElementById('opt-price').checked;
-  const showWeight=document.getElementById('opt-weight').checked;
   const rows=filtered();
   const box=document.getElementById('labels');
   if(!rows.length){box.innerHTML='<div class="empty">Aucun article ne correspond.</div>';}
   else{
     box.innerHTML=rows.map(a=>{
-      const on=picked.has(a.id);
-      const url=ORIGIN+'/fiche?ref='+encodeURIComponent(a.id);
-      const qr='/api/qr?scale=4&text='+encodeURIComponent(url);
-      const weight=(showWeight && a.or_grs!=null)?'<div class="lbl-meta">'+fmtN(a.or_grs)+' grs</div>':'';
-      const price=(showPrice && a.pv!=null && a.pv!=='')?'<div class="lbl-price">'+fmtN(a.pv)+' MAD</div>':'';
-      return '<div class="label'+(on?'':' off')+'" data-id="'+a.id+'">'
-        + '<input type="checkbox" class="pick" '+(on?'checked':'')+' onchange="togglePick('+a.id+',this.checked)">'
-        + '<div class="qr"><img loading="lazy" src="'+qr+'" alt="QR #'+a.id+'"></div>'
+      const st=stonesArr(a);
+      const stTxt=st.length ? st.map(s=>s[0]+' '+s[1]).join(' · ') : '<span class="no-st">aucune pierre</span>';
+      const weight=(a.or_grs!=null)?fmtN(a.or_grs)+' grs':'';
+      return '<div class="label" data-id="'+a.id+'">'
         + '<div class="info">'
         +   '<div class="lbl-shop">◆ TRABELSI</div>'
         +   '<div class="lbl-ref">#'+esc(a.id)+'</div>'
-        +   '<div class="lbl-type">'+esc(a.article||'')+'</div>'
-        +   weight + price
+        +   '<div class="lbl-type">'+esc(a.article||'')+(weight?' · '+weight:'')+'</div>'
+        +   '<div class="lbl-stones">'+stTxt+'</div>'
+        + '</div>'
+        + '<div class="lbl-actions">'
+        +   (st.length?'<label class="st-toggle"><input type="checkbox" class="st" checked> pierres</label>':'')
+        +   '<button class="btn-mini" onclick="printLabel('+a.id+',this)">🏷️ Imprimer</button>'
         + '</div>'
         + '</div>';
     }).join('');
@@ -214,30 +215,46 @@ function render(){
   updateCount();
 }
 
-function printZebraOne(){
-  // Ouvre la page serveur dédiée (HTML brut, s'imprime toute seule) — 60×12mm.
-  const rows=filtered();
-  const a=rows.find(x=>picked.has(x.id)) || rows[0];
-  if(!a){ alert('Aucun article à imprimer.'); return; }
-  const showPrice=document.getElementById('opt-price').checked?1:0;
-  window.open('/etiquette-zebra?ref='+encodeURIComponent(a.id)+'&price='+showPrice, '_blank');
+// Pierres de l'article → [[abréviation, valeur], ...] (ordre = D, Em, R, S, P, PF, Ros, EmC)
+const STONE_MAP=[['d','D'],['em','Em'],['r','R'],['s','S'],
+                 ['perles','P'],['p_fines','PF'],['rosaces','Ros'],['em_clb','EmC']];
+function stonesArr(a){
+  const out=[];
+  STONE_MAP.forEach(([col,abbr])=>{
+    const v=a[col];
+    if(v!=null && v!=='' && Number(v)!==0){
+      let n=Number(v); out.push([abbr, isNaN(n)?String(v):(''+ (Math.round(n*100)/100))]);
+    }
+  });
+  return out;
 }
 
-function togglePick(id,on){
-  if(on)picked.add(id);else picked.delete(id);
-  const card=document.querySelector('.label[data-id="'+id+'"]');
-  if(card)card.classList.toggle('off',!on);
-  updateCount();
+async function printLabel(id, btn){
+  const card=btn.closest('.label');
+  const stChk=card ? card.querySelector('.st') : null;
+  const stones = stChk ? stChk.checked : false;   // pas de case = pas de pierres
+  const old=btn.textContent;
+  btn.disabled=true; btn.textContent='⏳ Envoi…';
+  try{
+    const r=await fetch('/api/print-label',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ref:id, stones:stones})
+    });
+    const j=await r.json();
+    if(j.success){ btn.textContent='✅ En file'; toast('Étiquette #'+id+' envoyée à l’imprimante'); }
+    else{ btn.textContent='⚠️ Erreur'; toast(j.error||'Erreur'); }
+  }catch(e){ btn.textContent='⚠️ Erreur'; toast('Réseau indisponible'); }
+  setTimeout(()=>{ btn.disabled=false; btn.textContent=old; }, 1800);
 }
 
-function selectAll(on){
-  const rows=filtered();
-  rows.forEach(a=>{ if(on)picked.add(a.id); else picked.delete(a.id); });
-  render();
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.className='show';
+  clearTimeout(toast._t); toast._t=setTimeout(()=>{t.className='';},2600);
 }
 
 function updateCount(){
-  document.getElementById('cnt-sel').textContent=picked.size;
   document.getElementById('cnt-tot').textContent=ALL.length;
 }
 

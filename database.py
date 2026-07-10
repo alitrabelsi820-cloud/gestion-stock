@@ -192,6 +192,15 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at TEXT NOT NULL,
     last_used  TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS print_queue (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    ref        INTEGER,
+    payload    TEXT DEFAULT '{}',
+    status     TEXT DEFAULT 'pending',
+    created_at TEXT,
+    printed_at TEXT
+);
 """
 
 
@@ -983,6 +992,48 @@ def log_audit(action, entity, ref, summary, role="", ip="", device="", snapshot=
                 SELECT id FROM audit_log ORDER BY id DESC LIMIT 10000)""")
     except Exception:
         pass
+
+def add_print_job(ref, payload):
+    """Ajoute une étiquette à la file d'impression. payload = dict prêt à imprimer."""
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    with get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO print_queue (ref, payload, status, created_at) VALUES (?,?, 'pending', ?)",
+            (int(ref), json.dumps(payload, ensure_ascii=False), now)
+        )
+        return cur.lastrowid
+
+def get_pending_print_jobs(limit=50):
+    """Retourne les étiquettes en attente d'impression (plus anciennes d'abord)."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT id, ref, payload, created_at FROM print_queue "
+            "WHERE status='pending' ORDER BY id ASC LIMIT ?", (limit,)
+        ).fetchall()
+    out = []
+    for r in rows:
+        try:
+            payload = json.loads(r["payload"] or "{}")
+        except Exception:
+            payload = {}
+        out.append({"id": r["id"], "ref": r["ref"], "payload": payload,
+                    "created_at": r["created_at"]})
+    return out
+
+def mark_print_job_done(job_id):
+    """Marque une étiquette comme imprimée + purge les vieilles entrées."""
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    with get_conn() as conn:
+        conn.execute("UPDATE print_queue SET status='done', printed_at=? WHERE id=?",
+                     (now, int(job_id)))
+        # Purge : garder les 500 dernières entrées imprimées
+        conn.execute("""DELETE FROM print_queue WHERE status='done' AND id NOT IN (
+            SELECT id FROM print_queue WHERE status='done' ORDER BY id DESC LIMIT 500)""")
+
+def clear_pending_print_jobs():
+    """Vide la file d'attente (annule tout ce qui n'est pas encore imprimé)."""
+    with get_conn() as conn:
+        conn.execute("DELETE FROM print_queue WHERE status='pending'")
 
 def get_audit_logs(limit=200, entity=None, action=None):
     """Retourne les entrées d'audit récentes (plus récentes d'abord)."""

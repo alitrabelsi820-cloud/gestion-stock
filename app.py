@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "48"
+ASSET_VERSION = "49"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -550,6 +550,36 @@ def _is_service(v):
 def _is_reparation(v):
     """Vente de type réparation : comptée dans sa propre catégorie."""
     return (v.get("type_vente") or "produit") == "reparation"
+
+# Pierres affichées sur l'étiquette : (champ base de données, abréviation)
+LABEL_STONES = [
+    ("d", "D"), ("em", "Em"), ("r", "R"), ("s", "S"),
+    ("perles", "P"), ("p_fines", "PF"), ("rosaces", "Ros"), ("em_clb", "EmC"),
+]
+
+def build_label_payload(art, include_stones=True):
+    """Construit le contenu prêt à imprimer d'une étiquette pour un article.
+    Retourne {ref, article, stones:[[abbr, valeur], ...]}."""
+    def _fmt(v):
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return None
+        if f == 0:
+            return None
+        # 0.73 → "0.73", 3.0 → "3"
+        return f"{f:g}"
+    stones = []
+    if include_stones:
+        for col, abbr in LABEL_STONES:
+            val = _fmt(art.get(col))
+            if val is not None:
+                stones.append([abbr, val])
+    return {
+        "ref": art.get("id"),
+        "article": art.get("article") or "",
+        "stones": stones,
+    }
 
 def detect_anomalies(ventes):
     """Détecte les ventes à marge/prix anormaux. Retourne une liste triée
@@ -1716,6 +1746,11 @@ function filter(type, btn) {{
             })
             return
 
+        # ── File d'impression d'étiquettes (l'agent Mac interroge cette route) ──
+        if path == "/api/print-queue":
+            self.send_json({"jobs": db.get_pending_print_jobs()})
+            return
+
         # ── API dernière sauvegarde ────────────────────────────────────────────
         if path == "/api/last-backup":
             self.send_json({
@@ -2262,6 +2297,37 @@ function filter(type, btn) {{
             data = json.loads(body) if body else {}
         except:
             self.send_json({"error": "JSON invalide"}, 400); return
+
+        # ── Étiquettes : mettre un article dans la file d'impression ──────────
+        if path == "/api/print-label":
+            try:
+                ref = int(data.get("ref"))
+            except (TypeError, ValueError):
+                self.send_json({"error": "Référence invalide"}, 400); return
+            include_stones = bool(data.get("stones", True))
+            art = next((a for a in load_articles() if a.get("id") == ref), None)
+            if not art:
+                self.send_json({"error": "Article introuvable"}, 404); return
+            payload = build_label_payload(art, include_stones)
+            job_id = db.add_print_job(ref, payload)
+            self.send_json({"success": True, "job_id": job_id})
+            return
+
+        # ── Étiquettes : l'agent marque une étiquette comme imprimée ──────────
+        if path == "/api/print-queue/done":
+            try:
+                jid = int(data.get("id"))
+            except (TypeError, ValueError):
+                self.send_json({"error": "ID invalide"}, 400); return
+            db.mark_print_job_done(jid)
+            self.send_json({"success": True})
+            return
+
+        # ── Étiquettes : vider la file d'attente ──────────────────────────────
+        if path == "/api/print-queue/clear":
+            db.clear_pending_print_jobs()
+            self.send_json({"success": True})
+            return
 
         # ── Restaurer un élément supprimé (corbeille) ─────────────────────────
         if path.startswith("/api/audit/restore/"):
