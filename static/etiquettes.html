@@ -77,6 +77,35 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
   .label .qr{width:22mm;height:22mm;}
   .lbl-ref{font-size:14pt;}
 }
+
+/* ════ ÉTIQUETTE BIJOU HALTÈRE (Zebra ZD220t — 60×12mm) ════ */
+#zebra-zone{display:none;}
+.zbl{
+  width:60mm;height:12mm;box-sizing:border-box;
+  display:flex;align-items:stretch;
+  font-family:Arial,Helvetica,sans-serif;color:#000;overflow:hidden;
+}
+.zbl .wing{
+  width:24mm;box-sizing:border-box;padding:0.4mm 0.8mm;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;line-height:1;
+}
+.zbl .bridge{width:12mm;}
+.zbl .z-shop{font-size:5pt;letter-spacing:0.3pt;}
+.zbl .z-ref{font-size:9pt;font-weight:700;margin:0.2mm 0;}
+.zbl .z-price{font-size:7pt;font-weight:600;}
+.zbl .z-qr{width:9mm;height:9mm;display:block;}
+.zbl .z-qr img{width:100%;height:100%;}
+
+@media print{
+  body.zebra-printing #gs-sidebar,
+  body.zebra-printing #gs-topbar,
+  body.zebra-printing #gs-bottombar,
+  body.zebra-printing > .page,
+  body.zebra-printing > nav{display:none!important;}
+  body.zebra-printing #zebra-zone{display:block!important;}
+  body.zebra-printing{margin:0!important;background:#fff;}
+}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -108,7 +137,8 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
     <select id="ftype" onchange="render()"><option value="">Tous les types</option></select>
     <button class="btn btn-out" onclick="selectAll(true)">Tout cocher</button>
     <button class="btn btn-out" onclick="selectAll(false)">Tout décocher</button>
-    <button class="btn btn-print" onclick="window.print()">🖨️ Imprimer la sélection</button>
+    <button class="btn btn-print" onclick="window.print()">🖨️ Imprimer la sélection (A4)</button>
+    <button class="btn" style="background:#16191D;color:#fff" onclick="printZebraOne()">🏷️ Tester 1 étiquette (Zebra)</button>
   </div>
 
   <div class="opts">
@@ -119,6 +149,9 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
 
   <div class="labels" id="labels"><div class="empty">⏳ Chargement du stock…</div></div>
 </div>
+
+<!-- Zone d'impression Zebra (étiquette bijou haltère) — enfant direct de body -->
+<div id="zebra-zone"></div>
 
 <script>
 let ALL = [];
@@ -179,6 +212,45 @@ function render(){
     }).join('');
   }
   updateCount();
+}
+
+function printZebraOne(){
+  // Imprime UNE seule étiquette bijou (haltère 60×12mm) pour tester le Zebra.
+  const rows=filtered();
+  const a=rows.find(x=>picked.has(x.id)) || rows[0];
+  if(!a){ alert('Aucun article à imprimer.'); return; }
+  const showPrice=document.getElementById('opt-price').checked;
+  const url=ORIGIN+'/fiche?ref='+encodeURIComponent(a.id);
+  const qr='/api/qr?scale=3&text='+encodeURIComponent(url);
+  const price=(showPrice && a.pv!=null && a.pv!=='')?'<div class="z-price">'+fmtN(a.pv)+' MAD</div>':'';
+  const zone=document.getElementById('zebra-zone');
+  zone.innerHTML=
+    '<div class="zbl">'
+    + '<div class="wing">'
+    +   '<div class="z-shop">◆ TRABELSI</div>'
+    +   '<div class="z-ref">#'+esc(a.id)+'</div>'
+    +   price
+    + '</div>'
+    + '<div class="bridge"></div>'
+    + '<div class="wing">'
+    +   '<div class="z-qr"><img src="'+qr+'" alt="QR"></div>'
+    +   '<div class="z-ref" style="font-size:6pt">#'+esc(a.id)+'</div>'
+    + '</div>'
+    + '</div>';
+  // @page dédié au format Zebra, injecté uniquement le temps de l'impression
+  const st=document.createElement('style');
+  st.id='zebra-page';
+  st.textContent='@page{size:60mm 12mm;margin:0;}';
+  document.head.appendChild(st);
+  document.body.classList.add('zebra-printing');
+  // laisser le QR se charger avant d'imprimer
+  const img=zone.querySelector('img');
+  const go=()=>{ window.print(); setTimeout(()=>{
+    document.body.classList.remove('zebra-printing');
+    st.remove(); zone.innerHTML='';
+  },600); };
+  if(img && !img.complete){ img.onload=go; img.onerror=go; setTimeout(go,1500); }
+  else go();
 }
 
 function togglePick(id,on){
