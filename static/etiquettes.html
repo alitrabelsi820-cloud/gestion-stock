@@ -223,8 +223,9 @@ function printZebraOne(){
   const url=ORIGIN+'/fiche?ref='+encodeURIComponent(a.id);
   const qr=ORIGIN+'/api/qr?scale=3&text='+encodeURIComponent(url);
   const price=(showPrice && a.pv!=null && a.pv!=='')?'<div class="z-price">'+fmtN(a.pv)+' MAD</div>':'';
-  // NB : pas de balises html/head/body ici — le serveur injecte son script
-  // avant </body>, ce qui casserait ce script inline. srcdoc n'en a pas besoin.
+  // NB : pas de balises de fermeture de page ici (le serveur injecte son
+  // script en fin de page, ce qui casserait ce script inline). srcdoc n'en
+  // a pas besoin.
   const doc=
     '<!doctype html><meta charset="utf-8"><style>'
     + '@page{size:60mm 12mm;margin:0;}'
