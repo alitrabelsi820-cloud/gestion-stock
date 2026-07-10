@@ -102,6 +102,9 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
 .lbl-stones .no-st{color:#aaa;font-weight:400;font-style:italic;}
 .lbl-actions{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
 .st-toggle{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#444;cursor:pointer;}
+.qty-lbl{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#444;}
+.qty-lbl .qty{width:46px;padding:5px 6px;border:1px solid #ccc;border-radius:7px;
+  font-size:13px;text-align:center;}
 .btn-mini{background:#16191D;color:#fff;border:none;border-radius:8px;
   padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-left:auto;}
 .btn-mini:hover{background:#000;}
@@ -207,6 +210,7 @@ function render(){
         + '</div>'
         + '<div class="lbl-actions">'
         +   (st.length?'<label class="st-toggle"><input type="checkbox" class="st" checked> pierres</label>':'')
+        +   '<label class="qty-lbl">Nb <input type="number" class="qty" min="1" max="99" value="'+(a.quantite>1?a.quantite:1)+'"></label>'
         +   '<button class="btn-mini" onclick="printLabel('+a.id+',this)">🏷️ Imprimer</button>'
         + '</div>'
         + '</div>';
@@ -233,15 +237,18 @@ async function printLabel(id, btn){
   const card=btn.closest('.label');
   const stChk=card ? card.querySelector('.st') : null;
   const stones = stChk ? stChk.checked : false;   // pas de case = pas de pierres
+  const qtyInp=card ? card.querySelector('.qty') : null;
+  let copies=qtyInp ? parseInt(qtyInp.value,10) : 1;
+  if(!copies || copies<1) copies=1;
   const old=btn.textContent;
   btn.disabled=true; btn.textContent='⏳ Envoi…';
   try{
     const r=await fetch('/api/print-label',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ref:id, stones:stones})
+      body:JSON.stringify({ref:id, stones:stones, copies:copies})
     });
     const j=await r.json();
-    if(j.success){ btn.textContent='✅ En file'; toast('Étiquette #'+id+' envoyée à l’imprimante'); }
+    if(j.success){ btn.textContent='✅ En file'; toast('#'+id+' — '+copies+' étiquette'+(copies>1?'s':'')+' envoyée'+(copies>1?'s':'')); }
     else{ btn.textContent='⚠️ Erreur'; toast(j.error||'Erreur'); }
   }catch(e){ btn.textContent='⚠️ Erreur'; toast('Réseau indisponible'); }
   setTimeout(()=>{ btn.disabled=false; btn.textContent=old; }, 1800);

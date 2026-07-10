@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "49"
+ASSET_VERSION = "50"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -2305,12 +2305,18 @@ function filter(type, btn) {{
             except (TypeError, ValueError):
                 self.send_json({"error": "Référence invalide"}, 400); return
             include_stones = bool(data.get("stones", True))
+            try:
+                copies = int(data.get("copies", 1))
+            except (TypeError, ValueError):
+                copies = 1
+            copies = max(1, min(copies, 99))
             art = next((a for a in load_articles() if a.get("id") == ref), None)
             if not art:
                 self.send_json({"error": "Article introuvable"}, 404); return
             payload = build_label_payload(art, include_stones)
+            payload["copies"] = copies
             job_id = db.add_print_job(ref, payload)
-            self.send_json({"success": True, "job_id": job_id})
+            self.send_json({"success": True, "job_id": job_id, "copies": copies})
             return
 
         # ── Étiquettes : l'agent marque une étiquette comme imprimée ──────────

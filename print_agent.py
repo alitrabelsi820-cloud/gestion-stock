@@ -97,6 +97,10 @@ def build_zpl(payload):
     """Construit le ZPL d'une étiquette à partir du contenu (ref + pierres)."""
     ref = payload.get("ref", "")
     stones = payload.get("stones", []) or []
+    try:
+        copies = max(1, min(int(payload.get("copies", 1)), 99))
+    except (TypeError, ValueError):
+        copies = 1
     z = ["^XA", "^MTT", f"^MD{LABEL['DARKNESS']}",
          f"^PW{LABEL['PW']}", f"^LL{LABEL['LL']:04d}", "^LH0,0", "^LS0"]
     # Aile gauche : boutique + référence
@@ -107,7 +111,8 @@ def build_zpl(payload):
     for abbr, val in stones:
         z.append(f"^FO210,{y}^A0N,22,22^FD{abbr}: {val}^FS")
         y += 27
-    z.append("^PQ1,0,0,N")
+    # Nombre d'exemplaires identiques
+    z.append(f"^PQ{copies},0,0,N")
     z.append("^XZ")
     return "\n".join(z)
 
