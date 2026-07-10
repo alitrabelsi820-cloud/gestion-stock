@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "47"
+ASSET_VERSION = "48"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1348,6 +1348,71 @@ function filter(type, btn) {{
             self.send_response(404)
             self.end_headers()
 
+    def send_etiquette_zebra(self, params):
+        """Page brute auto-imprimante : UNE étiquette bijou haltère 60×12mm.
+        Sert du HTML sans aucune injection (sidebar/sw), pour l'imprimante Zebra."""
+        try:
+            ref = int(params.get("ref", ["0"])[0])
+        except Exception:
+            ref = 0
+        show_price = params.get("price", ["1"])[0] != "0"
+        art = next((a for a in load_articles() if a.get("id") == ref), None)
+        if not art:
+            self.send_response(404); self.end_headers()
+            self.wfile.write("Article introuvable".encode("utf-8")); return
+
+        proto = self.headers.get("X-Forwarded-Proto", "http")
+        host = self.headers.get("Host", "localhost")
+        fiche_url = f"{proto}://{host}/fiche?ref={ref}"
+        qr = "/api/qr?scale=3&text=" + urllib.parse.quote(fiche_url, safe="")
+
+        price_html = ""
+        pv = art.get("pv")
+        if show_price and pv not in (None, ""):
+            try:
+                price_fmt = f"{int(round(float(pv))):,}".replace(",", " ")
+            except Exception:
+                price_fmt = str(pv)
+            price_html = f'<div class="z-price">{price_fmt} MAD</div>'
+
+        html = (
+            '<!doctype html><meta charset="utf-8"><title>Etiquette #' + str(ref) + '</title>'
+            '<style>'
+            '@page{size:60mm 12mm;margin:0;}'
+            'html,body{margin:0;padding:0;}'
+            '.zbl{width:60mm;height:12mm;box-sizing:border-box;display:flex;align-items:stretch;'
+            'font-family:Arial,Helvetica,sans-serif;color:#000;overflow:hidden;}'
+            '.wing{width:24mm;box-sizing:border-box;padding:0.4mm 0.8mm;display:flex;'
+            'flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1;}'
+            '.bridge{width:12mm;}'
+            '.z-shop{font-size:5pt;letter-spacing:0.3pt;}'
+            '.z-ref{font-size:9pt;font-weight:700;margin:0.2mm 0;}'
+            '.z-price{font-size:7pt;font-weight:600;}'
+            '.z-qr{width:9mm;height:9mm;display:block;}.z-qr img{width:100%;height:100%;}'
+            '@media screen{body{background:#e5e5e5;display:flex;justify-content:center;'
+            'padding:30px;}.zbl{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.2);}}'
+            '</style>'
+            '<div class="zbl">'
+            '<div class="wing"><div class="z-shop">◆ TRABELSI</div>'
+            '<div class="z-ref">#' + str(ref) + '</div>' + price_html + '</div>'
+            '<div class="bridge"></div>'
+            '<div class="wing"><div class="z-qr"><img id="qr" src="' + qr + '" alt="QR"></div>'
+            '<div class="z-ref" style="font-size:6pt">#' + str(ref) + '</div></div>'
+            '</div>'
+            '<script>'
+            'function go(){setTimeout(function(){window.print();},250);}'
+            'var q=document.getElementById("qr");'
+            'if(q&&!q.complete){q.onload=go;q.onerror=go;setTimeout(go,2000);}else{go();}'
+            '</script>'
+        )
+        body = html.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", len(body))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _actor(self):
         """Retourne (role, ip, device) de l'auteur de la requête courante."""
         try:
@@ -1521,6 +1586,8 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "historique_activite.html"); return
         if path == "/activite-employes":
             self.send_html(STATIC_DIR / "activite_employes.html"); return
+        if path == "/etiquette-zebra":
+            self.send_etiquette_zebra(params); return
         if path == "/etiquettes":
             self.send_html(STATIC_DIR / "etiquettes.html"); return
         if path == "/reparations":
