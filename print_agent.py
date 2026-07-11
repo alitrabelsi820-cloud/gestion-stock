@@ -118,9 +118,7 @@ def build_zpl(payload):
         block = fs + (n - 1) * step          # hauteur totale du bloc pierres
         y = max(4, (96 - block) // 2)         # centrage vertical (label = 96 dots)
         for abbr, val in stones:
-            # « cts » = carats, après chaque pierre. Départ x=310 pour que la
-            # ligne la plus longue reste centrée à droite sans toucher le bord.
-            z.append(f"^FO310,{y}^A0N,{fs},{fs}^FD{abbr}: {val} cts^FS")
+            z.append(f"^FO375,{y}^A0N,{fs},{fs}^FD{abbr}: {val}^FS")
             y += step
     # Nombre d'exemplaires identiques
     z.append(f"^PQ{copies},0,0,N")
