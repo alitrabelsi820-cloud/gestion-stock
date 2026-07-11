@@ -496,6 +496,11 @@ body.dark .acc-shortcut-btn{color:#fff;}
     background:linear-gradient(135deg,#0f6b54,#1abc9c); color:#fff;
   }
   .gs-fiche-btn-garder:hover { filter:brightness(1.1); }
+  .gs-fiche-btn-print {
+    background:linear-gradient(135deg,#8a6d1f,#c9a84c); color:#1a1612;
+  }
+  .gs-fiche-btn-print:hover { filter:brightness(1.08); }
+  .gs-fiche-btn-print:disabled { opacity:.6; cursor:default; }
   .gs-fiche-btn-clear {
     background:transparent; border:1px solid var(--bd); color:var(--muted);
   }
@@ -597,6 +602,7 @@ body.dark .acc-shortcut-btn{color:#fff;}
           class="mob-fiche-input" placeholder="Numéro de référence..."
           onkeydown="if(event.key==='Enter') ficheRechercherM()">
         <button class="mob-fiche-btn" onclick="ficheRechercherM()">🔍</button>
+        <button class="mob-fiche-btn" onclick="fichePrintM(this)" title="Imprimer le ticket">🏷️</button>
       </div>
       <div id="fiche-result-m">
         <div class="mob-fiche-empty">
@@ -682,6 +688,7 @@ body.dark .acc-shortcut-btn{color:#fff;}
         <div class="gs-fiche-btns">
           <button class="gs-fiche-btn gs-fiche-btn-search" onclick="ficheRechercher()">🔍 RECHERCHER</button>
           <button class="gs-fiche-btn gs-fiche-btn-garder" id="fiche-btn-garder" onclick="ficheGarder()">📌 GARDER</button>
+          <button class="gs-fiche-btn gs-fiche-btn-print" onclick="fichePrint(this)">🏷️ IMPRIMER LE TICKET</button>
           <button class="gs-fiche-btn gs-fiche-btn-clear" onclick="ficheEffacer()">✕ EFFACER</button>
         </div>
 
@@ -960,6 +967,33 @@ function fmtF(v,d){ d=d==null?2:d; return v==null?'—':Number(v).toLocaleString
 function fmtNF(v){ return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
 function fmtDF(d){ if(!d)return '—'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
 
+function fichePrint(btn){
+  var ref=document.getElementById('fiche-ref-input').value.trim();
+  if(!ref){ alert('Tapez d\'abord une référence.'); return; }
+  var old=btn.textContent;
+  btn.disabled=true; btn.textContent='⏳ ENVOI…';
+  fetch('/api/print-label',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ref:parseInt(ref,10), stones:true, copies:1})
+  }).then(function(r){return r.json();}).then(function(j){
+    if(j&&j.success){ btn.textContent='✅ EN FILE'; ficheToast('Ticket #'+ref+' envoyé à l\'imprimante'); }
+    else{ btn.textContent='⚠️ ERREUR'; ficheToast((j&&j.error)||'Article introuvable'); }
+  }).catch(function(){ btn.textContent='⚠️ ERREUR'; ficheToast('Réseau indisponible'); })
+  .finally(function(){ setTimeout(function(){ btn.disabled=false; btn.textContent=old; }, 1800); });
+}
+
+function ficheToast(msg){
+  var t=document.getElementById('fiche-toast');
+  if(!t){ t=document.createElement('div'); t.id='fiche-toast';
+    t.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);'
+      +'background:#1a1612;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;'
+      +'box-shadow:0 6px 24px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:.25s;z-index:99999;';
+    document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(ficheToast._t); ficheToast._t=setTimeout(function(){
+    t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; },2600);
+}
+
 function ficheRechercher(){
   var ref=document.getElementById('fiche-ref-input').value.trim();
   if(!ref) return;
@@ -1088,6 +1122,19 @@ function ficheRenderNotFound(ref){
 /* ══════════════════════════════
    FICHE WIDGET — VERSION MOBILE
 ══════════════════════════════ */
+function fichePrintM(btn){
+  var ref=document.getElementById('fiche-ref-input-m').value.trim();
+  if(!ref){ alert('Tapez d\'abord une référence.'); return; }
+  var old=btn.textContent; btn.disabled=true; btn.textContent='⏳';
+  fetch('/api/print-label',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ref:parseInt(ref,10), stones:true, copies:1})
+  }).then(function(r){return r.json();}).then(function(j){
+    ficheToast((j&&j.success)?('Ticket #'+ref+' envoyé à l\'imprimante'):((j&&j.error)||'Article introuvable'));
+  }).catch(function(){ ficheToast('Réseau indisponible'); })
+  .finally(function(){ setTimeout(function(){ btn.disabled=false; btn.textContent=old; },1500); });
+}
+
 function ficheRechercherM(){
   var ref = document.getElementById('fiche-ref-input-m').value.trim();
   if(!ref) return;
