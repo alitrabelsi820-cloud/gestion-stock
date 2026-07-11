@@ -26,6 +26,7 @@ CONFIG_PATH = os.path.expanduser("~/.gestionstock_print.json")
 POLL_SECONDS = 3
 
 # Réglages étiquette (203 dpi, 8 dots/mm) — étiquette bijou haltère ~60×12mm
+# PW=480 FIXE : ne pas changer, sinon la référence centrée (^FB) se décale.
 LABEL = dict(PW=480, LL=96, DARKNESS=28)
 
 
@@ -111,14 +112,16 @@ def build_zpl(payload):
     # verticalement, décalées vers le centre de la partie droite.
     n = len(stones)
     if n >= 4:
-        fs, step = 18, 22
+        fs, step = 16, 20
     else:
-        fs, step = 22, 26
+        fs, step = 20, 23
     if n:
         block = fs + (n - 1) * step          # hauteur totale du bloc pierres
-        y = max(4, (96 - block) // 2)         # centrage vertical (label = 96 dots)
+        # centrage vertical + léger décalage vers le bas (~1mm = 8 dots) pour
+        # ne pas toucher le haut de l'étiquette.
+        y = max(6, (96 - block) // 2 + 8)
         for abbr, val in stones:
-            z.append(f"^FO375,{y}^A0N,{fs},{fs}^FD{abbr}: {val}^FS")
+            z.append(f"^FO404,{y}^A0N,{fs},{fs}^FD{abbr}: {val}^FS")
             y += step
     # Nombre d'exemplaires identiques
     z.append(f"^PQ{copies},0,0,N")
