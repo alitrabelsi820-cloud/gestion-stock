@@ -103,14 +103,13 @@ def build_zpl(payload):
         copies = 1
     z = ["^XA", "^MTT", f"^MD{LABEL['DARKNESS']}",
          f"^PW{LABEL['PW']}", f"^LL{LABEL['LL']:04d}", "^LH0,0", "^LS0"]
-    # Aile gauche : boutique + référence
-    z.append("^FO20,22^A0N,20,20^FDTRABELSI^FS")
-    z.append(f"^FO20,46^A0N,34,34^FD#{ref}^FS")
-    # Milieu : pierres empilées
-    y = 10
+    # Gauche : rien.  Milieu : la référence seule.
+    z.append(f"^FO175,30^A0N,38,38^FD#{ref}^FS")
+    # Droite : contenu de l'article (pierres : D, Em, S, ...), empilées
+    y = 8
     for abbr, val in stones:
-        z.append(f"^FO210,{y}^A0N,22,22^FD{abbr}: {val}^FS")
-        y += 27
+        z.append(f"^FO340,{y}^A0N,22,22^FD{abbr}: {val}^FS")
+        y += 26
     # Nombre d'exemplaires identiques
     z.append(f"^PQ{copies},0,0,N")
     z.append("^XZ")
