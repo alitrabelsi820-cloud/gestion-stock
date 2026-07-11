@@ -103,11 +103,12 @@ def build_zpl(payload):
         copies = 1
     z = ["^XA", "^MTT", f"^MD{LABEL['DARKNESS']}",
          f"^PW{LABEL['PW']}", f"^LL{LABEL['LL']:04d}", "^LH0,0", "^LS0"]
-    # Gauche : rien.  Milieu : la référence seule (assez petite pour ne pas
-    # déborder sur les pierres, même pour une réf à 4 chiffres).
-    z.append(f"^FO165,33^A0N,30,30^FD#{ref}^FS")
-    # Droite : contenu de l'article (pierres : D, Em, S, ...), empilées et
-    # centrées verticalement. Taille/pas adaptés au nombre pour que tout tienne.
+    # Gauche : rien.
+    # Milieu : la référence seule, centrée automatiquement dans la partie du
+    # milieu (^FB = bloc centré, quelle que soit la longueur de la réf).
+    z.append(f"^FO180,33^A0N,30,30^FB180,1,0,C,0^FD#{ref}^FS")
+    # Droite : contenu (pierres : D, Em, S, ...), empilées, centrées
+    # verticalement, décalées vers le centre de la partie droite.
     n = len(stones)
     if n >= 4:
         fs, step = 18, 22
@@ -117,7 +118,9 @@ def build_zpl(payload):
         block = fs + (n - 1) * step          # hauteur totale du bloc pierres
         y = max(4, (96 - block) // 2)         # centrage vertical (label = 96 dots)
         for abbr, val in stones:
-            z.append(f"^FO340,{y}^A0N,{fs},{fs}^FD{abbr}: {val}^FS")
+            # « cts » = carats, après chaque pierre. Départ x=310 pour que la
+            # ligne la plus longue reste centrée à droite sans toucher le bord.
+            z.append(f"^FO310,{y}^A0N,{fs},{fs}^FD{abbr}: {val} cts^FS")
             y += step
     # Nombre d'exemplaires identiques
     z.append(f"^PQ{copies},0,0,N")
