@@ -103,18 +103,22 @@ def build_zpl(payload):
         copies = 1
     z = ["^XA", "^MTT", f"^MD{LABEL['DARKNESS']}",
          f"^PW{LABEL['PW']}", f"^LL{LABEL['LL']:04d}", "^LH0,0", "^LS0"]
-    # Gauche : rien.  Milieu : la référence seule.
-    z.append(f"^FO175,30^A0N,38,38^FD#{ref}^FS")
-    # Droite : contenu de l'article (pierres : D, Em, S, ...), empilées.
-    # Taille/pas adaptés au nombre de pierres pour que tout tienne (label = 96 dots).
+    # Gauche : rien.  Milieu : la référence seule (assez petite pour ne pas
+    # déborder sur les pierres, même pour une réf à 4 chiffres).
+    z.append(f"^FO165,33^A0N,30,30^FD#{ref}^FS")
+    # Droite : contenu de l'article (pierres : D, Em, S, ...), empilées et
+    # centrées verticalement. Taille/pas adaptés au nombre pour que tout tienne.
     n = len(stones)
     if n >= 4:
-        fs, step, y = 18, 22, 6
+        fs, step = 18, 22
     else:
-        fs, step, y = 22, 26, 8
-    for abbr, val in stones:
-        z.append(f"^FO340,{y}^A0N,{fs},{fs}^FD{abbr}: {val}^FS")
-        y += step
+        fs, step = 22, 26
+    if n:
+        block = fs + (n - 1) * step          # hauteur totale du bloc pierres
+        y = max(4, (96 - block) // 2)         # centrage vertical (label = 96 dots)
+        for abbr, val in stones:
+            z.append(f"^FO340,{y}^A0N,{fs},{fs}^FD{abbr}: {val}^FS")
+            y += step
     # Nombre d'exemplaires identiques
     z.append(f"^PQ{copies},0,0,N")
     z.append("^XZ")
