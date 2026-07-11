@@ -51,6 +51,28 @@ def load_config():
     return cfg
 
 
+def ensure_single_instance():
+    """Tue toute autre instance de l'agent déjà en cours (évite les doublons
+    d'impression : 2 agents = 2 étiquettes, parfois de versions différentes)."""
+    me = os.getpid()
+    try:
+        out = subprocess.run(["pgrep", "-f", "print_agent.py"],
+                             capture_output=True, text=True).stdout
+        for pid in out.split():
+            try:
+                pid = int(pid)
+            except ValueError:
+                continue
+            if pid != me:
+                try:
+                    os.kill(pid, 9)
+                    print(f"  (ancien agent {pid} arrêté)")
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+
 def find_printer():
     """Trouve la file d'impression de la Zebra."""
     try:
@@ -140,6 +162,7 @@ def main():
     print("  🏷️  Agent d'impression étiquettes — TRABELSI")
     print("═══════════════════════════════════════════\n")
 
+    ensure_single_instance()   # jamais deux agents en même temps
     cfg = load_config()
     app = App(cfg)
 
