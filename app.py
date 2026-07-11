@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "50"
+ASSET_VERSION = "51"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -552,9 +552,10 @@ def _is_reparation(v):
     return (v.get("type_vente") or "produit") == "reparation"
 
 # Pierres affichées sur l'étiquette : (champ base de données, abréviation)
+# NB : pierres fines (p_fines) et perles (perles) volontairement exclues.
 LABEL_STONES = [
     ("d", "D"), ("em", "Em"), ("r", "R"), ("s", "S"),
-    ("perles", "P"), ("p_fines", "PF"), ("rosaces", "Ros"), ("em_clb", "EmC"),
+    ("rosaces", "Ros"), ("em_clb", "EmC"),
 ]
 
 def build_label_payload(art, include_stones=True):
