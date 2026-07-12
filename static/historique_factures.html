@@ -270,15 +270,19 @@ function showDetail(id){
   `;
   // Articles
   const artsEl=document.getElementById('m-arts');
+  const estReprise = f.reprise || (f.articles||[]).some(a=>a.reprise_rendu || (a.pv||0)<0);
   if(f.articles&&f.articles.length){
     artsEl.innerHTML=`
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px">Articles facturés</div>
-      ${f.articles.map(a=>`
-        <div class="inv-art-row">
-          <div><span class="inv-art-ref">#${a.ref}</span>${a.article||'—'}</div>
-          <div style="font-weight:700">${fmtN(a.pv)}</div>
-        </div>
-      `).join('')}
+      ${estReprise?'<div style="font-size:11px;font-weight:700;color:#1a7a40;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);border-radius:8px;padding:6px 12px;margin-bottom:10px">♻️ Facture avec reprise</div>':''}
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px">${estReprise?'Détail (achats − reprise)':'Articles facturés'}</div>
+      ${f.articles.map(a=>{
+        const rendu=a.reprise_rendu||(a.pv||0)<0;
+        return `<div class="inv-art-row"${rendu?' style="background:rgba(46,204,113,.05)"':''}>
+          <div><span class="inv-art-ref">${a.ref?('#'+a.ref):(rendu?'♻️':'—')}</span>${a.article||'—'}</div>
+          <div style="font-weight:700;color:${rendu?'#1a7a40':'inherit'}">${rendu?'− '+fmtN(Math.abs(a.pv)):fmtN(a.pv)}</div>
+        </div>`;
+      }).join('')}
+      ${estReprise?`<div class="inv-art-row" style="border-top:1px solid var(--bd);margin-top:6px;padding-top:8px;font-weight:800"><div>Net à payer</div><div>${fmtN(f.total)}</div></div>`:''}
     `;
   }else{
     artsEl.innerHTML='';

@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "54"
+ASSET_VERSION = "55"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -2576,6 +2576,7 @@ function filter(type, btn) {{
             ventes   = load_ventes()
             groupe   = int(now.timestamp() * 1000)      # identifiant de la transaction
             new_ventes = []
+            fac_articles = []          # lignes de la facture reprise
             total_achats = 0.0
 
             # 1) Articles achetés → ventes produit + déduction du stock
@@ -2615,6 +2616,13 @@ function filter(type, btn) {{
                 }
                 new_ventes.append(v)
                 total_achats += pv
+                _pierres = ", ".join(str(art.get(pk)) for pk in
+                            ["d","em","r","s","p_fines","rosaces","em_clb","perles"] if art.get(pk))
+                fac_articles.append({
+                    "ref": ref, "article": art.get("article","") or "—",
+                    "or_grs": art.get("or_grs") or "", "pierres": _pierres,
+                    "pv": pv, "pa": pa, "reprise_rendu": False,
+                })
                 qty = int(art.get("quantite") or 1)
                 if qty > 1:
                     articles[idx]["quantite"] = qty - 1
@@ -2634,6 +2642,12 @@ function filter(type, btn) {{
                 total_reprise += val
                 rref = str(r.get("ref", "")).strip()
                 desc.append((f"#{rref} " if rref else "") + f"{val:g}")
+                # ligne facture : article rendu (valeur en négatif)
+                fac_articles.append({
+                    "ref": rref, "article": "♻️ Article repris" + (f" #{rref}" if rref else ""),
+                    "or_grs": "", "pierres": "",
+                    "pv": -val, "pa": 0, "reprise_rendu": True,
+                })
             if total_reprise > 0:
                 new_ventes.append({
                     "id_vente": groupe + 900,
@@ -2657,23 +2671,51 @@ function filter(type, btn) {{
             save_ventes(ventes)
             net = round(total_achats - total_reprise, 2)
 
+            # Montant réellement payé selon le mode
+            if mode == "total":
+                avance_payee = net if net > 0 else 0.0
+            elif mode == "avance":
+                try: avance_payee = float(data.get("avance") or 0)
+                except (TypeError, ValueError): avance_payee = 0.0
+                avance_payee = max(0.0, min(avance_payee, max(net, 0)))
+            else:  # credit
+                avance_payee = 0.0
+
             r_, ip_, dev_ = self._actor()
             db.log_audit("created", "vente", groupe,
                          f"Reprise — {client or '?'} · acheté {total_achats:g} − repris "
                          f"{total_reprise:g} = net {net:g} MAD", r_, ip_, dev_)
 
-            # 3) Paiement : total (rien à créer) / avance / crédit
+            # 3) Facture reprise (achats positifs + articles rendus négatifs, total = net)
+            factures = load_factures()
+            annee = now.strftime("%Y")
+            seqs = [f.get("numero","") for f in factures if str(f.get("numero","")).startswith(f"FAC-{annee}-")]
+            max_seq = 0
+            for n in seqs:
+                try: max_seq = max(max_seq, int(str(n).split("-")[-1]))
+                except (ValueError, IndexError): pass
+            numero = f"FAC-{annee}-{str(max_seq+1).zfill(4)}"
+            max_fid = max((f.get("id", 0) for f in factures), default=0)
+            facture = {
+                "id": max_fid + 1, "numero": numero,
+                "client": client, "telephone": tel, "email": "", "ville": "",
+                "articles": fac_articles, "total": net, "avance": avance_payee,
+                "mode_paiement": mode, "note": "Reprise",
+                "date": date_v, "created_at": now.isoformat(),
+                "reprise": True,
+                "total_achats": round(total_achats, 2),
+                "total_reprise": round(total_reprise, 2),
+            }
+            factures.append(facture)
+            save_factures(factures)
+
+            # 4) Paiement : avance / crédit → crédit client sur le net
             credit = None
             if mode in ("avance", "credit") and net > 0:
-                avance = 0.0
-                if mode == "avance":
-                    try: avance = float(data.get("avance") or 0)
-                    except (TypeError, ValueError): avance = 0.0
-                avance = max(0.0, min(avance, net))
                 credits = load_credits()
                 paiements = []
-                if avance > 0:
-                    paiements.append({"montant": avance, "date": date_v, "mode": "reprise"})
+                if avance_payee > 0:
+                    paiements.append({"montant": avance_payee, "date": date_v, "mode": "reprise"})
                 cid = max((c["id"] for c in credits), default=0) + 1
                 credit = {
                     "id": cid, "client": client, "contact": tel or None,
@@ -2689,7 +2731,7 @@ function filter(type, btn) {{
 
             self.send_json({"success": True, "total_achats": round(total_achats, 2),
                             "total_reprise": round(total_reprise, 2), "net": net,
-                            "credit": credit}); return
+                            "numero": numero, "credit": credit}); return
 
         # ── Vente / Facture manuelle (hors stock) ────────────────────────────
         if path == "/api/ventes/manuel":

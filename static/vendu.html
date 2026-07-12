@@ -1189,6 +1189,7 @@ function calcReprNet(){
   const net=ta-tr, el=document.getElementById('nv-repr-net');
   el.textContent = (ta||tr)?f(net)+' MAD':'—';
   el.style.color = net>=0?'var(--green)':'var(--red)';
+  calcNVReste();
 }
 
 function calcSV(){
@@ -1447,7 +1448,9 @@ function calcNVBenef(){
 }
 
 function calcNVReste(){
-  const totPV=nvPanier.reduce((s,i)=>s+i.pv,0);
+  let totPV=nvPanier.reduce((s,i)=>s+i.pv,0);
+  // en mode reprise, le reste se calcule sur le NET (achats − reprise)
+  if(nvTypeVente==='reprise'){ totPV -= getReprises().reduce((s,a)=>s+a.valeur,0); }
   const avance=parseFloat(document.getElementById('nv-avance').value)||0;
   const reste=totPV-avance;
   const fmtA=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
