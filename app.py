@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "52"
+ASSET_VERSION = "53"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -588,7 +588,7 @@ def detect_anomalies(ventes):
     Les services et réparations sont exclus (économie différente)."""
     out = []
     for v in ventes:
-        if _is_service(v) or _is_reparation(v):
+        if _is_service(v) or _is_reparation(v) or (v.get("type_vente") == "reprise"):
             continue
         pv    = float(v.get("pv") or 0)
         pa    = float(v.get("pa") or 0)
@@ -1623,6 +1623,8 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "etiquettes.html"); return
         if path == "/reparations":
             self.send_html(STATIC_DIR / "reparations.html"); return
+        if path == "/reprise":
+            self.send_html(STATIC_DIR / "reprise.html"); return
         if path == "/corbeille":
             self.send_html(STATIC_DIR / "corbeille.html"); return
         if path == "/galerie":
@@ -2550,6 +2552,144 @@ function filter(type, btn) {{
                 if article.get("ismail_pierres"):
                     add_notif_ismail(article, vente["client"], article["id"])
                 self.send_json({"success": True, "vente": vente}); return
+
+        # ── Vente avec REPRISE (rachat + articles rendus) ─────────────────────
+        # La cliente achète des articles (déduits du stock, comptés normalement)
+        # et rend des articles auxquels on attribue une valeur. Ce qu'elle paie
+        # = total acheté − total repris. La reprise réduit le bénéfice (une ligne
+        # "reprise" en négatif). Même gestion paiement : total / avance / crédit.
+        if path == "/api/ventes/reprise":
+            achats   = data.get("achats", [])
+            reprises = data.get("reprises", [])
+            if not achats:
+                self.send_json({"error": "Au moins un article acheté requis"}, 400); return
+            client = str(data.get("client", "")).strip()
+            tel    = str(data.get("telephone", "")).strip()
+            note   = str(data.get("note", "")).strip()
+            mode   = str(data.get("mode_paiement", "total")).strip() or "total"
+            now    = datetime.now()
+            date_v = str(data.get("date_vente") or now.strftime("%Y-%m-%d")).strip()
+            try: datetime.strptime(date_v, "%Y-%m-%d")
+            except: date_v = now.strftime("%Y-%m-%d")
+
+            articles = load_articles()
+            ventes   = load_ventes()
+            groupe   = int(now.timestamp() * 1000)      # identifiant de la transaction
+            new_ventes = []
+            total_achats = 0.0
+
+            # 1) Articles achetés → ventes produit + déduction du stock
+            for i, a in enumerate(achats):
+                try:
+                    ref = int(a.get("ref"))
+                except (TypeError, ValueError):
+                    self.send_json({"error": "Référence d'achat invalide"}, 400); return
+                idx = next((k for k, x in enumerate(articles) if x["id"] == ref), None)
+                if idx is None:
+                    self.send_json({"error": f"Article #{ref} introuvable en stock"}, 404); return
+                art = articles[idx]
+                try:
+                    pv = parse_positive(a.get("pv"), f"Prix de vente #{ref}")
+                except ValueError as e:
+                    self.send_json({"error": str(e)}, 400); return
+                pa = art.get("pa") or 0
+                v = {
+                    "id_vente": groupe + i,
+                    "date_achat": art.get("date"),
+                    "date_vente": date_v,
+                    "ref": ref,
+                    "article": art.get("article", ""),
+                    "or_grs": art.get("or_grs"),
+                    "pa": pa,
+                    "d": art.get("d"), "em": art.get("em"), "r": art.get("r"), "s": art.get("s"),
+                    "p_fines": art.get("p_fines"), "rosaces": art.get("rosaces"),
+                    "em_clb": art.get("em_clb"), "perles": art.get("perles"),
+                    "pv": pv,
+                    "benef": round(pv - pa, 2),
+                    "client": client, "telephone": tel,
+                    "mode_paiement": mode,
+                    "commentaire": note,
+                    "type_vente": "produit",
+                    "reprise": True,
+                    "reprise_groupe": groupe,
+                }
+                new_ventes.append(v)
+                total_achats += pv
+                qty = int(art.get("quantite") or 1)
+                if qty > 1:
+                    articles[idx]["quantite"] = qty - 1
+                else:
+                    articles.pop(idx)
+
+            # 2) Articles rendus → total repris + ligne d'ajustement (bénéfice −)
+            total_reprise = 0.0
+            desc = []
+            for r in reprises:
+                try:
+                    val = float(r.get("valeur") or 0)
+                except (TypeError, ValueError):
+                    val = 0
+                if val <= 0:
+                    continue
+                total_reprise += val
+                rref = str(r.get("ref", "")).strip()
+                desc.append((f"#{rref} " if rref else "") + f"{val:g}")
+            if total_reprise > 0:
+                new_ventes.append({
+                    "id_vente": groupe + 900,
+                    "date_achat": date_v, "date_vente": date_v,
+                    "ref": 0,
+                    "article": "♻️ Reprise : " + ", ".join(desc),
+                    "or_grs": None, "pa": 0,
+                    "d": None, "em": None, "r": None, "s": None,
+                    "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
+                    "pv": 0,
+                    "benef": round(-total_reprise, 2),
+                    "client": client, "telephone": tel,
+                    "mode_paiement": mode, "commentaire": note,
+                    "type_vente": "reprise",
+                    "reprise": True,
+                    "reprise_groupe": groupe,
+                })
+
+            save_articles(articles)
+            ventes.extend(new_ventes)
+            save_ventes(ventes)
+            net = round(total_achats - total_reprise, 2)
+
+            r_, ip_, dev_ = self._actor()
+            db.log_audit("created", "vente", groupe,
+                         f"Reprise — {client or '?'} · acheté {total_achats:g} − repris "
+                         f"{total_reprise:g} = net {net:g} MAD", r_, ip_, dev_)
+
+            # 3) Paiement : total (rien à créer) / avance / crédit
+            credit = None
+            if mode in ("avance", "credit") and net > 0:
+                avance = 0.0
+                if mode == "avance":
+                    try: avance = float(data.get("avance") or 0)
+                    except (TypeError, ValueError): avance = 0.0
+                avance = max(0.0, min(avance, net))
+                credits = load_credits()
+                paiements = []
+                if avance > 0:
+                    paiements.append({"montant": avance, "date": date_v, "mode": "reprise"})
+                cid = max((c["id"] for c in credits), default=0) + 1
+                credit = {
+                    "id": cid, "client": client, "contact": tel or None,
+                    "date_achat": date_v,
+                    "refs": ", ".join(str(v["ref"]) for v in new_ventes if v.get("type_vente") == "produit"),
+                    "article": "Reprise", "montant_total": net,
+                    "paiements": paiements, "reste": 0, "statut": "rien",
+                    "date_solde": None, "note": note,
+                }
+                recalc_credit(credit)
+                credits.append(credit)
+                save_credits(credits)
+
+            self.send_json({"success": True, "total_achats": round(total_achats, 2),
+                            "total_reprise": round(total_reprise, 2), "net": net,
+                            "credit": credit}); return
 
         # ── Vente / Facture manuelle (hors stock) ────────────────────────────
         if path == "/api/ventes/manuel":

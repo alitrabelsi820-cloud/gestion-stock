@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#16191D">
+<meta name="apple-mobile-web-app-title" content="Trabelsi">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reprise — TRABELSI</title>
+<style>
+:root{
+  --ink:#16191D;--ink-soft:#5C636B;--ink-faint:#8A9099;
+  --canvas:#F6F7F9;--surface:#FFFFFF;--surface-2:#F1F3F5;--line:#E4E7EB;
+  --pos:#15803D;--neg:#B42318;--gold:#16191D;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,'Segoe UI',sans-serif;background:var(--canvas);color:var(--ink);min-height:100vh;font-variant-numeric:tabular-nums;}
+nav{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;text-decoration:none;color:inherit;}
+.nav-logo{width:40px;height:40px;background:var(--ink);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;}
+.nav-title{font-size:15px;font-weight:600;letter-spacing:2px;}
+.nav-links{display:flex;gap:6px;}
+.nav-links a{padding:8px 12px;border-radius:6px;color:var(--ink-soft);text-decoration:none;font-size:13px;}
+.nav-logout-btn{padding:7px 14px;border-radius:6px;border:1px solid rgba(180,35,24,.25);color:var(--neg);font-size:12px;font-weight:600;text-decoration:none;}
+.hamburger{display:none;}
+
+.page{padding:24px 28px 80px;max-width:900px;margin:0 auto;}
+.page-title{font-size:22px;font-weight:600;display:flex;align-items:center;gap:10px;}
+.page-sub{font-size:13px;color:var(--ink-soft);margin:4px 0 20px;}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-group label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-faint);display:block;margin-bottom:6px;}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:14px;outline:none;font-family:inherit;}
+.form-group input:focus,.form-group select:focus{border-color:var(--ink);background:#fff;}
+.rep-row{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;background:var(--surface-2);}
+.rep-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.rep-num{font-size:12px;font-weight:700;color:var(--ink-soft);}
+.rep-info{font-size:12px;color:var(--ink-soft);margin-top:4px;min-height:16px;}
+.rep-info.err{color:var(--neg);}
+.rep-info.ok{color:var(--pos);}
+.btn-remove{background:none;border:1px solid rgba(180,35,24,.3);color:var(--neg);border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;}
+.btn-add{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;border:2px dashed var(--line);background:#fff;color:var(--ink-soft);font-size:13px;font-weight:600;border-radius:9px;cursor:pointer;}
+.btn-add:hover{border-color:var(--ink-faint);color:var(--ink);}
+.totaux{display:flex;gap:24px;background:var(--surface-2);border-radius:10px;padding:16px 18px;margin-top:4px;flex-wrap:wrap;align-items:flex-end;}
+.totaux div span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-faint);}
+.totaux div b{font-size:18px;font-weight:800;}
+.totaux .net b{font-size:24px;}
+.btn{padding:12px 24px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:700;}
+.btn-gold{background:var(--ink);color:#fff;}
+.btn-outline{background:#fff;border:1px solid var(--line);color:var(--ink-soft);}
+@media(max-width:640px){.form-row{grid-template-columns:1fr;}}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+
+<nav>
+  <a href="/accueil" class="nav-brand"><div class="nav-logo">✦</div><div class="nav-title">GESTION STOCK</div></a>
+  <div class="nav-links" id="nav-links"><a href="/dashboard">Dashboard</a><a href="/vendu">Ventes</a></div>
+  <button class="hamburger" id="hamburger-btn">☰</button>
+  <a href="/logout" class="nav-logout-btn">⎋ Déconnexion</a>
+</nav>
+
+<div class="page">
+  <div class="page-title">♻️ Vente avec reprise</div>
+  <div class="page-sub">La cliente rachète des articles et rend des articles auxquels tu attribues une valeur. Ce qu'elle paie = total acheté − total repris. Les articles achetés sont déduits du stock ; les articles rendus ne touchent pas au stock.</div>
+
+  <div class="card">
+    <div class="card-title">👤 Client</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nom du client *</label><input type="text" id="r-client" placeholder="ex: Fatima Alami"></div>
+      <div class="form-group"><label>Téléphone</label><input type="text" id="r-tel" placeholder="ex: 0661…"></div>
+    </div>
+    <div class="form-group"><label>Date</label><input type="date" id="r-date"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🛒 Articles achetés (déduits du stock)</div>
+    <div id="achats"></div>
+    <button class="btn-add" onclick="addAchat()">+ Ajouter un article acheté</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">♻️ Articles rendus (reprise)</div>
+    <div id="reprises"></div>
+    <button class="btn-add" onclick="addReprise()">+ Ajouter un article rendu</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💰 Paiement</div>
+    <div class="totaux" style="margin-bottom:16px">
+      <div><span>Total acheté</span><b id="t-achats">—</b></div>
+      <div><span>Total reprise</span><b id="t-reprise" style="color:var(--neg)">—</b></div>
+      <div class="net"><span>Net à payer</span><b id="t-net" style="color:var(--pos)">—</b></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Mode de paiement</label>
+        <select id="r-mode" onchange="onMode()">
+          <option value="total">Payé en totalité</option>
+          <option value="avance">Avance (reste en crédit)</option>
+          <option value="credit">Tout en crédit</option>
+        </select>
+      </div>
+      <div class="form-group" id="avance-wrap" style="display:none">
+        <label>Montant de l'avance (MAD)</label>
+        <input type="number" id="r-avance" min="0" step="50" placeholder="ex: 2000" oninput="calc()">
+      </div>
+    </div>
+    <div class="rep-info" id="pay-info"></div>
+  </div>
+
+  <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap">
+    <button class="btn btn-outline" onclick="resetForm()">Effacer</button>
+    <button class="btn btn-gold" id="r-save" onclick="enregistrer()">✅ Enregistrer la reprise</button>
+  </div>
+</div>
+
+<script>
+const fmtN = v => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+function attr(v){return (v==null?'':String(v)).replace(/"/g,'&quot;');}
+document.getElementById('r-date').value = new Date().toISOString().split('T')[0];
+
+let achats = [];    // {id, ref, pv, nom, ok}
+let reprises = [];  // {id, ref, valeur}
+
+/* ── Articles achetés ── */
+function addAchat(){ saveA(); achats.push({id:Date.now()}); renderA(); calc(); }
+function removeAchat(id){ saveA(); achats=achats.filter(l=>l.id!==id); if(!achats.length) achats.push({id:Date.now()}); renderA(); calc(); }
+function saveA(){ achats.forEach(l=>{ const rf=document.getElementById('a-'+l.id+'-ref'); const pv=document.getElementById('a-'+l.id+'-pv'); if(rf) l.ref=rf.value; if(pv) l.pv=pv.value; }); }
+function renderA(){
+  document.getElementById('achats').innerHTML = achats.map((l,i)=>`
+    <div class="rep-row">
+      <div class="rep-head"><span class="rep-num">Article ${i+1}</span>
+        ${achats.length>1?`<button class="btn-remove" onclick="removeAchat(${l.id})">✕ Retirer</button>`:''}</div>
+      <div class="form-row" style="margin-bottom:0">
+        <div class="form-group"><label>Référence stock *</label>
+          <input type="number" id="a-${l.id}-ref" placeholder="ex: 819" value="${attr(l.ref)}" oninput="lookupA(${l.id})"></div>
+        <div class="form-group"><label>Prix de vente (MAD) *</label>
+          <input type="number" id="a-${l.id}-pv" min="0" step="50" placeholder="ex: 8000" value="${attr(l.pv)}" oninput="calc()"></div>
+      </div>
+      <div class="rep-info" id="a-${l.id}-info">${l.nom?('✓ '+l.nom):''}</div>
+    </div>`).join('');
+}
+let lookupTimers={};
+function lookupA(id){
+  saveA(); calc();
+  const l=achats.find(x=>x.id===id); if(!l) return;
+  const ref=(l.ref||'').trim();
+  const info=document.getElementById('a-'+id+'-info');
+  l.ok=false; l.nom='';
+  if(!ref){ info.textContent=''; info.className='rep-info'; return; }
+  clearTimeout(lookupTimers[id]);
+  lookupTimers[id]=setTimeout(()=>{
+    fetch('/api/articles/'+encodeURIComponent(ref)).then(r=>r.json()).then(a=>{
+      if(a&&!a.error){
+        l.ok=true; l.nom=a.article||('#'+ref);
+        info.textContent='✓ '+l.nom+(a.or_grs?(' · '+a.or_grs+' grs'):'')+(a.quantite>1?(' · '+a.quantite+' en stock'):'');
+        info.className='rep-info ok';
+      }else{
+        info.textContent='⚠️ Référence introuvable en stock'; info.className='rep-info err';
+      }
+    }).catch(()=>{ info.textContent='⚠️ Erreur'; info.className='rep-info err'; });
+  },350);
+}
+
+/* ── Articles rendus ── */
+function addReprise(){ saveR(); reprises.push({id:Date.now()}); renderR(); calc(); }
+function removeReprise(id){ saveR(); reprises=reprises.filter(l=>l.id!==id); renderR(); calc(); }
+function saveR(){ reprises.forEach(l=>{ const rf=document.getElementById('rp-'+l.id+'-ref'); const vl=document.getElementById('rp-'+l.id+'-val'); if(rf) l.ref=rf.value; if(vl) l.valeur=vl.value; }); }
+function renderR(){
+  const box=document.getElementById('reprises');
+  if(!reprises.length){ box.innerHTML='<div class="rep-info" style="padding:4px 2px">Aucun article rendu (facultatif).</div>'; return; }
+  box.innerHTML = reprises.map((l,i)=>`
+    <div class="rep-row">
+      <div class="rep-head"><span class="rep-num">Rendu ${i+1}</span>
+        <button class="btn-remove" onclick="removeReprise(${l.id})">✕ Retirer</button></div>
+      <div class="form-row" style="margin-bottom:0">
+        <div class="form-group"><label>Référence rendue</label>
+          <input type="text" id="rp-${l.id}-ref" placeholder="ex: 640" value="${attr(l.ref)}" oninput="saveR()"></div>
+        <div class="form-group"><label>Valeur attribuée (MAD) *</label>
+          <input type="number" id="rp-${l.id}-val" min="0" step="50" placeholder="ex: 3000" value="${attr(l.valeur)}" oninput="calc()"></div>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Calcul ── */
+function getAchats(){ return achats.map(l=>({ref:(document.getElementById('a-'+l.id+'-ref')?.value||'').trim(), pv:parseFloat(document.getElementById('a-'+l.id+'-pv')?.value)||0})); }
+function getReprises(){ return reprises.map(l=>({ref:(document.getElementById('rp-'+l.id+'-ref')?.value||'').trim(), valeur:parseFloat(document.getElementById('rp-'+l.id+'-val')?.value)||0})).filter(r=>r.valeur>0); }
+function calc(){
+  const ta=getAchats().reduce((s,a)=>s+a.pv,0);
+  const tr=getReprises().reduce((s,a)=>s+a.valeur,0);
+  const net=ta-tr;
+  document.getElementById('t-achats').textContent = ta>0?fmtN(ta)+' MAD':'—';
+  document.getElementById('t-reprise').textContent = tr>0?'− '+fmtN(tr)+' MAD':'—';
+  const netEl=document.getElementById('t-net');
+  netEl.textContent = (ta||tr)?fmtN(net)+' MAD':'—';
+  netEl.style.color = net>=0?'var(--pos)':'var(--neg)';
+  // info paiement
+  const mode=document.getElementById('r-mode').value;
+  const info=document.getElementById('pay-info');
+  if(mode==='avance'){
+    const av=parseFloat(document.getElementById('r-avance').value)||0;
+    const reste=net-av;
+    info.textContent = 'Avance '+fmtN(av)+' MAD · reste en crédit : '+fmtN(reste>0?reste:0)+' MAD';
+  } else if(mode==='credit'){
+    info.textContent = 'Tout le net ('+fmtN(net>0?net:0)+' MAD) sera enregistré en crédit.';
+  } else { info.textContent = 'La cliente paie le net en totalité.'; }
+}
+function onMode(){ document.getElementById('avance-wrap').style.display = document.getElementById('r-mode').value==='avance'?'block':'none'; calc(); }
+
+/* ── Enregistrer ── */
+async function enregistrer(){
+  saveA(); saveR();
+  const client=document.getElementById('r-client').value.trim();
+  if(!client){ alert('Nom du client requis'); return; }
+  const A=getAchats().filter(a=>a.ref && a.pv>0);
+  if(!A.length){ alert('Ajoute au moins un article acheté (référence + prix).'); return; }
+  const R=getReprises();
+  const mode=document.getElementById('r-mode').value;
+  const btn=document.getElementById('r-save');
+  btn.disabled=true; btn.textContent='⏳ Enregistrement…';
+  try{
+    const payload={
+      client, telephone:document.getElementById('r-tel').value.trim(),
+      date_vente:document.getElementById('r-date').value,
+      note:'Reprise', mode_paiement:mode,
+      avance: mode==='avance' ? (parseFloat(document.getElementById('r-avance').value)||0) : 0,
+      achats:A, reprises:R
+    };
+    const res=await fetch('/api/ventes/reprise',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const d=await res.json();
+    if(res.ok && d.success){
+      alert('✅ Reprise enregistrée\nAcheté : '+fmtN(d.total_achats)+' MAD\nReprise : −'+fmtN(d.total_reprise)+' MAD\nNet : '+fmtN(d.net)+' MAD'+(d.credit?('\n\n💳 Crédit créé (reste '+fmtN(d.credit.reste)+' MAD)'):''));
+      resetForm();
+    } else alert('Erreur : '+(d.error||'enregistrement impossible'));
+  }catch(e){ alert('Erreur réseau'); }
+  btn.disabled=false; btn.textContent='✅ Enregistrer la reprise';
+}
+
+function resetForm(){
+  ['r-client','r-tel','r-avance'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('r-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('r-mode').value='total'; onMode();
+  achats=[{id:Date.now()}]; reprises=[]; renderA(); renderR(); calc();
+}
+
+achats=[{id:Date.now()}]; reprises=[];
+renderA(); renderR(); calc();
+</script>
+</body>
+</html>
