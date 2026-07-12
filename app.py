@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "55"
+ASSET_VERSION = "56"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -2629,9 +2629,12 @@ function filter(type, btn) {{
                 else:
                     articles.pop(idx)
 
-            # 2) Articles rendus → total repris + ligne d'ajustement (bénéfice −)
+            # 2) Articles rendus → total repris + ENTRÉE EN STOCK (valeur = prix
+            #    de revient). La reprise ne réduit PAS le bénéfice : le profit
+            #    se fera à la revente (revente − valeur de reprise).
             total_reprise = 0.0
             desc = []
+            max_aid = max((x["id"] for x in articles), default=0)
             for r in reprises:
                 try:
                     val = float(r.get("valeur") or 0)
@@ -2648,6 +2651,22 @@ function filter(type, btn) {{
                     "or_grs": "", "pierres": "",
                     "pv": -val, "pa": 0, "reprise_rendu": True,
                 })
+                # entrée en stock : nouvel article (valeur de reprise = P.R)
+                if rref.isdigit() and not any(x["id"] == int(rref) for x in articles):
+                    new_id = int(rref)
+                else:
+                    max_aid += 1
+                    new_id = max_aid
+                articles.append({
+                    "id": new_id, "date": date_v,
+                    "article": "Article repris" + (f" (ancienne réf {rref})" if rref else ""),
+                    "or_grs": None, "pa": round(val, 2),
+                    "d": None, "em": None, "r": None, "s": None,
+                    "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
+                    "fabricant": "", "ismail_pierres": 0, "quantite": 1,
+                    "note": f"Repris de {client} le {date_v}",
+                })
+            # ligne "reprise" dans les ventes (traçabilité) — bénéfice NEUTRE (0)
             if total_reprise > 0:
                 new_ventes.append({
                     "id_vente": groupe + 900,
@@ -2658,7 +2677,7 @@ function filter(type, btn) {{
                     "d": None, "em": None, "r": None, "s": None,
                     "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
                     "pv": 0,
-                    "benef": round(-total_reprise, 2),
+                    "benef": 0,
                     "client": client, "telephone": tel,
                     "mode_paiement": mode, "commentaire": note,
                     "type_vente": "reprise",
