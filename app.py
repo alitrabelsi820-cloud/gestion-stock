@@ -582,6 +582,56 @@ def build_label_payload(art, include_stones=True):
         "stones": stones,
     }
 
+def migrate_reprise_stock():
+    """Corrige les reprises enregistrées avec l'ancienne logique (bénéfice
+    négatif, articles rendus hors stock) → bénéfice neutre + articles repris
+    remis en stock à leur valeur. Idempotent (ne retouche pas ce qui est déjà
+    corrigé : une ligne reprise à benef=0 est ignorée)."""
+    ventes = load_ventes()
+    lignes = [v for v in ventes if v.get("type_vente") == "reprise"
+              and float(v.get("benef") or 0) < 0]
+    if not lignes:
+        return
+    articles = load_articles()
+    max_aid = max((x["id"] for x in articles), default=0)
+    changed = 0
+    for v in lignes:
+        art_str = str(v.get("article") or "")
+        # "♻️ Reprise : #4388 50000, #4387 70000"
+        tail = art_str.split(":", 1)[1] if ":" in art_str else art_str
+        pairs = []
+        for tok in tail.split(","):
+            m = re.match(r'^\s*(?:#?(\d+)\s+)?(\d+(?:\.\d+)?)\s*$', tok)
+            if m:
+                pairs.append((m.group(1), float(m.group(2))))
+        somme = round(sum(val for _, val in pairs), 2)
+        # sécurité : ne corriger que si la somme correspond au bénéfice négatif
+        if not pairs or abs(somme - abs(float(v.get("benef") or 0))) > 1:
+            continue
+        date_v = v.get("date_vente") or v.get("date_achat") or datetime.now().strftime("%Y-%m-%d")
+        client = v.get("client") or ""
+        for rref, val in pairs:
+            if rref and rref.isdigit() and not any(x["id"] == int(rref) for x in articles):
+                new_id = int(rref)
+            else:
+                max_aid += 1
+                new_id = max_aid
+            articles.append({
+                "id": new_id, "date": date_v,
+                "article": "Article repris" + (f" (ancienne réf {rref})" if rref else ""),
+                "or_grs": None, "pa": round(val, 2),
+                "d": None, "em": None, "r": None, "s": None,
+                "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
+                "fabricant": "", "ismail_pierres": 0, "quantite": 1,
+                "note": f"Repris de {client} le {date_v}",
+            })
+        v["benef"] = 0
+        changed += 1
+    if changed:
+        save_articles(articles)
+        save_ventes(ventes)
+        print(f"[MIGRATION] {changed} reprise(s) corrigée(s) : articles remis en stock, bénéfice neutralisé.")
+
 def detect_anomalies(ventes):
     """Détecte les ventes à marge/prix anormaux. Retourne une liste triée
     (plus récentes d'abord) de dicts {vente..., anomalies:[{code,label,severite}]}.
@@ -3834,6 +3884,8 @@ if __name__ == "__main__":
     download_db_from_r2()
     # Initialiser la base de données SQLite (migration JSON → SQLite au premier lancement)
     db.init_db()
+    # 0. Corriger les reprises enregistrées avec l'ancienne logique
+    migrate_reprise_stock()
     # 1. Fusionner les factures dupliquées (même client + même jour → une seule)
     merge_duplicate_factures()
     # 2. Générer les factures manquantes pour les ventes qui n'en ont pas
