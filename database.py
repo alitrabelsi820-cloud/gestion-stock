@@ -987,9 +987,12 @@ def log_audit(action, entity, ref, summary, role="", ip="", device="", snapshot=
                  json.dumps(snapshot, ensure_ascii=False) if snapshot is not None else None,
                  _t.time(), now.strftime("%d/%m/%Y %H:%M:%S"))
             )
-            # Purge : garder les 10000 dernières entrées
-            conn.execute("""DELETE FROM audit_log WHERE id NOT IN (
-                SELECT id FROM audit_log ORDER BY id DESC LIMIT 10000)""")
+            # Purge : garder les 10000 dernières entrées, MAIS ne JAMAIS
+            # supprimer les éléments de la corbeille (suppressions non
+            # restaurées avec snapshot) — ils restent indéfiniment.
+            conn.execute("""DELETE FROM audit_log
+                WHERE id NOT IN (SELECT id FROM audit_log ORDER BY id DESC LIMIT 10000)
+                  AND NOT (action='deleted' AND snapshot IS NOT NULL AND restored=0)""")
     except Exception:
         pass
 

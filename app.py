@@ -1708,7 +1708,7 @@ function filter(type, btn) {{
         if path == "/api/trash":
             if not is_admin(self.headers):
                 self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
-            self.send_json({"items": db.get_trash(limit=300)})
+            self.send_json({"items": db.get_trash(limit=5000)})
             return
 
         # ── API génération de QR code (SVG) ─────────────────────────────────────
