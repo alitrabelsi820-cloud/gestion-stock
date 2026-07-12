@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "56"
+ASSET_VERSION = "57"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -583,54 +583,27 @@ def build_label_payload(art, include_stones=True):
     }
 
 def migrate_reprise_stock():
-    """Corrige les reprises enregistrées avec l'ancienne logique (bénéfice
-    négatif, articles rendus hors stock) → bénéfice neutre + articles repris
-    remis en stock à leur valeur. Idempotent (ne retouche pas ce qui est déjà
-    corrigé : une ligne reprise à benef=0 est ignorée)."""
+    """Corrige les reprises : bénéfice neutralisé (l'ancienne logique le mettait
+    en négatif) et retrait des articles repris qui avaient été ajoutés
+    automatiquement au stock (l'utilisateur les ajoute lui-même). Idempotent."""
+    # 1. Neutraliser le bénéfice négatif des lignes reprise
     ventes = load_ventes()
-    lignes = [v for v in ventes if v.get("type_vente") == "reprise"
-              and float(v.get("benef") or 0) < 0]
-    if not lignes:
-        return
-    articles = load_articles()
-    max_aid = max((x["id"] for x in articles), default=0)
-    changed = 0
-    for v in lignes:
-        art_str = str(v.get("article") or "")
-        # "♻️ Reprise : #4388 50000, #4387 70000"
-        tail = art_str.split(":", 1)[1] if ":" in art_str else art_str
-        pairs = []
-        for tok in tail.split(","):
-            m = re.match(r'^\s*(?:#?(\d+)\s+)?(\d+(?:\.\d+)?)\s*$', tok)
-            if m:
-                pairs.append((m.group(1), float(m.group(2))))
-        somme = round(sum(val for _, val in pairs), 2)
-        # sécurité : ne corriger que si la somme correspond au bénéfice négatif
-        if not pairs or abs(somme - abs(float(v.get("benef") or 0))) > 1:
-            continue
-        date_v = v.get("date_vente") or v.get("date_achat") or datetime.now().strftime("%Y-%m-%d")
-        client = v.get("client") or ""
-        for rref, val in pairs:
-            if rref and rref.isdigit() and not any(x["id"] == int(rref) for x in articles):
-                new_id = int(rref)
-            else:
-                max_aid += 1
-                new_id = max_aid
-            articles.append({
-                "id": new_id, "date": date_v,
-                "article": "Article repris" + (f" (ancienne réf {rref})" if rref else ""),
-                "or_grs": None, "pa": round(val, 2),
-                "d": None, "em": None, "r": None, "s": None,
-                "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
-                "fabricant": "", "ismail_pierres": 0, "quantite": 1,
-                "note": f"Repris de {client} le {date_v}",
-            })
-        v["benef"] = 0
-        changed += 1
-    if changed:
-        save_articles(articles)
+    changed_v = 0
+    for v in ventes:
+        if v.get("type_vente") == "reprise" and float(v.get("benef") or 0) < 0:
+            v["benef"] = 0
+            changed_v += 1
+    if changed_v:
         save_ventes(ventes)
-        print(f"[MIGRATION] {changed} reprise(s) corrigée(s) : articles remis en stock, bénéfice neutralisé.")
+        print(f"[MIGRATION] {changed_v} ligne(s) reprise : bénéfice neutralisé (0).")
+    # 2. Retirer les articles repris auto-ajoutés par une version précédente
+    articles = load_articles()
+    keep = [a for a in articles if not (
+        str(a.get("article", "")).startswith("Article repris")
+        and str(a.get("note", "")).startswith("Repris de"))]
+    if len(keep) != len(articles):
+        save_articles(keep)
+        print(f"[MIGRATION] {len(articles) - len(keep)} article(s) repris auto-ajouté(s) retiré(s).")
 
 def detect_anomalies(ventes):
     """Détecte les ventes à marge/prix anormaux. Retourne une liste triée
@@ -2679,12 +2652,11 @@ function filter(type, btn) {{
                 else:
                     articles.pop(idx)
 
-            # 2) Articles rendus → total repris + ENTRÉE EN STOCK (valeur = prix
-            #    de revient). La reprise ne réduit PAS le bénéfice : le profit
-            #    se fera à la revente (revente − valeur de reprise).
+            # 2) Articles rendus → total repris. La reprise ne réduit PAS le
+            #    bénéfice et n'entre PAS en stock (l'utilisateur ajoute les
+            #    articles repris lui-même, au prix qu'il souhaite).
             total_reprise = 0.0
             desc = []
-            max_aid = max((x["id"] for x in articles), default=0)
             for r in reprises:
                 try:
                     val = float(r.get("valeur") or 0)
@@ -2700,21 +2672,6 @@ function filter(type, btn) {{
                     "ref": rref, "article": "♻️ Article repris" + (f" #{rref}" if rref else ""),
                     "or_grs": "", "pierres": "",
                     "pv": -val, "pa": 0, "reprise_rendu": True,
-                })
-                # entrée en stock : nouvel article (valeur de reprise = P.R)
-                if rref.isdigit() and not any(x["id"] == int(rref) for x in articles):
-                    new_id = int(rref)
-                else:
-                    max_aid += 1
-                    new_id = max_aid
-                articles.append({
-                    "id": new_id, "date": date_v,
-                    "article": "Article repris" + (f" (ancienne réf {rref})" if rref else ""),
-                    "or_grs": None, "pa": round(val, 2),
-                    "d": None, "em": None, "r": None, "s": None,
-                    "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
-                    "fabricant": "", "ismail_pierres": 0, "quantite": 1,
-                    "note": f"Repris de {client} le {date_v}",
                 })
             # ligne "reprise" dans les ventes (traçabilité) — bénéfice NEUTRE (0)
             if total_reprise > 0:
