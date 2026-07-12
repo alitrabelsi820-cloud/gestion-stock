@@ -43,7 +43,6 @@
         { label: 'Factures',            href: '/facture' },
         { label: '📝 Facture Libre',    href: '/facture-libre' },
         { label: '🔧 Réparations',      href: '/reparations' },
-        { label: '♻️ Reprise',          href: '/reprise' },
         { label: '📋 Devis',            href: '/devis' },
         { label: '🗂 Historique Devis', href: '/historique-devis' },
       ]
@@ -497,7 +496,6 @@
       { icon: '🧾', label: 'Factures',            href: '/facture' },
       { icon: '📝', label: 'Facture libre',       href: '/facture-libre' },
       { icon: '🔧', label: 'Réparations',         href: '/reparations' },
-      { icon: '♻️', label: 'Reprise',             href: '/reprise' },
       { icon: '📋', label: 'Devis',               href: '/devis' },
       { icon: '🗂',  label: 'Historique Devis',   href: '/historique-devis' },
     ]},

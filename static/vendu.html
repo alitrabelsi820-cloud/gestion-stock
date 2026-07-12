@@ -485,9 +485,16 @@ td.has{color:#82e0aa;}
         style="flex:1;padding:10px;border-radius:9px;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">
         🔧 Service
       </button>
+      <button id="nv-type-reprise" onclick="setNVType('reprise')"
+        style="flex:1;padding:10px;border-radius:9px;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">
+        ♻️ Reprise
+      </button>
     </div>
     <div id="nv-service-info" style="display:none;background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.3);border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:12px;color:#2980b9">
       ℹ️ Vente de type <strong>Service</strong> — comptabilisée dans le bénéfice uniquement, exclue du CA.
+    </div>
+    <div id="nv-reprise-info" style="display:none;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.3);border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:12px;color:var(--green)">
+      ♻️ <strong>Reprise</strong> — ajoute les articles achetés au panier (déduits du stock) et les articles rendus ci-dessous. Elle paie <strong>acheté − reprise</strong> (statut Totalité / Avance / Rien).
     </div>
 
     <!-- SECTION 1 — CLIENT -->
@@ -662,6 +669,18 @@ td.has{color:#82e0aa;}
           <button onclick="clearPrixGlobalPanier()" style="padding:8px 12px;background:#fff;border:1px solid var(--bd);border-radius:8px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">✕ Effacer</button>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:6px;">Saisir un montant total → les prix sont répartis automatiquement au prorata du coût de chaque article. Tu peux ajuster les prix individuels dans le tableau.</div>
+      </div>
+    </div>
+
+    <!-- SECTION REPRISE — articles rendus par la cliente -->
+    <div id="nv-reprise-section" style="display:none;border:1px solid rgba(46,204,113,.3);border-radius:10px;padding:14px;margin-bottom:14px;background:rgba(46,204,113,.03)">
+      <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">♻️ Articles rendus (reprise)</div>
+      <div id="nv-reprise-lines"></div>
+      <button onclick="addReprLine()" style="width:100%;padding:9px;border:2px dashed var(--bd);background:transparent;color:var(--muted);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">+ Ajouter un article rendu</button>
+      <div style="display:flex;gap:20px;background:var(--bg3);border-radius:8px;padding:10px 14px;margin-top:12px;flex-wrap:wrap">
+        <div><span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block">Total acheté</span><span style="font-weight:700;color:var(--blue)" id="nv-repr-achats">—</span></div>
+        <div><span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block">Total reprise</span><span style="font-weight:700;color:var(--red)" id="nv-repr-total">—</span></div>
+        <div><span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block">Net à payer</span><span style="font-weight:800;color:var(--green);font-size:16px" id="nv-repr-net">—</span></div>
       </div>
     </div>
 
@@ -1118,21 +1137,58 @@ let nvTypeVente = 'produit';
 
 function setNVType(type){
   nvTypeVente = type;
-  const isProd = type === 'produit';
-  document.getElementById('nv-type-produit').style.cssText = isProd
-    ? 'flex:1;padding:10px;border-radius:9px;border:2px solid var(--gold);background:rgba(184,146,60,.15);color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s'
-    : 'flex:1;padding:10px;border-radius:9px;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s';
-  document.getElementById('nv-type-service').style.cssText = !isProd
-    ? 'flex:1;padding:10px;border-radius:9px;border:2px solid #2980b9;background:rgba(52,152,219,.15);color:#2980b9;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s'
-    : 'flex:1;padding:10px;border-radius:9px;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s';
-  document.getElementById('nv-service-info').style.display = isProd ? 'none' : 'block';
-  // Basculer les sections produit / service
+  const on  = 'flex:1;padding:10px;border-radius:9px;border:2px solid %C;background:%B;color:%C;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s';
+  const off = 'flex:1;padding:10px;border-radius:9px;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s';
+  const style=(el,active,color,bg)=>{ el.style.cssText = active ? on.replace(/%C/g,color).replace('%B',bg) : off; };
+  style(document.getElementById('nv-type-produit'), type==='produit', 'var(--gold)',  'rgba(184,146,60,.15)');
+  style(document.getElementById('nv-type-service'), type==='service', '#2980b9',      'rgba(52,152,219,.15)');
+  style(document.getElementById('nv-type-reprise'), type==='reprise', 'var(--green)', 'rgba(46,204,113,.15)');
+
+  document.getElementById('nv-service-info').style.display = type==='service' ? 'block' : 'none';
+  document.getElementById('nv-reprise-info').style.display = type==='reprise' ? 'block' : 'none';
+  // Produit ET reprise partagent la section articles + panier (articles achetés)
+  const showProd = (type==='produit' || type==='reprise');
   const prodSec = document.getElementById('nv-product-section');
   const svcSec  = document.getElementById('nv-service-section');
+  const reprSec = document.getElementById('nv-reprise-section');
   const panier  = document.getElementById('nv-panier-card');
-  if(prodSec) prodSec.style.display = isProd ? 'block' : 'none';
-  if(svcSec)  svcSec.style.display  = isProd ? 'none' : 'block';
-  if(panier && !isProd) panier.style.display = 'none';
+  if(prodSec) prodSec.style.display = showProd ? 'block' : 'none';
+  if(svcSec)  svcSec.style.display  = type==='service' ? 'block' : 'none';
+  if(reprSec) reprSec.style.display = type==='reprise' ? 'block' : 'none';
+  if(panier && !showProd) panier.style.display = 'none';
+  if(panier && showProd && nvPanier.length) panier.style.display = 'block';
+  if(type==='reprise'){ if(!nvReprises.length) addReprLine(); else renderReprLines(); }
+  calcReprNet();
+}
+
+/* ── Reprise : articles rendus ── */
+let nvReprises = [];   // {id, ref, valeur}
+function addReprLine(){ saveRepr(); nvReprises.push({id:Date.now()}); renderReprLines(); calcReprNet(); }
+function removeReprLine(id){ saveRepr(); nvReprises=nvReprises.filter(l=>l.id!==id); if(!nvReprises.length) nvReprises.push({id:Date.now()}); renderReprLines(); calcReprNet(); }
+function saveRepr(){ nvReprises.forEach(l=>{ const rf=document.getElementById('nvr-'+l.id+'-ref'); const vl=document.getElementById('nvr-'+l.id+'-val'); if(rf)l.ref=rf.value; if(vl)l.valeur=vl.value; }); }
+function renderReprLines(){
+  const box=document.getElementById('nv-reprise-lines'); if(!box) return;
+  const at=v=>(v==null?'':String(v)).replace(/"/g,'&quot;');
+  box.innerHTML = nvReprises.map((l,i)=>`
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end">
+      <div style="flex:1"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Réf rendue</label>
+        <input type="text" id="nvr-${l.id}-ref" placeholder="ex: 640" value="${at(l.ref)}" oninput="saveRepr()" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none"></div>
+      <div style="flex:1"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Valeur (MAD) *</label>
+        <input type="number" id="nvr-${l.id}-val" min="0" step="50" placeholder="ex: 3000" value="${at(l.valeur)}" oninput="calcReprNet()" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none"></div>
+      <button onclick="removeReprLine(${l.id})" style="padding:8px 10px;border:1px solid rgba(231,76,60,.3);background:transparent;color:var(--red);border-radius:7px;cursor:pointer;font-size:13px">✕</button>
+    </div>`).join('');
+}
+function getReprises(){ return nvReprises.map(l=>({ref:(document.getElementById('nvr-'+l.id+'-ref')?.value||'').trim(), valeur:parseFloat(document.getElementById('nvr-'+l.id+'-val')?.value)||0})).filter(r=>r.valeur>0); }
+function calcReprNet(){
+  if(nvTypeVente!=='reprise') return;
+  const ta=nvPanier.reduce((s,i)=>s+(i.pv||0),0);
+  const tr=getReprises().reduce((s,a)=>s+a.valeur,0);
+  const f=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+  document.getElementById('nv-repr-achats').textContent = ta>0?f(ta)+' MAD':'—';
+  document.getElementById('nv-repr-total').textContent  = tr>0?'− '+f(tr)+' MAD':'—';
+  const net=ta-tr, el=document.getElementById('nv-repr-net');
+  el.textContent = (ta||tr)?f(net)+' MAD':'—';
+  el.style.color = net>=0?'var(--green)':'var(--red)';
 }
 
 function calcSV(){
@@ -1297,6 +1353,7 @@ function renderNVPanier(){
   elB.textContent=fmtN(totBenef)+'';
   elB.style.color=totBenef>=0?'var(--green)':'var(--red)';
   calcNVReste();
+  calcReprNet();
 }
 
 function updateNVPV(idx,val){
@@ -1329,6 +1386,7 @@ function openNVModal(preRef){
   // Réinitialiser les champs service
   ['sv-or','sv-client','sv-vendu'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   const svb=document.getElementById('sv-benef'); if(svb){svb.textContent='—';svb.style.color='var(--green)';}
+  nvReprises=[];
   onNVStatutChange();
   setNVType('produit');
   document.getElementById('ov-nv').classList.add('open');
@@ -1396,9 +1454,44 @@ function calcNVReste(){
   document.getElementById('nv-reste-display').textContent=totPV&&reste>=0?fmtA(reste)+'':'—';
 }
 
+async function submitReprise(){
+  saveRepr();
+  if(!nvPanier.length){toast('Ajoute au moins un article acheté au panier','error');return;}
+  if(nvPanier.some(i=>!(i.pv>0))){toast('Chaque article acheté doit avoir un prix','error');return;}
+  const statut=document.querySelector('input[name="nv-statut"]:checked').value;
+  const modeMap={totalite:'total',avance:'avance',rien:'credit'};
+  const avance=parseFloat(document.getElementById('nv-avance').value)||0;
+  if(statut==='avance'&&!avance){toast('Entrez le montant de l\'avance','error');return;}
+  const btn=document.getElementById('nv-confirm-btn');
+  btn.disabled=true;btn.textContent='⏳ Traitement…';
+  try{
+    const payload={
+      client:document.getElementById('nv-client').value.trim(),
+      telephone:document.getElementById('nv-contact').value.trim(),
+      date_vente:document.getElementById('nv-date').value||new Date().toISOString().split('T')[0],
+      note:document.getElementById('nv-note').value.trim()||'Reprise',
+      mode_paiement:modeMap[statut]||'total',
+      avance:statut==='avance'?avance:0,
+      achats:nvPanier.map(i=>({ref:i.article.id, pv:i.pv})),
+      reprises:getReprises()
+    };
+    if(!payload.client){toast('Nom du client requis','error');btn.disabled=false;btn.textContent='✅ Confirmer la vente';return;}
+    const res=await fetch('/api/ventes/reprise',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const d=await res.json();
+    if(res.ok&&d.success){
+      const f=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+      toast('♻️ Reprise enregistrée — net '+f(d.net)+' MAD'+(d.credit?' · crédit créé':''),'success');
+      closeNVModal(); await load();
+    } else toast('Erreur : '+(d.error||'échec'),'error');
+  }catch(e){ toast('Erreur réseau','error'); }
+  btn.disabled=false;btn.textContent='✅ Confirmer la vente';
+}
+
 async function submitNV(){
   // ── Cas SERVICE (vente d'or d'un client) ──
   if(nvTypeVente==='service'){ return submitService(); }
+  // ── Cas REPRISE (rachat + articles rendus) ──
+  if(nvTypeVente==='reprise'){ return submitReprise(); }
   if(!nvPanier.length){toast('Le panier est vide — ajoutez au moins un article','error');return;}
   const statut=document.querySelector('input[name="nv-statut"]:checked').value;
   const avance=parseFloat(document.getElementById('nv-avance').value)||0;
