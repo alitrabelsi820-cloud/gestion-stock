@@ -582,6 +582,48 @@ def build_label_payload(art, include_stones=True):
         "stones": stones,
     }
 
+def migrate_chain_lots():
+    """One-shot : remplace l'ancien lot vrac de chaînes (id 10) par 4 lots par
+    couleur (audit magasin), vendus au poids. Verrou config → ne s'exécute
+    qu'une fois. L'id 10 est sauvegardé dans la corbeille (restaurable)."""
+    cfg = load_config()
+    if cfg.get("chain_lots_v1"):
+        return
+    articles = load_articles()
+    # supprimer l'ancien lot vrac id 10 (snapshot corbeille) — uniquement si c'est bien une "Chaîne"
+    a10 = next((a for a in articles if a.get("id") == 10), None)
+    if a10 is not None and a10.get("article") == "Chaîne":
+        articles = [a for a in articles if a.get("id") != 10]
+        try:
+            db.log_audit("deleted", "article", 10,
+                         "Chaîne (ancien lot vrac 314,2 g) — remplacé par lots couleur",
+                         "system", "", "", snapshot=a10)
+        except Exception:
+            pass
+    # créer les 4 lots (nb de chaînes = quantite, poids total = or_grs, P.R au poids)
+    taux = float(cfg.get("prix_or_achat") or 1100)
+    lots = [("Chaîne jaune", 32, 123.4), ("Chaîne blanche", 34, 74.9),
+            ("Chaîne rose", 16, 39.0), ("Chaîne Cartier", 4, 14.1)]
+    max_id = max((a["id"] for a in articles), default=0)
+    today = datetime.now().strftime("%Y-%m-%d")
+    created = 0
+    for name, nb, poids in lots:
+        if any(a.get("article") == name for a in articles):
+            continue
+        max_id += 1
+        articles.append({
+            "id": max_id, "date": today, "article": name,
+            "or_grs": poids, "pa": round(poids * taux, 2),
+            "d": None, "em": None, "r": None, "s": None,
+            "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
+            "fabricant": "", "ismail_pierres": 0, "quantite": nb,
+            "note": "Lot de chaînes (audit) — vendu au poids",
+        })
+        created += 1
+    save_articles(articles)
+    save_config({"chain_lots_v1": 1})
+    print(f"[MIGRATION] Lots de chaînes : {created} lot(s) créé(s), ancien lot vrac (id 10) retiré.")
+
 def migrate_reprise_stock():
     """Corrige les reprises : bénéfice neutralisé (l'ancienne logique le mettait
     en négatif) et retrait des articles repris qui avaient été ajoutés
@@ -3843,6 +3885,8 @@ if __name__ == "__main__":
     db.init_db()
     # 0. Corriger les reprises enregistrées avec l'ancienne logique
     migrate_reprise_stock()
+    # 0b. Chaînes : remplacer l'ancien lot vrac par les 4 lots couleur (une fois)
+    migrate_chain_lots()
     # 1. Fusionner les factures dupliquées (même client + même jour → une seule)
     merge_duplicate_factures()
     # 2. Générer les factures manquantes pour les ventes qui n'en ont pas
