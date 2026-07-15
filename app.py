@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "59"
+ASSET_VERSION = "60"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -2621,6 +2621,73 @@ function filter(type, btn) {{
                 if article.get("ismail_pierres"):
                     add_notif_ismail(article, vente["client"], article["id"])
                 self.send_json({"success": True, "vente": vente}); return
+
+        # ── Vente d'une chaîne depuis un lot (jaune/blanche/rose/cartier) ─────
+        # Déduit le nb de chaînes ET le poids du lot. P.R = grammage × taux or.
+        if path == "/api/ventes/chaine":
+            code = str(data.get("ref_code", "")).strip()
+            articles = load_articles()
+            idx = next((i for i, a in enumerate(articles) if a.get("ref_code") == code), None)
+            if idx is None:
+                self.send_json({"error": "Lot de chaînes introuvable"}, 404); return
+            lot = articles[idx]
+            try:
+                nb = int(data.get("quantite") or 0)
+            except (TypeError, ValueError):
+                nb = 0
+            try:
+                gram = float(data.get("grammage") or 0)
+            except (TypeError, ValueError):
+                gram = 0
+            try:
+                pv = parse_positive(data.get("pv"), "Prix de vente")
+            except ValueError as e:
+                self.send_json({"error": str(e)}, 400); return
+            if nb <= 0:
+                self.send_json({"error": "Nombre de chaînes requis (> 0)"}, 400); return
+            if gram <= 0:
+                self.send_json({"error": "Grammage requis (> 0)"}, 400); return
+            stock_nb = int(lot.get("quantite") or 0)
+            stock_g  = float(lot.get("or_grs") or 0)
+            if nb > stock_nb:
+                self.send_json({"error": f"Stock insuffisant : {stock_nb} chaîne(s) dispo"}, 400); return
+            if gram > stock_g + 0.001:
+                self.send_json({"error": f"Stock insuffisant : {stock_g} g dispo"}, 400); return
+            cfg = load_config()
+            taux = float(cfg.get("prix_or_achat") or 1100)
+            pa = round(gram * taux, 2)
+            now = datetime.now()
+            date_v = str(data.get("date_vente") or now.strftime("%Y-%m-%d")).strip()
+            try: datetime.strptime(date_v, "%Y-%m-%d")
+            except: date_v = now.strftime("%Y-%m-%d")
+            vente = {
+                "id_vente": int(now.timestamp() * 1000),
+                "date_achat": lot.get("date"), "date_vente": date_v,
+                "ref": lot["id"],
+                "article": f"{lot.get('article','Chaîne')} (×{nb})",
+                "or_grs": gram, "vente_au_poids": True,
+                "prix_or_achat": taux, "pa": pa,
+                "d": None, "em": None, "r": None, "s": None,
+                "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
+                "pv": pv, "benef": round(pv - pa, 2),
+                "client": str(data.get("client", "")).strip(),
+                "telephone": str(data.get("telephone", "")).strip(),
+                "mode_paiement": str(data.get("mode_paiement", "")).strip(),
+                "commentaire": str(data.get("note", "")).strip(),
+                "type_vente": "produit",
+            }
+            # Déduire du lot (nb chaînes + poids). Le lot reste (catégorie permanente).
+            articles[idx]["quantite"] = max(0, stock_nb - nb)
+            articles[idx]["or_grs"]   = round(max(0.0, stock_g - gram), 3)
+            save_articles(articles)
+            ventes = load_ventes(); ventes.append(vente); save_ventes(ventes)
+            r_, ip_, dev_ = self._actor()
+            db.log_audit("created", "vente", lot["id"],
+                         f"Vente chaîne {lot.get('article','')} ×{nb} · {gram} g · "
+                         f"{vente['client'] or '?'} · {pv} MAD", r_, ip_, dev_)
+            self.send_json({"success": True, "vente": vente,
+                            "reste_nb": articles[idx]["quantite"],
+                            "reste_g": articles[idx]["or_grs"]}); return
 
         # ── Vente avec REPRISE (rachat + articles rendus) ─────────────────────
         # La cliente achète des articles (déduits du stock, comptés normalement)

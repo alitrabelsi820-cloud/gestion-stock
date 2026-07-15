@@ -636,6 +636,29 @@ td.has{color:#82e0aa;}
         </div>
         <button onclick="addNVToPanier()" style="padding:9px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;cursor:pointer;font-size:13px;font-weight:700">🛒 Ajouter au panier</button>
       </div>
+
+      <!-- SÉLECTEUR DE CHAÎNE (tape « chaine » dans la réf, ou via un pendentif) -->
+      <div id="nv-chain-picker" style="display:none;background:var(--bg3);border:1px solid rgba(46,204,113,.35);border-radius:10px;padding:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">⛓️ Vendre une chaîne</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Couleur du lot</div>
+        <div id="nv-chain-colors" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <div id="nv-chain-stock" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+        <div class="form-row" style="margin-bottom:10px">
+          <div class="form-group"><label>Nombre de chaînes *</label>
+            <input type="number" id="nv-chain-nb" min="1" step="1" placeholder="ex: 2" oninput="calcChainPR()" style="padding:8px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%"></div>
+          <div class="form-group"><label>Grammage total (grs) *</label>
+            <input type="number" id="nv-chain-gram" min="0.01" step="0.01" placeholder="ex: 8.5" oninput="calcChainPR()" style="padding:8px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%"></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
+          <div class="form-group" style="flex:1;min-width:150px"><label>Prix de Vente *</label>
+            <input type="number" id="nv-chain-pv" min="0" placeholder="ex: 15000" oninput="calcChainPR()" style="padding:8px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;color:var(--txt);font-size:14px;outline:none;width:100%"></div>
+          <div style="display:flex;gap:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px">
+            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">P.Revient</div><div style="font-weight:700;color:var(--muted)" id="nv-chain-pa">—</div></div>
+            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Bénéfice</div><div style="font-weight:700" id="nv-chain-benef">—</div></div>
+          </div>
+        </div>
+        <button onclick="addChainToPanier()" style="padding:9px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;cursor:pointer;font-size:13px;font-weight:700">⛓️ Ajouter la chaîne au panier</button>
+      </div>
     </div>
 
     <!-- PANIER NV -->
@@ -1226,6 +1249,13 @@ async function searchNV(){
     document.getElementById('nv-status').textContent='⚠️ Entrez une référence';
     return;
   }
+  // « chaine » (ou chaîne) tapé → ouvrir le sélecteur de chaîne
+  const norm = ref.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  if(!/^\d+$/.test(ref) && norm.includes('chaine')){
+    document.getElementById('nv-status').textContent='';
+    openChainPicker();
+    return;
+  }
   document.getElementById('nv-status').style.color='var(--muted)';
   document.getElementById('nv-status').textContent='Recherche…';
   document.getElementById('nv-art-found').style.display='none';
@@ -1275,6 +1305,83 @@ function displayNVArticle(a){
   document.getElementById('nv-art-found').style.display='block';
 }
 
+/* ── Vente de chaîne depuis un lot ── */
+let nvChainLots = [];       // lots de chaînes {id, ref_code, article, or_grs, quantite, pa}
+let nvChainSel = null;      // ref_code sélectionné
+
+async function loadChainLots(){
+  try{
+    const all = await fetch('/api/articles').then(r=>r.json());
+    nvChainLots = (all||[]).filter(a=>String(a.ref_code||'').startsWith('chaine_'));
+  }catch(e){ nvChainLots=[]; }
+}
+
+function openChainPicker(preCode){
+  document.getElementById('nv-art-found').style.display='none';
+  const picker=document.getElementById('nv-chain-picker');
+  picker.style.display='block';
+  nvChainSel=null;
+  ['nv-chain-nb','nv-chain-gram','nv-chain-pv'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nv-chain-pa').textContent='—';
+  document.getElementById('nv-chain-benef').textContent='—';
+  renderChainColors();
+  if(preCode) selectChainColor(preCode);
+  else if(nvChainLots.length===1) selectChainColor(nvChainLots[0].ref_code);
+  picker.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderChainColors(){
+  const box=document.getElementById('nv-chain-colors');
+  if(!nvChainLots.length){ box.innerHTML='<span style="color:var(--red);font-size:12px">Aucun lot de chaînes trouvé.</span>'; return; }
+  box.innerHTML=nvChainLots.map(l=>{
+    const on=l.ref_code===nvChainSel;
+    return `<button onclick="selectChainColor('${l.ref_code}')" style="padding:8px 14px;border-radius:8px;border:2px solid ${on?'var(--green)':'var(--bd)'};background:${on?'rgba(46,204,113,.15)':'var(--bg2)'};color:${on?'var(--green)':'var(--txt)'};font-size:13px;font-weight:700;cursor:pointer">${l.article||l.ref_code}</button>`;
+  }).join('');
+}
+
+function selectChainColor(code){
+  nvChainSel=code;
+  const l=nvChainLots.find(x=>x.ref_code===code);
+  renderChainColors();
+  document.getElementById('nv-chain-stock').textContent = l
+    ? `Stock ${l.article} : ${l.quantite} chaîne(s) · ${l.or_grs} g`
+    : '';
+  calcChainPR();
+}
+
+function calcChainPR(){
+  const gram=parseFloat(document.getElementById('nv-chain-gram').value)||0;
+  const pv=parseFloat(document.getElementById('nv-chain-pv').value)||0;
+  const taux=(nvConfig&&nvConfig.prix_or_achat)||1100;
+  const pa=Math.round(gram*taux);
+  const f=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+  document.getElementById('nv-chain-pa').textContent=gram>0?f(pa):'—';
+  const b=pv-pa, el=document.getElementById('nv-chain-benef');
+  if(!pv){el.textContent='—';el.style.color='var(--muted)';}
+  else{el.textContent=f(b);el.style.color=b>=0?'var(--green)':'var(--red)';}
+}
+
+function addChainToPanier(){
+  if(!nvChainSel){toast('Choisis la couleur de la chaîne','error');return;}
+  const l=nvChainLots.find(x=>x.ref_code===nvChainSel);
+  const nb=parseInt(document.getElementById('nv-chain-nb').value)||0;
+  const gram=parseFloat(document.getElementById('nv-chain-gram').value)||0;
+  const pv=parseFloat(document.getElementById('nv-chain-pv').value)||0;
+  if(nb<=0){toast('Nombre de chaînes requis','error');return;}
+  if(gram<=0){toast('Grammage requis','error');return;}
+  if(pv<=0){toast('Prix de vente requis','error');return;}
+  if(l && nb>(l.quantite||0)){toast('Stock : '+l.quantite+' chaîne(s) dispo','error');return;}
+  if(l && gram>(l.or_grs||0)+0.001){toast('Stock : '+l.or_grs+' g dispo','error');return;}
+  const taux=(nvConfig&&nvConfig.prix_or_achat)||1100;
+  const pa=Math.round(gram*taux);
+  nvPanier.push({chain:true, ref_code:nvChainSel, chain_name:l?l.article:'Chaîne',
+                 nb, grammage:gram, pv, pa_calc:pa});
+  document.getElementById('nv-chain-picker').style.display='none';
+  document.getElementById('nv-ref-input').value='';
+  renderNVPanier();
+  toast('⛓️ Chaîne ajoutée au panier','success');
+}
+
 function addNVToPanier(){
   if(!nvArticle){toast('Aucun article sélectionné','error');return;}
   if(nvEstPoids){
@@ -1292,11 +1399,18 @@ function addNVToPanier(){
     nvPanier.push({article:nvArticle, pv});
   }
   toast(`Article #${nvArticle.id} ajouté au panier ✓`,'success');
+  const wasType=(nvArticle.article||'').trim().toLowerCase();
   nvArticle=null;
   document.getElementById('nv-ref-input').value='';
   document.getElementById('nv-status').textContent='';
   document.getElementById('nv-art-found').style.display='none';
   renderNVPanier();
+  // Automatisme : pendentif seul (pas « chaine +pendentif ») → proposer une chaîne
+  if(wasType==='pendentif'){
+    setTimeout(()=>{
+      if(confirm('⛓️ Vendre une chaîne avec ce pendentif ?')) openChainPicker();
+    },250);
+  }
 }
 
 function repartirPrixGlobal(){
@@ -1304,10 +1418,11 @@ function repartirPrixGlobal(){
   if(!total || total <= 0){ toast('Entrez un montant global valide','error'); return; }
   if(!nvPanier.length) return;
   // Répartir au prorata du PA (coût d'achat), ou également si tous les PA=0
-  const totalPA = nvPanier.reduce((s,item) => s + (item.article.pa || 0), 0);
+  const paOf = it => it.chain ? (it.pa_calc||0) : (it.article.pa || 0);
+  const totalPA = nvPanier.reduce((s,item) => s + paOf(item), 0);
   nvPanier.forEach(item => {
     if(totalPA > 0){
-      const ratio = (item.article.pa || 0) / totalPA;
+      const ratio = paOf(item) / totalPA;
       item.pv = Math.round(total * ratio);
     } else {
       item.pv = Math.round(total / nvPanier.length);
@@ -1334,6 +1449,17 @@ function renderNVPanier(){
   const fmtN=v=>Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
   let totPA=0,totPV=0;
   document.getElementById('nv-panier-body').innerHTML=nvPanier.map((item,i)=>{
+    if(item.chain){
+      const pa=item.pa_calc||0; const b=item.pv-pa; totPA+=pa; totPV+=item.pv;
+      return`<tr>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--bd);font-family:monospace;color:var(--green);font-weight:700">#${item.ref_code}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--bd)">${item.chain_name} <span style="font-size:11px;background:rgba(46,204,113,.15);color:var(--green);padding:1px 6px;border-radius:8px">×${item.nb} · ${item.grammage}g</span></td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--bd);color:var(--muted)">${fmtN(pa)}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--bd)">${fmtN(item.pv)}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--bd);font-weight:700;color:${b>=0?'var(--green)':'var(--red)'}">${fmtN(b)}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid var(--bd)"><button onclick="removeNVFromPanier(${i})" style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);color:var(--red);padding:3px 8px;border-radius:6px;cursor:pointer;font-size:12px">✕</button></td>
+      </tr>`;
+    }
     const pa=item.au_poids?(item.pa_calc||0):(item.article.pa||0);
     const b=item.pv-pa;
     totPA+=pa;totPV+=item.pv;
@@ -1370,9 +1496,11 @@ function removeNVFromPanier(idx){
 function openNVModal(preRef){
   nvArticle=null;
   nvPanier=[];
+  loadChainLots();
   document.getElementById('nv-ref-input').value=preRef||'';
   document.getElementById('nv-status').textContent='';
   document.getElementById('nv-art-found').style.display='none';
+  const cp=document.getElementById('nv-chain-picker'); if(cp) cp.style.display='none';
   document.getElementById('nv-panier-card').style.display='none';
   const pg=document.getElementById('nv-prix-global'); if(pg) pg.value='';
   document.getElementById('nv-client').value='';
@@ -1509,15 +1637,23 @@ async function submitNV(){
   const panierCopy=[...nvPanier];
   let ok=0;const errors=[];let hadIsmail=false;
   for(const item of nvPanier){
+    const lbl = item.chain ? ('#'+item.ref_code) : ('#'+item.article.id);
     try{
-      const payload=item.au_poids
-        ? {ref:item.article.id, poids_vendu:item.poids_vendu, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode, type_vente:nvTypeVente}
-        : {ref:item.article.id, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode, type_vente:nvTypeVente};
-      const res=await fetch('/api/ventes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      let url='/api/ventes', payload;
+      if(item.chain){
+        url='/api/ventes/chaine';
+        payload={ref_code:item.ref_code, quantite:item.nb, grammage:item.grammage, pv:item.pv,
+                 client, telephone:contact, date_vente, note, mode_paiement:mode};
+      } else if(item.au_poids){
+        payload={ref:item.article.id, poids_vendu:item.poids_vendu, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode, type_vente:nvTypeVente};
+      } else {
+        payload={ref:item.article.id, pv:item.pv, client, telephone:contact, date_vente, note, mode_paiement:mode, type_vente:nvTypeVente};
+      }
+      const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
       const data=await res.json();
       if(res.ok){ok++;if(item.article&&item.article.ismail_pierres)hadIsmail=true;}
-      else errors.push(`#${item.article.id}: ${data.error||'Erreur'}`);
-    }catch(e){errors.push(`#${item.article.id}: Erreur réseau`);}
+      else errors.push(`${lbl}: ${data.error||'Erreur'}`);
+    }catch(e){errors.push(`${lbl}: Erreur réseau`);}
   }
   if(ok>0&&statut!=='totalite'){
     const totPV=panierCopy.reduce((s,i)=>s+i.pv,0);
@@ -1525,8 +1661,8 @@ async function submitNV(){
     const creditPayload={
       client:client||'Client inconnu', contact,
       date_achat:today,
-      refs:panierCopy.map(i=>i.article.id).join(', '),
-      article:panierCopy.map(i=>i.article.article||'').join(', '),
+      refs:panierCopy.map(i=>i.chain?i.ref_code:i.article.id).join(', '),
+      article:panierCopy.map(i=>i.chain?i.chain_name:(i.article.article||'')).join(', '),
       montant_total:totPV,
       avance:statut==='avance'?avance:0,
       mode_paiement:statut==='avance'?document.getElementById('nv-mode').value:mode,
