@@ -653,14 +653,15 @@ function fmt(v) { return v==null?'—':Number(v).toLocaleString('fr-FR',{maximum
 function fmtN(v) { return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
 function fmtD(d) { if(!d) return '—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
 
+function noAccent(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
 function filter() {
-  const q = document.getElementById('q').value.toLowerCase();
+  const q = noAccent(document.getElementById('q').value);
   const ft = document.getElementById('ft').value;
   sortCol = document.getElementById('sb').value;
   sortDir = document.getElementById('sd').value;
 
   filtered = ALL.filter(a =>
-    (!q || String(a.id).includes(q) || (a.article||'').toLowerCase().includes(q)) &&
+    (!q || String(a.id).includes(q) || noAccent(a.article).includes(q)) &&
     (!ft || a.article === ft)
   );
 
