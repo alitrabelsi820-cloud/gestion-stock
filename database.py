@@ -437,6 +437,12 @@ def init_db():
             print("[DB] Colonne 'note' ajoutée aux articles.")
         except Exception:
             pass
+        # Migration 4 : code référence texte (ex: chaine_jaune) — sinon on affiche l'id
+        try:
+            conn.execute("ALTER TABLE articles ADD COLUMN ref_code TEXT")
+            print("[DB] Colonne 'ref_code' ajoutée aux articles.")
+        except Exception:
+            pass
         # Migration 4 : source et telephone sur les ventes
         try:
             conn.execute("ALTER TABLE ventes ADD COLUMN source TEXT DEFAULT 'stock'")
@@ -535,6 +541,7 @@ def _row_to_article(row):
         "ismail_pierres": bool(row["ismail_pierres"]),
         "quantite": row["quantite"] if row["quantite"] else 1,
         "note": row["note"] or "",
+        "ref_code": (row["ref_code"] if "ref_code" in row.keys() else None) or None,
     }
 
 def load_articles():
@@ -548,15 +555,16 @@ def save_articles(articles):
         conn.execute("DELETE FROM articles")
         conn.executemany("""
             INSERT INTO articles
-            (id,date,article,or_grs,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,fabricant,ismail_pierres,quantite,note)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            (id,date,article,or_grs,pa,d,em,r,s,p_fines,rosaces,em_clb,perles,fabricant,ismail_pierres,quantite,note,ref_code)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, [(a["id"], a.get("date"), a.get("article"),
                a.get("or_grs"), a.get("pa"), a.get("d"), a.get("em"),
                a.get("r"), a.get("s"), a.get("p_fines"), a.get("rosaces"),
                a.get("em_clb"), a.get("perles"), a.get("fabricant"),
                1 if a.get("ismail_pierres") else 0,
                int(a.get("quantite") or 1),
-               str(a.get("note") or "")) for a in articles])
+               str(a.get("note") or ""),
+               (a.get("ref_code") or None)) for a in articles])
 
 
 # ─── VENTES ───────────────────────────────────────────────────────────────────

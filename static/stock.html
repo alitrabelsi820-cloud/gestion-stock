@@ -661,7 +661,7 @@ function filter() {
   sortDir = document.getElementById('sd').value;
 
   filtered = ALL.filter(a =>
-    (!q || String(a.id).includes(q) || noAccent(a.article).includes(q)) &&
+    (!q || String(a.id).includes(q) || noAccent(a.article).includes(q) || noAccent(a.ref_code||'').includes(q)) &&
     (!ft || a.article === ft)
   );
 
@@ -689,7 +689,7 @@ function render() {
 
   body.innerHTML = rows.map((a,i)=>`
     <tr onclick="showDetail(${start+i})">
-      <td class="ref-col">#${a.id}</td>
+      <td class="ref-col">#${a.ref_code || a.id}</td>
       <td>${fmtD(a.date)}</td>
       <td>
         <span class="badge ${badge(a.article)}">${a.article||'—'}</span>
@@ -740,7 +740,7 @@ function reset(){document.getElementById('q').value='';document.getElementById('
 async function showDetail(idx) {
   const a = filtered[idx];
   currentArticle = a;
-  document.getElementById('m-title').textContent = `Article #${a.id} — ${a.article}`;
+  document.getElementById('m-title').textContent = `Article #${a.ref_code || a.id} — ${a.article}`;
 
   // Photo
   const photoWrap = document.getElementById('m-photo-wrap');
@@ -752,7 +752,7 @@ async function showDetail(idx) {
 
   document.getElementById('m-grid').innerHTML = [
     ['Date d\'entrée',  fmtD(a.date),               ''],
-    ['Référence',       '#'+a.id,                    'gold'],
+    ['Référence',       '#'+(a.ref_code || a.id),    'gold'],
     a.article        ? ['Type d\'article',  a.article,                    '']    : null,
     a.or_grs != null ? ['OR (grammes)',     fmt(a.or_grs)+' grs',         'gold']: null,
     a.pa     != null ? ['Prix de Revient',  fmtN(a.pa)+'',            'grn'] : null,
@@ -809,7 +809,7 @@ function setIsmail(prefix, val){
 function openEdit(idx) {
   const a = filtered[idx];
   currentArticle = a;
-  document.getElementById('edit-ref-title').textContent = '#'+a.id;
+  document.getElementById('edit-ref-title').textContent = '#'+(a.ref_code || a.id);
   document.getElementById('e-id').value = a.id;
   document.getElementById('e-date').value = a.date || '';
   document.getElementById('e-article').value = a.article || '';

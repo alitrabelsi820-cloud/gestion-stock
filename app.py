@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "58"
+ASSET_VERSION = "59"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -583,46 +583,50 @@ def build_label_payload(art, include_stones=True):
     }
 
 def migrate_chain_lots():
-    """One-shot : remplace l'ancien lot vrac de chaînes (id 10) par 4 lots par
-    couleur (audit magasin), vendus au poids. Verrou config → ne s'exécute
-    qu'une fois. L'id 10 est sauvegardé dans la corbeille (restaurable)."""
+    """Remplace l'ancien lot vrac de chaînes (id 10) par 4 lots par couleur
+    (audit magasin), vendus au poids, avec un CODE RÉFÉRENCE lisible
+    (chaine_jaune, chaine_blanche, chaine_rose, chaine_cartier) au lieu d'un
+    numéro. Crée les lots s'ils manquent, pose le code s'il manque. Idempotent."""
     cfg = load_config()
-    if cfg.get("chain_lots_v1"):
+    if cfg.get("chain_lots_v2"):
         return
     articles = load_articles()
-    # supprimer l'ancien lot vrac id 10 (snapshot corbeille) — uniquement si c'est bien une "Chaîne"
-    a10 = next((a for a in articles if a.get("id") == 10), None)
-    if a10 is not None and a10.get("article") == "Chaîne":
-        articles = [a for a in articles if a.get("id") != 10]
-        try:
-            db.log_audit("deleted", "article", 10,
-                         "Chaîne (ancien lot vrac 314,2 g) — remplacé par lots couleur",
-                         "system", "", "", snapshot=a10)
-        except Exception:
-            pass
-    # créer les 4 lots (nb de chaînes = quantite, poids total = or_grs, P.R au poids)
+    # supprimer l'ancien lot vrac id 10 (une seule fois) — si c'est bien une "Chaîne"
+    if not cfg.get("chain_lots_v1"):
+        a10 = next((a for a in articles if a.get("id") == 10), None)
+        if a10 is not None and a10.get("article") == "Chaîne":
+            articles = [a for a in articles if a.get("id") != 10]
+            try:
+                db.log_audit("deleted", "article", 10,
+                             "Chaîne (ancien lot vrac 314,2 g) — remplacé par lots couleur",
+                             "system", "", "", snapshot=a10)
+            except Exception:
+                pass
     taux = float(cfg.get("prix_or_achat") or 1100)
-    lots = [("Chaîne jaune", 32, 123.4), ("Chaîne blanche", 34, 74.9),
-            ("Chaîne rose", 16, 39.0), ("Chaîne Cartier", 4, 14.1)]
+    # (code, nom affiché, nb chaînes, poids total)
+    lots = [("chaine_jaune", "Chaîne jaune", 32, 123.4),
+            ("chaine_blanche", "Chaîne blanche", 34, 74.9),
+            ("chaine_rose", "Chaîne rose", 16, 39.0),
+            ("chaine_cartier", "Chaîne Cartier", 4, 14.1)]
     max_id = max((a["id"] for a in articles), default=0)
     today = datetime.now().strftime("%Y-%m-%d")
-    created = 0
-    for name, nb, poids in lots:
-        if any(a.get("article") == name for a in articles):
-            continue
-        max_id += 1
-        articles.append({
-            "id": max_id, "date": today, "article": name,
-            "or_grs": poids, "pa": round(poids * taux, 2),
-            "d": None, "em": None, "r": None, "s": None,
-            "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
-            "fabricant": "", "ismail_pierres": 0, "quantite": nb,
-            "note": "Lot de chaînes (audit) — vendu au poids",
-        })
-        created += 1
+    for code, name, nb, poids in lots:
+        ex = next((a for a in articles if a.get("article") == name or a.get("ref_code") == code), None)
+        if ex:
+            ex["ref_code"] = code            # poser le code sur un lot déjà créé
+        else:
+            max_id += 1
+            articles.append({
+                "id": max_id, "date": today, "article": name, "ref_code": code,
+                "or_grs": poids, "pa": round(poids * taux, 2),
+                "d": None, "em": None, "r": None, "s": None,
+                "p_fines": None, "rosaces": None, "em_clb": None, "perles": None,
+                "fabricant": "", "ismail_pierres": 0, "quantite": nb,
+                "note": "Lot de chaînes (audit) — vendu au poids",
+            })
     save_articles(articles)
-    save_config({"chain_lots_v1": 1})
-    print(f"[MIGRATION] Lots de chaînes : {created} lot(s) créé(s), ancien lot vrac (id 10) retiré.")
+    save_config({"chain_lots_v1": 1, "chain_lots_v2": 1})
+    print("[MIGRATION] Lots de chaînes : codes chaine_jaune/blanche/rose/cartier posés (créés si manquants).")
 
 def migrate_reprise_stock():
     """Corrige les reprises : bénéfice neutralisé (l'ancienne logique le mettait
