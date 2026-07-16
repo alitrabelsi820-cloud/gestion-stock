@@ -528,19 +528,27 @@ def _nb_sessions(ventes_list):
             sessions.add(f"{ck}|{dk}")
     return len(sessions)
 
+def is_lot(a):
+    """Lot (ex : lots de chaînes) : le poids et le coût enregistrés sont DÉJÀ
+    ceux du lot entier, et 'quantite' est le NOMBRE de pièces du lot.
+    → il ne faut donc pas multiplier poids/coût par la quantité."""
+    return str(a.get("ref_code") or "").startswith("chaine_")
+
 def calc_stats(articles):
     qty = lambda a: int(a.get("quantite") or 1)
+    # multiplicateur : 1 pour un lot (valeurs déjà totales), sinon la quantité
+    m = lambda a: 1 if is_lot(a) else qty(a)
     return {
         "nb_articles": sum(qty(a) for a in articles),  # total pièces physiques
-        "total_or": round(sum((a["or_grs"] or 0) * qty(a) for a in articles), 2),
-        "valeur_stock": round(sum((a["pa"] or 0) * qty(a) for a in articles), 0),
-        "diamants": round(sum((a["d"] or 0) * qty(a) for a in articles), 2),
-        "emeraudes": round(sum((a["em"] or 0) * qty(a) for a in articles), 2),
-        "rubis": round(sum((a["r"] or 0) * qty(a) for a in articles), 2),
-        "saphirs": round(sum((a["s"] or 0) * qty(a) for a in articles), 2),
-        "rosaces": round(sum((a["rosaces"] or 0) * qty(a) for a in articles), 2),
-        "em_clb": round(sum((a["em_clb"] or 0) * qty(a) for a in articles), 2),
-        "perles": round(sum((a["perles"] or 0) * qty(a) for a in articles), 2),
+        "total_or": round(sum((a["or_grs"] or 0) * m(a) for a in articles), 2),
+        "valeur_stock": round(sum((a["pa"] or 0) * m(a) for a in articles), 0),
+        "diamants": round(sum((a["d"] or 0) * m(a) for a in articles), 2),
+        "emeraudes": round(sum((a["em"] or 0) * m(a) for a in articles), 2),
+        "rubis": round(sum((a["r"] or 0) * m(a) for a in articles), 2),
+        "saphirs": round(sum((a["s"] or 0) * m(a) for a in articles), 2),
+        "rosaces": round(sum((a["rosaces"] or 0) * m(a) for a in articles), 2),
+        "em_clb": round(sum((a["em_clb"] or 0) * m(a) for a in articles), 2),
+        "perles": round(sum((a["perles"] or 0) * m(a) for a in articles), 2),
     }
 
 def _is_service(v):
