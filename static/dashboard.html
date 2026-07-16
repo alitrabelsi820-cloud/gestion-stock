@@ -317,11 +317,18 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
               <span style="font-size:21px;font-weight:900;color:var(--gold-l);" id="s-or">—</span>
             </td>
           </tr>
-          <tr style="border-bottom:2px solid rgba(201,168,76,.3);">
+          <tr>
             <td style="padding:12px 8px 12px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">💍 Articles en Stock</td>
             <td style="padding:12px 0;text-align:right;white-space:nowrap;">
               <span style="font-size:21px;font-weight:900;color:var(--txt);" id="s-nb">—</span>
               <span style="font-size:12px;color:var(--muted);margin-left:5px;">articles</span>
+            </td>
+          </tr>
+          <tr style="border-bottom:2px solid rgba(201,168,76,.3);">
+            <td style="padding:12px 8px 12px 0;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">⛓️ Chaînes</td>
+            <td style="padding:12px 0;text-align:right;white-space:nowrap;">
+              <span style="font-size:21px;font-weight:900;color:var(--txt);" id="s-nb-chaines">—</span>
+              <span style="font-size:12px;color:var(--muted);margin-left:5px;">chaînes</span>
             </td>
           </tr>
           <!-- ─ Pierres ─ -->
@@ -627,6 +634,8 @@ async function load(){
 
     // ── KPIs Stock ──
     document.getElementById('s-nb').textContent    = stats.nb_articles;
+    const elCh = document.getElementById('s-nb-chaines');
+    if(elCh) elCh.textContent = stats.nb_chaines ?? 0;
     document.getElementById('s-or').textContent    = fmt(stats.total_or) + ' grs';
     document.getElementById('s-val').textContent   = fmtN(stats.valeur_stock) +'';
     document.getElementById('big-or').textContent  = fmt(stats.total_or);

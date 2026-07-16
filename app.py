@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "61"
+ASSET_VERSION = "62"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -539,7 +539,10 @@ def calc_stats(articles):
     # multiplicateur : 1 pour un lot (valeurs déjà totales), sinon la quantité
     m = lambda a: 1 if is_lot(a) else qty(a)
     return {
-        "nb_articles": sum(qty(a) for a in articles),  # total pièces physiques
+        # articles hors chaînes (pièces physiques, quantités comprises)
+        "nb_articles": sum(qty(a) for a in articles if not is_lot(a)),
+        # chaînes comptées à part (somme des lots)
+        "nb_chaines": sum(qty(a) for a in articles if is_lot(a)),
         "total_or": round(sum((a["or_grs"] or 0) * m(a) for a in articles), 2),
         "valeur_stock": round(sum((a["pa"] or 0) * m(a) for a in articles), 0),
         "diamants": round(sum((a["d"] or 0) * m(a) for a in articles), 2),
