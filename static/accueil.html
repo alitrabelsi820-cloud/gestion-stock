@@ -1053,8 +1053,9 @@ function ficheRenderStock(a, enCredit){
   +'<div class="fiche-article-name">'+escHtml(a.article||'—')+'</div>'
   +'<div class="info-grid">'
   +'<div class="info-item"><label>Date d\'entrée</label><div class="val">'+fmtDF(a.date)+'</div></div>'
+  +'<div class="info-item"><label>Quantité en stock</label><div class="val gold">'+(parseInt(a.quantite)||1)+(String(a.ref_code||'').startsWith('chaine_')?' chaînes':' pièce'+((parseInt(a.quantite)||1)>1?'s':''))+'</div></div>'
   +(a.pa!=null?'<div class="info-item"><label>Prix de Revient (P.R)</label><div class="val grn">'+fmtNF(a.pa)+'</div></div>':'')
-  +(a.or_grs!=null?'<div class="info-item"><label>OR (grammes)</label><div class="val gold">'+fmtF(a.or_grs)+' grs</div></div>':'')
+  +(a.or_grs!=null?'<div class="info-item"><label>OR (grammes)'+((parseInt(a.quantite)||1)>1&&!String(a.ref_code||'').startsWith('chaine_')?' (unité)':'')+'</label><div class="val gold">'+fmtF(a.or_grs)+' grs</div></div>':'')
   +(a.d?'<div class="info-item"><label>Diamants</label><div class="val has">'+fmtF(a.d)+' cts</div></div>':'')
   +(a.em?'<div class="info-item"><label>Émeraudes</label><div class="val has">'+fmtF(a.em)+' cts</div></div>':'')
   +(a.r?'<div class="info-item"><label>Rubis</label><div class="val has">'+fmtF(a.r)+' cts</div></div>':'')
@@ -1196,6 +1197,7 @@ function mobFicheRenderStock(a, enCredit){
     : '<span class="mob-fiche-badge mob-badge-stock">✅ En Stock</span>';
   var rows = ''
     + mobFicheRow('Date d\'entrée', fmtDF(a.date))
+    + mobFicheRow('Quantité', (parseInt(a.quantite)||1)+(String(a.ref_code||'').startsWith('chaine_')?' chaînes':' pièce'+((parseInt(a.quantite)||1)>1?'s':'')), 'gold')
     + mobFicheRowPR(a.pa!=null ? fmtNF(a.pa)+' DHS' : null)
     + mobFicheRow('OR (grs)', a.or_grs!=null ? fmtF(a.or_grs)+' grs' : null, 'gold')
     + mobFicheRow('Diamants', a.d ? fmtF(a.d)+' cts' : null, 'has')
