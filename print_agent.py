@@ -15,6 +15,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 import urllib.request
 import urllib.error
@@ -165,6 +166,16 @@ def main():
     ensure_single_instance()   # jamais deux agents en même temps
     cfg = load_config()
     app = App(cfg)
+
+    # Export comptable : télécharge en arrière-plan les mois terminés manquants
+    # (rattrapage automatique — aucun mois ne peut être oublié).
+    def _export_auto():
+        try:
+            import export_auto
+            export_auto.main()
+        except Exception:
+            pass
+    threading.Thread(target=_export_auto, daemon=True).start()
 
     printer = find_printer()
     if not printer:
