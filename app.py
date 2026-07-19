@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "65"
+ASSET_VERSION = "66"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1850,14 +1850,14 @@ function filter(type, btn) {{
         # ── Export comptable Excel (.xlsx) d'un mois ──────────────────────────
         if path == "/api/export-excel":
             mois = (params.get("mois", [""])[0] or datetime.now().strftime("%Y-%m")).strip()
-            if not re.match(r"^\d{4}-\d{2}$", mois):
+            if mois != "tout" and not re.match(r"^\d{4}-\d{2}$", mois):
                 self.send_json({"error": "Mois invalide (format AAAA-MM)"}, 400); return
             try:
                 import export_excel
                 contenu = export_excel.generer(
                     mois, load_ventes(), load_credits(), load_articles(),
                     load_fournisseurs(), load_cheques(), is_lot)
-                nom = export_excel.nom_fichier(mois)
+                nom = export_excel.nom_fichier(mois, load_ventes())
             except ImportError:
                 self.send_json({"error": "Module Excel indisponible sur le serveur"}, 500); return
             except Exception as e:

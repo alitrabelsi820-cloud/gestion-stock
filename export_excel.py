@@ -102,8 +102,11 @@ def _anciennete(date_str):
 # ── Onglets ──────────────────────────────────────────────────────────────────
 def _onglet_resume(wb, mois, ventes_mois, ventes_prec, credits, articles, is_lot):
     ws = wb.create_sheet("RÉSUMÉ")
-    an, m = mois.split("-")
-    ws["A1"] = f"TRABELSI Joaillerie — {MOIS_FR[int(m)]} {an}"
+    if mois == "tout":
+        ws["A1"] = "TRABELSI Joaillerie — HISTORIQUE COMPLET"
+    else:
+        an, m = mois.split("-")
+        ws["A1"] = f"TRABELSI Joaillerie — {MOIS_FR[int(m)]} {an}"
     ws["A1"].font = F_TITRE
     ws["A2"] = f"Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}"
     ws["A2"].font = F_MUTED
@@ -172,13 +175,13 @@ def _onglet_resume(wb, mois, ventes_mois, ventes_prec, credits, articles, is_lot
     encaisse = 0.0
     for c in credits:
         for p in c.get("paiements", []) or []:
-            if _du_mois(p.get("date"), mois):
+            if mois == "tout" or _du_mois(p.get("date"), mois):
                 encaisse += _f(p.get("montant"))
     reste_total = sum(_f(c.get("reste")) for c in credits
                       if (c.get("statut") or "") in ("rien", "avance"))
     r += 1
     r = bloc("TRÉSORERIE & CRÉANCES", r)
-    r = kv(r, "Encaissé ce mois (sur crédits)", round(encaisse))
+    r = kv(r, "Encaissé (sur crédits)" if mois == "tout" else "Encaissé ce mois (sur crédits)", round(encaisse))
     r = kv(r, "Total dû par les clients", round(reste_total))
     r = kv(r, "Nombre de créances ouvertes",
            len([c for c in credits if (c.get("statut") or "") in ("rien", "avance")]), "0")
@@ -187,13 +190,14 @@ def _onglet_resume(wb, mois, ventes_mois, ventes_prec, credits, articles, is_lot
     ca_prec = sum(_f(v.get("pv")) for v in ventes_prec)
     bn_prec = sum(_f(v.get("benef")) for v in ventes_prec)
     r += 1
-    r = bloc("COMPARAISON MOIS PRÉCÉDENT", r)
-    r = kv(r, "CA mois précédent", round(ca_prec))
-    r = kv(r, "Évolution CA", round((ca_tot - ca_prec) / ca_prec * 100, 1) if ca_prec else 0,
-           FMT_PCT, couleur=True)
-    r = kv(r, "Bénéfice mois précédent", round(bn_prec))
-    r = kv(r, "Évolution bénéfice", round((bn_tot - bn_prec) / bn_prec * 100, 1) if bn_prec else 0,
-           FMT_PCT, couleur=True)
+    if mois != "tout":
+        r = bloc("COMPARAISON MOIS PRÉCÉDENT", r)
+        r = kv(r, "CA mois précédent", round(ca_prec))
+        r = kv(r, "Évolution CA", round((ca_tot - ca_prec) / ca_prec * 100, 1) if ca_prec else 0,
+               FMT_PCT, couleur=True)
+        r = kv(r, "Bénéfice mois précédent", round(bn_prec))
+        r = kv(r, "Évolution bénéfice", round((bn_tot - bn_prec) / bn_prec * 100, 1) if bn_prec else 0,
+               FMT_PCT, couleur=True)
 
     # Stock (au jour de l'export)
     q = lambda a: int(a.get("quantite") or 1)
@@ -207,6 +211,48 @@ def _onglet_resume(wb, mois, ventes_mois, ventes_prec, credits, articles, is_lot
            sum(q(a) for a in articles if not is_lot(a)), "0")
     r = kv(r, "Chaînes en stock", sum(q(a) for a in articles if is_lot(a)), "0")
     return ws
+
+
+def _bloc_par_mois(ws, r, ventes):
+    """Tableau récapitulatif mois par mois (export historique)."""
+    entetes = ["Mois", "Ventes", "CA", "Bénéfice", "Marge %", "OR vendu (grs)"]
+    largeurs = [16, 10, 16, 16, 11, 15]
+    for i, (t, w) in enumerate(zip(entetes, largeurs), start=1):
+        c = ws.cell(row=r, column=i, value=t)
+        c.font, c.fill, c.alignment, c.border = F_ENTETE, FILL_ENT, CENTRE, BORD
+        if ws.column_dimensions[get_column_letter(i)].width < w:
+            ws.column_dimensions[get_column_letter(i)].width = w
+    r += 1
+    par_mois = {}
+    for v in ventes:
+        m = str(v.get("date_vente") or "")[:7]
+        if not m:
+            continue
+        d = par_mois.setdefault(m, {"nb": 0, "ca": 0.0, "bn": 0.0, "or": 0.0})
+        d["nb"] += 1
+        d["ca"] += _f(v.get("pv"))
+        d["bn"] += _f(v.get("benef"))
+        d["or"] += _f(v.get("or_grs"))
+    t_nb = t_ca = t_bn = t_or = 0
+    for m in sorted(par_mois):
+        d = par_mois[m]
+        t_nb += d["nb"]; t_ca += d["ca"]; t_bn += d["bn"]; t_or += d["or"]
+        an, mm = m.split("-")
+        vals = [f"{MOIS_FR[int(mm)]} {an}", d["nb"], round(d["ca"]), round(d["bn"]),
+                round(d["bn"] / d["ca"] * 100, 1) if d["ca"] else None, round(d["or"], 2)]
+        for i, v in enumerate(vals, start=1):
+            c = ws.cell(row=r, column=i, value=v)
+            c.border = BORD
+            c.number_format = [None, "0", FMT_MAD, FMT_MAD, FMT_PCT, FMT_CTS][i - 1] or "General"
+        _couleur_montant(ws, r, 4, d["bn"])
+        r += 1
+    vals = ["TOTAL", t_nb, round(t_ca), round(t_bn),
+            round(t_bn / t_ca * 100, 1) if t_ca else None, round(t_or, 2)]
+    for i, v in enumerate(vals, start=1):
+        c = ws.cell(row=r, column=i, value=v)
+        c.border, c.font, c.fill = BORD, F_GRAS, FILL_TOT
+        c.number_format = [None, "0", FMT_MAD, FMT_MAD, FMT_PCT, FMT_CTS][i - 1] or "General"
+    return r + 1
 
 
 def _onglet_ventes(wb, ventes_mois):
@@ -279,7 +325,7 @@ def _onglet_paiements(wb, credits, mois):
     lignes = []
     for c in credits:
         for p in c.get("paiements", []) or []:
-            if _du_mois(p.get("date"), mois):
+            if mois is None or _du_mois(p.get("date"), mois):
                 lignes.append((p.get("date"), c.get("client") or "", _f(p.get("montant")),
                                p.get("mode") or "", c.get("id"), c.get("article") or ""))
     lignes.sort(key=lambda x: str(x[0]))
@@ -367,22 +413,37 @@ def mois_precedent(mois):
     return f"{an - 1}-12" if m == 1 else f"{an}-{m - 1:02d}"
 
 
-def nom_fichier(mois):
-    an, m = mois.split("-")
-    return f"TRABELSI_{mois}_{MOIS_FR[int(m)]}.xlsx"
+def nom_fichier(mois, ventes=None):
+    if mois == "tout":
+        m = sorted({str(v.get("date_vente"))[:7] for v in (ventes or [])
+                    if v.get("date_vente")})
+        debut = m[0] if m else "debut"
+        return f"TRABELSI_HISTORIQUE_{debut}_a_{datetime.now().strftime('%Y-%m')}.xlsx"
+    an, mm = mois.split("-")
+    return f"TRABELSI_{mois}_{MOIS_FR[int(mm)]}.xlsx"
 
 
 def generer(mois, ventes, credits, articles, fournisseurs, cheques, is_lot):
-    """Construit le classeur du mois 'AAAA-MM' et retourne les octets du .xlsx."""
-    ventes_mois = [v for v in ventes if _du_mois(v.get("date_vente"), mois)]
-    ventes_prec = [v for v in ventes if _du_mois(v.get("date_vente"), mois_precedent(mois))]
+    """Construit le classeur ('AAAA-MM' ou 'tout') et retourne les octets .xlsx."""
+    tout = (mois == "tout")
+    if tout:
+        ventes_sel = [v for v in ventes if v.get("date_vente")]
+        ventes_prec = []
+    else:
+        ventes_sel = [v for v in ventes if _du_mois(v.get("date_vente"), mois)]
+        ventes_prec = [v for v in ventes if _du_mois(v.get("date_vente"), mois_precedent(mois))]
 
     wb = Workbook()
     wb.remove(wb.active)
-    _onglet_resume(wb, mois, ventes_mois, ventes_prec, credits, articles, is_lot)
-    _onglet_ventes(wb, ventes_mois)
+    ws = _onglet_resume(wb, mois, ventes_sel, ventes_prec, credits, articles, is_lot)
+    if tout:
+        # Récapitulatif mois par mois, à la suite du résumé
+        r = ws.max_row + 3
+        ws.cell(row=r, column=1, value="DÉTAIL MOIS PAR MOIS").font = F_TITRE
+        _bloc_par_mois(ws, r + 1, ventes_sel)
+    _onglet_ventes(wb, ventes_sel)
     _onglet_credits(wb, credits)
-    _onglet_paiements(wb, credits, mois)
+    _onglet_paiements(wb, credits, None if tout else mois)
     _onglet_stock(wb, articles, is_lot)
     _onglet_fournisseurs(wb, fournisseurs)
     _onglet_cheques(wb, cheques)

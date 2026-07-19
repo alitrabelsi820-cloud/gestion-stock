@@ -996,10 +996,11 @@ function ouvrirExport(){
   fetch('/api/export-mois').then(function(r){return r.json();}).then(function(d){
     var l=(d && d.mois) ? d.mois : [];
     if(!l.length){ sel.innerHTML='<option value="">Aucun mois</option>'; return; }
-    sel.innerHTML=l.map(function(m){
-      var p=m.split('-');
-      return '<option value="'+m+'">'+MOIS_FR_EXP[parseInt(p[1],10)]+' '+p[0]+'</option>';
-    }).join('');
+    sel.innerHTML='<option value="tout">📚 Tout l\'historique (depuis le début)</option>'
+      + l.map(function(m){
+          var p=m.split('-');
+          return '<option value="'+m+'">'+MOIS_FR_EXP[parseInt(p[1],10)]+' '+p[0]+'</option>';
+        }).join('');
   }).catch(function(){ sel.innerHTML='<option value="">Erreur de chargement</option>'; });
 }
 function lancerExport(){
