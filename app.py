@@ -2526,9 +2526,11 @@ function filter(type, btn) {{
                 poids_vendu = float(data.get("poids_vendu") or 0)
                 if poids_vendu <= 0:
                     self.send_json({"error": "Poids à vendre requis (> 0)"}, 400); return
-                stock_actuel = float(article.get("or_grs") or 0)
-                if poids_vendu > stock_actuel + 0.001:
-                    self.send_json({"error": f"Stock insuffisant : {stock_actuel} grs disponibles"}, 400); return
+                stock_actuel = float(article.get("or_grs") or 0)   # poids d'UNE pièce
+                qty_actuelle = int(article.get("quantite") or 1)
+                stock_total  = round(stock_actuel * qty_actuelle, 3)
+                if poids_vendu > stock_total + 0.001:
+                    self.send_json({"error": f"Stock insuffisant : {stock_total} grs disponibles"}, 400); return
                 prix_or_achat = cfg.get("prix_or_achat", 1000)
                 pa = round(poids_vendu * prix_or_achat, 2)
                 # PV saisi manuellement, sinon fallback sur prix_or_vente
@@ -2559,14 +2561,20 @@ function filter(type, btn) {{
                     "commentaire": str(data.get("note", "")).strip(),
                     "type_vente": str(data.get("type_vente", "produit")).strip() or "produit",
                 }
-                # Soustraire le poids vendu du stock
-                nouveau_poids = round(stock_actuel - poids_vendu, 3)
-                if nouveau_poids <= 0.001:
-                    articles.pop(idx)  # Article épuisé → retirer du stock
+                # Déduire du stock
+                if qty_actuelle > 1:
+                    # Article en plusieurs pièces (ex : 12 B.O identiques) :
+                    # on retire UNE pièce, le poids unitaire reste inchangé.
+                    articles[idx]["quantite"] = qty_actuelle - 1
                 else:
-                    articles[idx]["or_grs"] = nouveau_poids
-                    # Recalculer le PA au nouveau poids
-                    articles[idx]["pa"] = round(nouveau_poids * prix_or_achat, 2)
+                    # Pièce unique vendue au poids : on soustrait les grammes
+                    nouveau_poids = round(stock_actuel - poids_vendu, 3)
+                    if nouveau_poids <= 0.001:
+                        articles.pop(idx)  # Article épuisé → retirer du stock
+                    else:
+                        articles[idx]["or_grs"] = nouveau_poids
+                        # Recalculer le PA au nouveau poids
+                        articles[idx]["pa"] = round(nouveau_poids * prix_or_achat, 2)
                 save_articles(articles)
                 ventes = load_ventes()
                 ventes.append(vente)
