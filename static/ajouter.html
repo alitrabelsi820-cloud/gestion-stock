@@ -240,6 +240,14 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
         <input type="number" id="f-quantite" placeholder="1" min="1" step="1" value="1" style="font-size:16px;font-weight:700;">
         <div class="hint">Nombre de pièces identiques sous cette référence</div>
       </div>
+      <div class="field">
+        <label>Mode de vente</label>
+        <label style="display:flex;align-items:center;gap:9px;cursor:pointer;padding:9px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg3);">
+          <input type="checkbox" id="f-vente-poids" style="width:17px;height:17px;cursor:pointer;">
+          <span style="font-size:14px;font-weight:600;">⚖️ Vendu au poids (or)</span>
+        </label>
+        <div class="hint">Coché = on saisit les grammes à la vente (lingot, chaîne au gramme). Décoché = vendu à la pièce.</div>
+      </div>
     </div>
 
     <!-- Section 2: Composition OR -->
@@ -429,6 +437,7 @@ async function submit() {
     em_clb: gf('f-ec'),
     perles: gf('f-per'),
     quantite: Math.max(1, parseInt(g('f-quantite') || '1') || 1),
+    vente_poids: document.getElementById('f-vente-poids').checked ? 1 : 0,
     fabricant: document.getElementById('f-fabricant').value || null,
     ismail_pierres: document.getElementById('f-ismail').checked,
     note: document.getElementById('f-note').value.trim(),

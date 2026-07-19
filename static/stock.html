@@ -499,6 +499,13 @@ td.has{color:#82e0aa;}
           <label>Quantité en stock</label>
           <input type="number" id="e-quantite" step="1" min="1" placeholder="1" style="font-weight:700;">
         </div>
+        <div class="form-group">
+          <label>Mode de vente</label>
+          <label style="display:flex;align-items:center;gap:9px;cursor:pointer;padding:9px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg3);">
+            <input type="checkbox" id="e-vente-poids" style="width:17px;height:17px;cursor:pointer;">
+            <span style="font-size:13px;font-weight:600;">⚖️ Vendu au poids (or)</span>
+          </label>
+        </div>
       </div>
       <div class="form-section-title">Pierres précieuses</div>
       <div class="form-row">
@@ -825,6 +832,10 @@ function openEdit(idx) {
   document.getElementById('e-per').value = a.perles != null ? a.perles : '';
   document.getElementById('e-fabricant').value = a.fabricant || '';
   document.getElementById('e-quantite').value = a.quantite || 1;
+  // mode de vente : choix explicite si defini, sinon ancienne detection
+  const _pierres=['d','em','r','s','p_fines','rosaces','em_clb','perles'];
+  const _autoPoids = (parseInt(a.quantite)||1)<=1 && !_pierres.some(k=>a[k]);
+  document.getElementById('e-vente-poids').checked = (a.vente_poids===null||a.vente_poids===undefined) ? _autoPoids : !!a.vente_poids;
   document.getElementById('e-note').value = a.note || '';
   setIsmail('e', a.ismail_pierres);
   // Photo : afficher la photo actuelle (si existe) + réinitialiser le champ
@@ -873,6 +884,7 @@ async function submitEdit(e) {
     fabricant: document.getElementById('e-fabricant').value || null,
     ismail_pierres: document.getElementById('e-ismail').checked,
     quantite: Math.max(1, parseInt(document.getElementById('e-quantite').value) || 1),
+    vente_poids: document.getElementById('e-vente-poids').checked ? 1 : 0,
     note: document.getElementById('e-note').value.trim(),
   };
   try {

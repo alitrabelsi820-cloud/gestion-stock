@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "63"
+ASSET_VERSION = "64"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -302,7 +302,17 @@ def auto_generate_missing_factures():
 
 
 def is_poids_article(article):
-    """Un article est 'vente au poids' s'il n'a aucune pierre (D/EM/R/S/p_fines/rosaces/em_clb/perles)."""
+    """Mode de vente d'un article : au poids (or) ou à la pièce.
+
+    1) On respecte le choix EXPLICITE fait à la saisie (champ 'vente_poids').
+    2) Sinon (ancien article jamais renseigné) on retombe sur l'ancienne
+       détection : aucune pierre ET une seule pièce → vente au poids.
+       (Un article en plusieurs exemplaires est forcément vendu à la pièce.)"""
+    vp = article.get("vente_poids")
+    if vp is not None:
+        return bool(vp)
+    if int(article.get("quantite") or 1) > 1:
+        return False
     pierres = ["d", "em", "r", "s", "p_fines", "rosaces", "em_clb", "perles"]
     return not any(article.get(p) for p in pierres)
 
@@ -838,6 +848,9 @@ def build_article(data, ref_override=None):
         "ismail_pierres": bool(data.get("ismail_pierres", False)),
         "quantite": max(1, int(data.get("quantite") or 1)),
         "note": str(data.get("note") or "").strip(),
+        # Mode de vente choisi explicitement (None = non renseigné → détection auto)
+        "vente_poids": (None if data.get("vente_poids") is None
+                        else (1 if data.get("vente_poids") else 0)),
     }
 
 
