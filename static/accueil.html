@@ -550,6 +550,34 @@ body.dark .acc-shortcut-btn{color:#fff;}
   .gs-fiche-result .not-found .ico{font-size:40px;margin-bottom:10px;}
 
   /* ── Colonne mémo ── */
+  /* ── Tableaux d'accueil (ventes / stock / crédits) ── */
+  .acc-tables{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px;}
+  .acc-tbl-wide{grid-column:1 / -1;}
+  .acc-tbl-card{background:#fff;border:1px solid rgba(184,146,60,.22);border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.04);}
+  .acc-tbl-head{padding:12px 16px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;
+    color:#7a5c20;background:rgba(184,146,60,.08);border-bottom:1px solid rgba(184,146,60,.18);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .acc-tbl-tot{font-size:13px;font-weight:800;color:#b85c00;letter-spacing:0;text-transform:none;}
+  .acc-tbl-body{max-height:430px;overflow-y:auto;}
+  .acc-tbl-row{display:flex;align-items:center;gap:11px;padding:9px 14px;border-bottom:1px solid #f2ece1;text-decoration:none;color:inherit;}
+  .acc-tbl-row:last-child{border-bottom:none;}
+  .acc-tbl-row:hover{background:rgba(184,146,60,.05);}
+  .acc-tbl-photo{width:42px;height:42px;flex:0 0 42px;border-radius:8px;object-fit:cover;background:#f4f1ea;border:1px solid #ece5d8;}
+  .acc-tbl-ph{display:flex;align-items:center;justify-content:center;font-size:17px;color:#c9bfa8;}
+  .acc-tbl-main{flex:1;min-width:0;}
+  .acc-tbl-t1{font-size:13.5px;font-weight:700;color:#2c2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .acc-tbl-t2{font-size:11.5px;color:#8a8172;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .acc-tbl-right{text-align:right;white-space:nowrap;}
+  .acc-tbl-amt{font-size:13.5px;font-weight:800;color:#1a7a40;}
+  .acc-tbl-amt.due{color:#b85c00;}
+  .acc-tbl-sub{font-size:11px;color:#9a917f;margin-top:2px;}
+  .acc-tbl-ref{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#9a7530;font-weight:700;}
+  .acc-tbl-empty{padding:26px;text-align:center;font-size:13px;color:#a99f8c;}
+  body.dark .acc-tbl-card{background:#1e1a14;border-color:rgba(184,146,60,.18);}
+  body.dark .acc-tbl-t1{color:#f0e8d8;}
+  body.dark .acc-tbl-row{border-bottom-color:rgba(184,146,60,.12);}
+  @media(max-width:900px){.acc-tables{grid-template-columns:1fr;}}
+
   .gs-memo-col .memo-card { margin-top: 10px; }
   .gs-memo-col .home-section-title { margin-bottom: 0; }
 
@@ -761,6 +789,25 @@ body.dark .acc-shortcut-btn{color:#fff;}
       </div>
 
     </div>
+
+    <!-- ── Tableaux de bord : dernières ventes / nouveautés / crédits ── -->
+    <div class="acc-tables">
+      <div class="acc-tbl-card">
+        <div class="acc-tbl-head">💰 Dernières ventes</div>
+        <div class="acc-tbl-body" id="tbl-ventes"><div class="acc-tbl-empty">Chargement…</div></div>
+      </div>
+      <div class="acc-tbl-card">
+        <div class="acc-tbl-head">📦 Derniers articles ajoutés</div>
+        <div class="acc-tbl-body" id="tbl-stock"><div class="acc-tbl-empty">Chargement…</div></div>
+      </div>
+      <div class="acc-tbl-card acc-tbl-wide">
+        <div class="acc-tbl-head">💳 Ventes à crédit — reste à encaisser
+          <span id="tbl-credit-tot" class="acc-tbl-tot"></span>
+        </div>
+        <div class="acc-tbl-body" id="tbl-credits"><div class="acc-tbl-empty">Chargement…</div></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -984,6 +1031,74 @@ function saveBasket(b){ localStorage.setItem(BASKET_KEY,JSON.stringify(b)); }
 function fmtF(v,d){ d=d==null?2:d; return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d}); }
 function fmtNF(v){ return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
 function fmtDF(d){ if(!d)return '—'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+/* ── Tableaux d'accueil : dernières ventes / nouveautés / crédits ── */
+(function(){
+  if(window.innerWidth <= 860) return;           // desktop uniquement
+  var LIM = 10;
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function num(v){ return Number(v||0).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
+  function dat(d){ var p=String(d||'').slice(0,10).split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : '—'; }
+  function photo(ref, alt){
+    if(!ref || String(ref)==='0') return '<div class="acc-tbl-photo acc-tbl-ph">💎</div>';
+    return '<img class="acc-tbl-photo" src="/api/photo/'+encodeURIComponent(ref)+'" alt="'+esc(alt)+'" loading="lazy"'
+         + ' onerror="this.outerHTML=\'<div class=\\\'acc-tbl-photo acc-tbl-ph\\\'>💎</div>\'">';
+  }
+  function vide(id, txt){ var e=document.getElementById(id); if(e) e.innerHTML='<div class="acc-tbl-empty">'+txt+'</div>'; }
+
+  // 1) Dernières ventes
+  fetch('/api/ventes').then(function(r){return r.json();}).then(function(v){
+    v = (v||[]).filter(function(x){ return (x.type_vente||'produit')!=='reprise'; })
+               .sort(function(a,b){ return String(b.date_vente||'').localeCompare(String(a.date_vente||'')); })
+               .slice(0,LIM);
+    if(!v.length) return vide('tbl-ventes','Aucune vente');
+    document.getElementById('tbl-ventes').innerHTML = v.map(function(x){
+      return '<div class="acc-tbl-row">'+photo(x.ref, x.article)
+        + '<div class="acc-tbl-main"><div class="acc-tbl-t1">'+esc(x.article||'—')+'</div>'
+        + '<div class="acc-tbl-t2">'+(x.ref&&String(x.ref)!=='0'?'<span class="acc-tbl-ref">#'+esc(x.ref)+'</span> · ':'')
+        + esc(x.client||'Client')+'</div></div>'
+        + '<div class="acc-tbl-right"><div class="acc-tbl-amt">'+num(x.pv)+' MAD</div>'
+        + '<div class="acc-tbl-sub">'+dat(x.date_vente)+'</div></div></div>';
+    }).join('');
+  }).catch(function(){ vide('tbl-ventes','Erreur de chargement'); });
+
+  // 2) Derniers articles ajoutés au stock
+  fetch('/api/articles').then(function(r){return r.json();}).then(function(a){
+    a = (a||[]).slice().sort(function(x,y){
+      var d=String(y.date||'').localeCompare(String(x.date||''));
+      return d!==0 ? d : (Number(y.id||0)-Number(x.id||0));
+    }).slice(0,LIM);
+    if(!a.length) return vide('tbl-stock','Aucun article');
+    document.getElementById('tbl-stock').innerHTML = a.map(function(x){
+      var q=parseInt(x.quantite)||1;
+      return '<div class="acc-tbl-row">'+photo(x.id, x.article)
+        + '<div class="acc-tbl-main"><div class="acc-tbl-t1">'+esc(x.article||'—')+'</div>'
+        + '<div class="acc-tbl-t2"><span class="acc-tbl-ref">#'+esc(x.ref_code||x.id)+'</span>'
+        + (x.or_grs?' · '+num(x.or_grs)+' grs':'')+(q>1?' · ×'+q:'')+'</div></div>'
+        + '<div class="acc-tbl-right"><div class="acc-tbl-amt">'+num(x.pa)+' MAD</div>'
+        + '<div class="acc-tbl-sub">'+dat(x.date)+'</div></div></div>';
+    }).join('');
+  }).catch(function(){ vide('tbl-stock','Erreur de chargement'); });
+
+  // 3) Ventes à crédit (reste à encaisser)
+  fetch('/api/credits').then(function(r){return r.json();}).then(function(c){
+    c = (c||[]).filter(function(x){ return x.statut==='rien'||x.statut==='avance'; })
+               .sort(function(a,b){ return Number(b.reste||0)-Number(a.reste||0); });
+    var tot = c.reduce(function(s,x){ return s+Number(x.reste||0); },0);
+    var el = document.getElementById('tbl-credit-tot');
+    if(el) el.textContent = c.length ? num(tot)+' MAD · '+c.length+' client(s)' : '';
+    if(!c.length) return vide('tbl-credits','Aucun crédit en cours 🎉');
+    document.getElementById('tbl-credits').innerHTML = c.slice(0,LIM).map(function(x){
+      var ref=String(x.refs||'').split(',')[0].trim();
+      return '<div class="acc-tbl-row">'+photo(ref, x.article)
+        + '<div class="acc-tbl-main"><div class="acc-tbl-t1">'+esc(x.client||'—')+'</div>'
+        + '<div class="acc-tbl-t2">'+esc(x.article||'—')
+        + (x.refs?' · <span class="acc-tbl-ref">#'+esc(x.refs)+'</span>':'')+'</div></div>'
+        + '<div class="acc-tbl-right"><div class="acc-tbl-amt due">'+num(x.reste)+' MAD</div>'
+        + '<div class="acc-tbl-sub">sur '+num(x.montant_total)+' · '+dat(x.date_achat)+'</div></div></div>';
+    }).join('');
+  }).catch(function(){ vide('tbl-credits','Erreur de chargement'); });
+})();
 
 /* ── Export comptable Excel ── */
 const MOIS_FR_EXP=['','Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
