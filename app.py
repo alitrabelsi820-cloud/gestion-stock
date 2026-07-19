@@ -3227,16 +3227,22 @@ function filter(type, btn) {{
                         if sidx is not None:
                             sart = articles_stock[sidx]
                             if is_poids_article(sart):
-                                # Vente au poids : déduire le poids vendu du stock
+                                # Vente au poids : déduire du stock
                                 stock_w = float(sart.get("or_grs") or 0)
+                                qty_w = int(sart.get("quantite") or 1)
                                 if pa <= 0:
                                     pa = round(or_grs * prix_or_achat, 2)
-                                nouveau = round(stock_w - or_grs, 3)
-                                if nouveau <= 0.001:
-                                    articles_stock.pop(sidx)
+                                if qty_w > 1:
+                                    # Plusieurs pièces identiques : on en retire UNE
+                                    # (le poids enregistré est celui d'une pièce)
+                                    articles_stock[sidx]["quantite"] = qty_w - 1
                                 else:
-                                    articles_stock[sidx]["or_grs"] = nouveau
-                                    articles_stock[sidx]["pa"] = round(nouveau * prix_or_achat, 2)
+                                    nouveau = round(stock_w - or_grs, 3)
+                                    if nouveau <= 0.001:
+                                        articles_stock.pop(sidx)
+                                    else:
+                                        articles_stock[sidx]["or_grs"] = nouveau
+                                        articles_stock[sidx]["pa"] = round(nouveau * prix_or_achat, 2)
                             else:
                                 # Article unitaire : décrémenter la quantité
                                 if pa <= 0:
