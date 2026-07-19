@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "64"
+ASSET_VERSION = "65"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1845,6 +1845,41 @@ function filter(type, btn) {{
         # ── File d'impression d'étiquettes (l'agent Mac interroge cette route) ──
         if path == "/api/print-queue":
             self.send_json({"jobs": db.get_pending_print_jobs()})
+            return
+
+        # ── Export comptable Excel (.xlsx) d'un mois ──────────────────────────
+        if path == "/api/export-excel":
+            mois = (params.get("mois", [""])[0] or datetime.now().strftime("%Y-%m")).strip()
+            if not re.match(r"^\d{4}-\d{2}$", mois):
+                self.send_json({"error": "Mois invalide (format AAAA-MM)"}, 400); return
+            try:
+                import export_excel
+                contenu = export_excel.generer(
+                    mois, load_ventes(), load_credits(), load_articles(),
+                    load_fournisseurs(), load_cheques(), is_lot)
+                nom = export_excel.nom_fichier(mois)
+            except ImportError:
+                self.send_json({"error": "Module Excel indisponible sur le serveur"}, 500); return
+            except Exception as e:
+                self.send_json({"error": f"Génération impossible : {e}"}, 500); return
+            self.send_response(200)
+            self.send_header("Content-Type",
+                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            self.send_header("Content-Disposition", f'attachment; filename="{nom}"')
+            self.send_header("Content-Length", len(contenu))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(contenu)
+            return
+
+        # ── Liste des mois disponibles à l'export ─────────────────────────────
+        if path == "/api/export-mois":
+            mois = sorted({str(v.get("date_vente"))[:7] for v in load_ventes()
+                           if v.get("date_vente")}, reverse=True)
+            courant = datetime.now().strftime("%Y-%m")
+            if courant not in mois:
+                mois.insert(0, courant)
+            self.send_json({"mois": mois})
             return
 
         # ── API dernière sauvegarde ────────────────────────────────────────────

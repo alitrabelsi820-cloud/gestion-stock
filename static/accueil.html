@@ -739,6 +739,24 @@ body.dark .acc-shortcut-btn{color:#fff;}
             <span class="acc-shortcut-ico">+</span>
             <span class="acc-shortcut-lbl">Nouvel article</span>
           </a>
+          <button type="button" class="acc-shortcut-btn" onclick="ouvrirExport()"
+            style="border:none;cursor:pointer;font:inherit;text-align:left;width:100%;">
+            <span class="acc-shortcut-ico">📊</span>
+            <span class="acc-shortcut-lbl">Export comptable</span>
+          </button>
+        </div>
+
+        <!-- Export comptable : choix du mois -->
+        <div id="exp-box" style="display:none;margin-top:12px;padding:14px;border:1px solid var(--bd);border-radius:12px;background:var(--bg2,#fff);">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:9px;">📊 Export comptable Excel</div>
+          <select id="exp-mois" style="width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:8px;font-size:14px;margin-bottom:9px;background:#fff;">
+            <option>Chargement…</option>
+          </select>
+          <button id="exp-btn" onclick="lancerExport()"
+            style="width:100%;padding:11px;border:none;border-radius:9px;background:#16191d;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">
+            ⬇️ Télécharger le fichier
+          </button>
+          <div id="exp-msg" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center;min-height:16px;"></div>
         </div>
       </div>
 
@@ -966,6 +984,41 @@ function saveBasket(b){ localStorage.setItem(BASKET_KEY,JSON.stringify(b)); }
 function fmtF(v,d){ d=d==null?2:d; return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d}); }
 function fmtNF(v){ return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
 function fmtDF(d){ if(!d)return '—'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+/* ── Export comptable Excel ── */
+const MOIS_FR_EXP=['','Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+function ouvrirExport(){
+  var b=document.getElementById('exp-box');
+  var ouvert=(b.style.display!=='none');
+  b.style.display = ouvert ? 'none' : 'block';
+  if(ouvert) return;
+  var sel=document.getElementById('exp-mois');
+  fetch('/api/export-mois').then(function(r){return r.json();}).then(function(d){
+    var l=(d && d.mois) ? d.mois : [];
+    if(!l.length){ sel.innerHTML='<option value="">Aucun mois</option>'; return; }
+    sel.innerHTML=l.map(function(m){
+      var p=m.split('-');
+      return '<option value="'+m+'">'+MOIS_FR_EXP[parseInt(p[1],10)]+' '+p[0]+'</option>';
+    }).join('');
+  }).catch(function(){ sel.innerHTML='<option value="">Erreur de chargement</option>'; });
+}
+function lancerExport(){
+  var m=document.getElementById('exp-mois').value;
+  if(!m){ document.getElementById('exp-msg').textContent='Choisis un mois.'; return; }
+  var btn=document.getElementById('exp-btn'), msg=document.getElementById('exp-msg');
+  btn.disabled=true; btn.textContent='⏳ Génération…';
+  fetch('/api/export-excel?mois='+encodeURIComponent(m)).then(function(r){
+    if(!r.ok) return r.json().then(function(e){ throw new Error(e.error||'échec'); });
+    var nom=(r.headers.get('Content-Disposition')||'').match(/filename="([^"]+)"/);
+    return r.blob().then(function(b){ return {blob:b, nom: nom?nom[1]:('export_'+m+'.xlsx')}; });
+  }).then(function(o){
+    var u=URL.createObjectURL(o.blob), a=document.createElement('a');
+    a.href=u; a.download=o.nom; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(u);
+    msg.textContent='✅ '+o.nom;
+  }).catch(function(e){ msg.textContent='⚠️ '+e.message; })
+  .finally(function(){ btn.disabled=false; btn.textContent='⬇️ Télécharger le fichier'; });
+}
 
 function fichePrint(btn){
   var ref=document.getElementById('fiche-ref-input').value.trim();
