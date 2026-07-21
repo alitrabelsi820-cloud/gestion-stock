@@ -649,6 +649,41 @@ def migrate_chain_lots():
     save_config({"chain_lots_v1": 1, "chain_lots_v2": 1})
     print("[MIGRATION] Lots de chaînes : codes chaine_jaune/blanche/rose/cartier posés (créés si manquants).")
 
+def migrate_chain_ids():
+    """Déplace les lots de chaînes hors de la numérotation normale des articles.
+    Ils avaient pris des id 4xxx (ex : 4389-4392) qui bloquaient la suite ;
+    on les réserve en 900001+. Le code affiché (#chaine_jaune) ne change pas.
+    Met aussi à jour les ventes qui référençaient l'ancien id. Idempotent."""
+    cfg = load_config()
+    if cfg.get("chain_ids_v1"):
+        return
+    RESERVE = {"chaine_jaune": 900001, "chaine_blanche": 900002,
+               "chaine_rose": 900003, "chaine_cartier": 900004}
+    articles = load_articles()
+    remap = {}   # ancien id -> nouvel id
+    for a in articles:
+        code = str(a.get("ref_code") or "")
+        if code in RESERVE and a.get("id") != RESERVE[code]:
+            nouveau = RESERVE[code]
+            if not any(x["id"] == nouveau for x in articles):  # sécurité anti-collision
+                remap[a["id"]] = nouveau
+                a["id"] = nouveau
+    if not remap:
+        save_config({"chain_ids_v1": 1})
+        return
+    save_articles(articles)
+    # Répercuter sur les ventes qui pointaient vers un ancien id de lot
+    ventes = load_ventes()
+    touche = False
+    for v in ventes:
+        if v.get("ref") in remap:
+            v["ref"] = remap[v["ref"]]
+            touche = True
+    if touche:
+        save_ventes(ventes)
+    save_config({"chain_ids_v1": 1})
+    print(f"[MIGRATION] Lots de chaînes déplacés hors de la numérotation : {remap}")
+
 def migrate_reprise_stock():
     """Corrige les reprises : bénéfice neutralisé (l'ancienne logique le mettait
     en négatif) et retrait des articles repris qui avaient été ajoutés
@@ -4031,6 +4066,8 @@ if __name__ == "__main__":
     migrate_reprise_stock()
     # 0b. Chaînes : remplacer l'ancien lot vrac par les 4 lots couleur (une fois)
     migrate_chain_lots()
+    # 0c. Chaînes : sortir les lots de la numérotation normale (id 900001+)
+    migrate_chain_ids()
     # 1. Fusionner les factures dupliquées (même client + même jour → une seule)
     merge_duplicate_factures()
     # 2. Générer les factures manquantes pour les ventes qui n'en ont pas
