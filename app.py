@@ -2478,6 +2478,15 @@ function filter(type, btn) {{
             copies = max(1, min(copies, 99))
             art = next((a for a in load_articles() if a.get("id") == ref), None)
             if not art:
+                # Article plus en stock (déjà vendu) → on reconstruit depuis la vente
+                vts = [v for v in load_ventes() if v.get("ref") == ref]
+                if vts:
+                    v = vts[-1]
+                    art = {"id": ref, "article": v.get("article", ""),
+                           "d": v.get("d"), "em": v.get("em"), "r": v.get("r"), "s": v.get("s"),
+                           "p_fines": v.get("p_fines"), "rosaces": v.get("rosaces"),
+                           "em_clb": v.get("em_clb"), "perles": v.get("perles")}
+            if not art:
                 self.send_json({"error": "Article introuvable"}, 404); return
             payload = build_label_payload(art, include_stones)
             payload["copies"] = copies
