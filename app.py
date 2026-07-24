@@ -538,11 +538,18 @@ def _nb_sessions(ventes_list):
             sessions.add(f"{ck}|{dk}")
     return len(sessions)
 
+CHAINE_LOT_IDS = (900001, 900002, 900003, 900004)  # ids réservés aux 4 lots
+
 def is_lot(a):
     """Lot (ex : lots de chaînes) : le poids et le coût enregistrés sont DÉJÀ
     ceux du lot entier, et 'quantite' est le NOMBRE de pièces du lot.
-    → il ne faut donc pas multiplier poids/coût par la quantité."""
-    return str(a.get("ref_code") or "").startswith("chaine_")
+    → il ne faut donc pas multiplier poids/coût par la quantité.
+
+    Détecté par DEUX signaux indépendants pour être infaillible : le code
+    'chaine_...' OU l'id réservé (900001-900004). Si l'un se perd (ex : une
+    modification qui efface le code), l'autre garantit que le lot reste reconnu."""
+    return (str(a.get("ref_code") or "").startswith("chaine_")
+            or a.get("id") in CHAINE_LOT_IDS)
 
 def calc_stats(articles):
     qty = lambda a: int(a.get("quantite") or 1)
