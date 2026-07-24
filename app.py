@@ -684,6 +684,25 @@ def migrate_chain_ids():
     save_config({"chain_ids_v1": 1})
     print(f"[MIGRATION] Lots de chaînes déplacés hors de la numérotation : {remap}")
 
+def migrate_chain_codes():
+    """Restaure le code de lot (ref_code) sur les lots de chaînes qui l'ont perdu.
+    Bug : modifier un lot (quantité/poids) reconstruisait l'article SANS son
+    ref_code → il n'était plus reconnu comme lot et son poids était multiplié
+    par la quantité (or en stock faussé). Les lots vivent aux id réservés
+    900001-900004 : on y repose le bon code. Idempotent."""
+    RESERVE = {900001: "chaine_jaune", 900002: "chaine_blanche",
+               900003: "chaine_rose", 900004: "chaine_cartier"}
+    articles = load_articles()
+    touche = False
+    for a in articles:
+        code = RESERVE.get(a.get("id"))
+        if code and str(a.get("ref_code") or "") != code:
+            a["ref_code"] = code
+            touche = True
+    if touche:
+        save_articles(articles)
+        print("[MIGRATION] Codes de lots de chaînes restaurés (ref_code).")
+
 def migrate_reprise_stock():
     """Corrige les reprises : bénéfice neutralisé (l'ancienne logique le mettait
     en négatif) et retrait des articles repris qui avaient été ajoutés
@@ -3711,6 +3730,14 @@ function filter(type, btn) {{
                     self.send_json({"error": "Article introuvable"}, 404); return
                 # Mettre à jour les champs (garder l'id)
                 updated = build_article(data, ref_override=ref)
+                # Préserver les champs qui ne sont PAS dans le formulaire de
+                # modification, sinon ils seraient effacés (ex : le code de lot
+                # 'chaine_jaune' → l'article ne serait plus reconnu comme lot).
+                existing = articles[idx]
+                if "ref_code" not in data:
+                    updated["ref_code"] = existing.get("ref_code")
+                if "vente_poids" not in data:
+                    updated["vente_poids"] = existing.get("vente_poids")
                 articles[idx] = updated
                 save_articles(articles)
                 self.send_json({"success": True, "article": updated}); return
@@ -4077,6 +4104,8 @@ if __name__ == "__main__":
     migrate_chain_lots()
     # 0c. Chaînes : sortir les lots de la numérotation normale (id 900001+)
     migrate_chain_ids()
+    # 0d. Chaînes : restaurer les codes de lot perdus lors d'une modification
+    migrate_chain_codes()
     # 1. Fusionner les factures dupliquées (même client + même jour → une seule)
     merge_duplicate_factures()
     # 2. Générer les factures manquantes pour les ventes qui n'en ont pas
