@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "71"
+ASSET_VERSION = "72"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1478,7 +1478,7 @@ function filter(type, btn) {{
             push_db_background()
 
     # Pages sans sidebar (login, employé, accueil spécial)
-    NO_SIDEBAR_PAGES = {'login.html', 'fiche_employe.html'}
+    NO_SIDEBAR_PAGES = {'login.html', 'fiche_employe.html', 'recherche-visuelle.html'}
 
     def send_html(self, path):
         try:
