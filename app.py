@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "69"
+ASSET_VERSION = "70"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -54,6 +54,12 @@ R2_ACCOUNT_ID    = os.environ.get("R2_ACCOUNT_ID", "")
 R2_ACCESS_KEY    = os.environ.get("R2_ACCESS_KEY", "")
 R2_SECRET_KEY    = os.environ.get("R2_SECRET_KEY", "")
 R2_BUCKET_NAME   = os.environ.get("R2_BUCKET_NAME", "bijouterie-photos")
+
+# ─── IA Gemini (Google AI Studio) — recherche visuelle ───────────────────────
+# Clé gratuite à créer sur https://aistudio.google.com/apikey puis à mettre dans
+# la variable d'environnement GEMINI_API_KEY sur Railway. Jamais dans le code.
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 
 # Dossier local (fallback Mac)
 PHOTOS_DIR_LOCAL = Path("/Users/mac/Library/CloudStorage/OneDrive-Personnel(2)/BIjouterie -VF 2/5-Photos(PNG)-1")
@@ -527,6 +533,46 @@ def find_photo_local(ref):
             if p.exists():
                 return p
     return None
+
+def get_photo_bytes(ref):
+    """Renvoie les octets JPEG de la photo d'un article (R2 ou local), ou None."""
+    try:
+        url = find_photo_url(ref)
+        if url:
+            with urllib.request.urlopen(url, timeout=15) as r:
+                return r.read()
+    except Exception:
+        pass
+    p = find_photo_local(ref)
+    if p is not None:
+        try:
+            return p.read_bytes()
+        except Exception:
+            return None
+    return None
+
+
+def gemini_generate(parts, want_json=False, timeout=60):
+    """Appelle l'API Gemini (generateContent). 'parts' = liste de {text} et/ou
+    {inline_data:{mime_type,data}}. Renvoie le texte de la réponse.
+    Lève RuntimeError si la clé manque ou si l'API échoue."""
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY manquante")
+    url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+           f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}")
+    body = {"contents": [{"parts": parts}]}
+    if want_json:
+        body["generationConfig"] = {"response_mime_type": "application/json"}
+    req = urllib.request.Request(
+        url, data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = json.loads(resp.read().decode())
+    try:
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        raise RuntimeError("Réponse Gemini vide (contenu bloqué ou quota ?)")
+
 
 def _nb_sessions(ventes_list):
     """Nombre de ventes uniques (une session = même client + même jour)."""
@@ -1743,6 +1789,8 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "vendu.html"); return
         if path == "/dashboard":
             self.send_html(STATIC_DIR / "dashboard.html"); return
+        if path == "/recherche-visuelle":
+            self.send_html(STATIC_DIR / "recherche-visuelle.html"); return
         if path == "/fiche":
             self.send_html(STATIC_DIR / "fiche.html"); return
         if path == "/credit":
@@ -2434,10 +2482,135 @@ function filter(type, btn) {{
         self.send_response(404)
         self.end_headers()
 
+    def _recherche_visuelle(self, data):
+        """Retrouve les articles du stock qui ressemblent à une photo (IA Gemini).
+        1) Gemini décrit la photo (type de bijou, couleur d'or, pierres).
+        2) On présélectionne le stock par type (photos à disposition).
+        3) Gemini compare la photo à ces candidats et les classe par ressemblance."""
+        import unicodedata
+        from concurrent.futures import ThreadPoolExecutor
+
+        def norm(s):
+            s = unicodedata.normalize("NFD", str(s or "").lower())
+            return "".join(c for c in s if unicodedata.category(c) != "Mn")
+
+        img_b64 = data.get("image") or ""
+        if "," in img_b64 and img_b64.strip().startswith("data:"):
+            img_b64 = img_b64.split(",", 1)[1]      # retirer le préfixe data:
+        img_b64 = img_b64.strip()
+        if not img_b64:
+            self.send_json({"error": "Aucune image reçue"}, 400); return
+
+        query_img = {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
+
+        # 1) Décrire la pièce photographiée
+        desc_txt = gemini_generate([
+            {"text": "Tu es expert en bijouterie. Décris ce bijou en JSON strict : "
+                     '{"type":"bague|chaine|pendentif|bracelet|gourmette|boucle|alliance|collier|autre",'
+                     '"couleur_or":"jaune|blanc|rose|inconnu","pierres":true|false,'
+                     '"description":"une phrase courte"}'},
+            query_img,
+        ], want_json=True, timeout=45)
+        try:
+            desc = json.loads(desc_txt)
+        except Exception:
+            desc = {}
+        type_q = norm(desc.get("type"))
+
+        # 2) Présélection du stock par type de bijou (on garde ceux qui ont une photo)
+        articles = [a for a in load_articles()
+                    if int(a.get("id") or 0) < 900000 and int(a.get("quantite") or 1) >= 1]
+        if type_q and type_q != "autre":
+            filtres = [a for a in articles if type_q[:5] in norm(a.get("article"))]
+            candidats = filtres if filtres else articles
+        else:
+            candidats = articles
+        MAX = 12
+        candidats = candidats[:MAX]
+
+        # Télécharger les photos des candidats en parallèle (rapide)
+        def charger(a):
+            b = get_photo_bytes(a.get("id"))
+            return (a, b) if b else None
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            paires = [r for r in ex.map(charger, candidats) if r]
+
+        if not paires:
+            self.send_json({"success": True, "description": desc, "matches": [],
+                            "message": "Aucune photo de stock à comparer."}); return
+
+        # 3) Comparaison visuelle par Gemini
+        parts = [{"text":
+            "Voici d'abord une PHOTO REQUÊTE d'un bijou, puis plusieurs photos de bijoux "
+            "de mon stock, chacune précédée de son identifiant. Classe les articles du "
+            "stock du plus ressemblant visuellement au moins ressemblant à la PHOTO REQUÊTE. "
+            "Ne garde que ceux qui ressemblent vraiment. Réponds en JSON strict : "
+            '{"matches":[{"id":<entier>,"score":<0-100>,"raison":"courte"}]}'},
+            {"text": "PHOTO REQUÊTE :"}, query_img]
+        for a, b in paires:
+            parts.append({"text": f"--- Article id {a.get('id')} ({a.get('article','')}) :"})
+            parts.append({"inline_data": {"mime_type": "image/jpeg",
+                                          "data": base64.b64encode(b).decode()}})
+
+        cmp_txt = gemini_generate(parts, want_json=True, timeout=90)
+        try:
+            matches = json.loads(cmp_txt).get("matches", [])
+        except Exception:
+            matches = []
+
+        # Reconstituer les fiches complètes, classées, limitées au top 8
+        par_id = {a.get("id"): a for a, _ in paires}
+        resultats = []
+        for m in sorted(matches, key=lambda x: x.get("score", 0), reverse=True):
+            a = par_id.get(m.get("id"))
+            if not a:
+                continue
+            resultats.append({
+                "id": a.get("id"), "article": a.get("article"),
+                "or_grs": a.get("or_grs"), "ref_code": a.get("ref_code"),
+                "quantite": a.get("quantite"),
+                "score": m.get("score"), "raison": m.get("raison", ""),
+                "photo": f"/api/photo/{a.get('id')}",
+            })
+            if len(resultats) >= 8:
+                break
+
+        self.send_json({"success": True, "description": desc, "matches": resultats})
+
     def do_POST(self):
+        path = urllib.parse.urlparse(self.path).path
+        # Recherche visuelle : lecture seule + appel IA (lent) → HORS du verrou
+        # d'écriture, sinon une recherche bloquerait ventes/ajouts pendant l'appel.
+        if path == "/api/recherche-visuelle":
+            self._post_recherche_visuelle()
+            return
         # Verrou : une seule écriture à la fois (anti perte de données)
         with _WRITE_LOCK:
             self._handle_POST()
+
+    def _post_recherche_visuelle(self):
+        """Point d'entrée hors-verrou pour la recherche visuelle (lecture seule)."""
+        if not is_authenticated(self.headers):
+            self.send_json({"error": "Non authentifié"}, 401); return
+        if not is_admin(self.headers):
+            self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            data = json.loads(self.rfile.read(length)) if length else {}
+        except Exception:
+            self.send_json({"error": "JSON invalide"}, 400); return
+        try:
+            self._recherche_visuelle(data)
+        except RuntimeError as e:
+            msg = str(e)
+            if "GEMINI_API_KEY" in msg:
+                self.send_json({"error": "clef_manquante",
+                                "message": "La recherche visuelle n'est pas encore activée "
+                                           "(clé Gemini absente)."}, 503)
+            else:
+                self.send_json({"error": msg}, 502)
+        except Exception as e:
+            self.send_json({"error": f"Recherche impossible : {e}"}, 500)
 
     def _handle_POST(self):
         path = urllib.parse.urlparse(self.path).path

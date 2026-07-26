@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#c9a84c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Retrouver une pièce — TRABELSI</title>
+<style>
+:root{--gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;--bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;--txt:#1a1612;--muted:#9a8e7e;--green:#2ecc71;--red:#e74c3c;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+nav a.back{color:var(--muted);text-decoration:none;font-size:22px;line-height:1;}
+nav .nav-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1a1200;}
+nav .nav-title{font-size:16px;font-weight:700;}
+.page{max-width:820px;margin:26px auto;padding:0 18px 80px;}
+.page-header h1{font-size:23px;color:var(--gold-l);}
+.page-header p{color:var(--muted);margin-top:6px;font-size:14px;line-height:1.5;}
+.drop{margin-top:22px;background:var(--bg2);border:2px dashed var(--bd);border-radius:16px;padding:34px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;}
+.drop:hover{border-color:var(--gold);background:#fffdf8;}
+.drop .ico{font-size:44px;}
+.drop .t1{font-size:16px;font-weight:700;margin-top:10px;}
+.drop .t2{font-size:13px;color:var(--muted);margin-top:5px;}
+#file{display:none;}
+.preview{margin-top:20px;display:none;text-align:center;}
+.preview img{max-width:230px;max-height:230px;border-radius:14px;border:1px solid var(--bd);box-shadow:0 6px 22px rgba(0,0,0,.09);}
+.actions{display:flex;gap:12px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+.btn{padding:12px 22px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;}
+.btn-gold:hover{filter:brightness(1.12);}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;}
+.btn-outline{background:transparent;border:1px solid var(--bd);color:var(--muted);}
+.status{text-align:center;margin-top:24px;font-size:14px;color:var(--muted);min-height:20px;}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--gold);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px;margin-right:8px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.desc{margin-top:18px;background:var(--bg3);border:1px solid var(--bd);border-radius:12px;padding:12px 15px;font-size:13px;color:var(--gold-l);display:none;}
+.results{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.results{grid-template-columns:1fr;}}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:14px;overflow:hidden;display:flex;text-decoration:none;color:inherit;transition:transform .15s,box-shadow .15s;}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.10);}
+.card .ph{width:104px;min-width:104px;height:104px;background:var(--bg3) center/cover no-repeat;}
+.card .info{padding:11px 13px;flex:1;min-width:0;}
+.card .ref{font-family:monospace;font-weight:800;color:var(--gold-l);font-size:15px;}
+.card .nom{font-size:13px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.card .meta{font-size:12px;color:var(--muted);margin-top:5px;}
+.card .raison{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;line-height:1.35;}
+.badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:20px;margin-top:7px;}
+.badge.hi{background:rgba(46,204,113,.16);color:#1a7a44;}
+.badge.mid{background:rgba(201,168,76,.18);color:var(--gold-l);}
+.badge.lo{background:rgba(154,142,126,.15);color:var(--muted);}
+.empty{text-align:center;color:var(--muted);margin-top:30px;font-size:14px;}
+.warn{background:#fff7e6;border:1px solid #f0d9a0;color:#8a6d1f;border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.5;margin-top:20px;display:none;}
+</style>
+</head>
+<body>
+<nav>
+  <a class="back" href="/accueil">‹</a>
+  <div class="nav-logo">T</div>
+  <div class="nav-title">Retrouver une pièce</div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>🔍 Retrouver une pièce</h1>
+    <p>Photographie un bijou (ou choisis une image) et l'app cherche dans ton stock
+       les articles qui lui ressemblent le plus.</p>
+  </div>
+
+  <label class="drop" for="file" id="drop">
+    <div class="ico">📷</div>
+    <div class="t1">Prendre une photo / choisir une image</div>
+    <div class="t2">La photo n'est utilisée que pour la recherche.</div>
+  </label>
+  <input type="file" id="file" accept="image/*" capture="environment">
+
+  <div class="preview" id="preview">
+    <img id="pv-img" alt="">
+    <div class="actions">
+      <button class="btn btn-gold" id="btn-search">🔍 Rechercher</button>
+      <button class="btn btn-outline" id="btn-reset">Changer de photo</button>
+    </div>
+  </div>
+
+  <div class="desc" id="desc"></div>
+  <div class="warn" id="warn"></div>
+  <div class="status" id="status"></div>
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let dataUrl = null;
+
+$('#file').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  dataUrl = await downscale(f);
+  $('#pv-img').src = dataUrl;
+  $('#preview').style.display = 'block';
+  $('#drop').style.display = 'none';
+  $('#results').innerHTML = '';
+  $('#desc').style.display = 'none';
+  $('#warn').style.display = 'none';
+  $('#status').textContent = '';
+});
+
+$('#btn-reset').addEventListener('click', () => {
+  dataUrl = null;
+  $('#file').value = '';
+  $('#preview').style.display = 'none';
+  $('#drop').style.display = 'block';
+  $('#results').innerHTML = '';
+  $('#desc').style.display = 'none';
+  $('#warn').style.display = 'none';
+  $('#status').textContent = '';
+});
+
+$('#btn-search').addEventListener('click', rechercher);
+
+// Réduit l'image côté navigateur (rapide + économe) avant l'envoi.
+function downscale(file, maxDim = 820, quality = 0.82) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+      else if (h > maxDim)     { w = Math.round(w * maxDim / h); h = maxDim; }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      res(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = rej;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function rechercher() {
+  if (!dataUrl) return;
+  $('#btn-search').disabled = true;
+  $('#results').innerHTML = '';
+  $('#desc').style.display = 'none';
+  $('#warn').style.display = 'none';
+  $('#status').innerHTML = '<span class="spin"></span>Analyse de la photo et comparaison au stock…';
+  try {
+    const r = await fetch('/api/recherche-visuelle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: dataUrl })
+    });
+    if (r.status === 401) { location.href = '/login'; return; }
+    const d = await r.json();
+    if (!r.ok) {
+      $('#status').textContent = '';
+      if (d.error === 'clef_manquante') {
+        $('#warn').style.display = 'block';
+        $('#warn').textContent = '⚙️ ' + (d.message || 'Fonction pas encore activée.') +
+          ' Il faut ajouter la clé Gemini dans les réglages du serveur.';
+      } else {
+        $('#warn').style.display = 'block';
+        $('#warn').textContent = '⚠️ ' + (d.message || d.error || 'Erreur.');
+      }
+      return;
+    }
+    afficher(d);
+  } catch (e) {
+    $('#status').textContent = '';
+    $('#warn').style.display = 'block';
+    $('#warn').textContent = '⚠️ Connexion impossible. Réessaie.';
+  } finally {
+    $('#btn-search').disabled = false;
+  }
+}
+
+function afficher(d) {
+  const desc = d.description || {};
+  if (desc.description || desc.type) {
+    $('#desc').style.display = 'block';
+    $('#desc').textContent = '🔎 Pièce détectée : ' +
+      [desc.type, desc.couleur_or && ('or ' + desc.couleur_or),
+       desc.pierres ? 'avec pierres' : ''].filter(Boolean).join(' · ') +
+      (desc.description ? ' — ' + desc.description : '');
+  }
+  const m = d.matches || [];
+  if (!m.length) {
+    $('#status').textContent = '';
+    $('#results').innerHTML = '<div class="empty">Aucune pièce ressemblante trouvée dans le stock.</div>';
+    return;
+  }
+  $('#status').textContent = m.length + ' résultat' + (m.length > 1 ? 's' : '') + ' — du plus ressemblant au moins ressemblant :';
+  $('#results').innerHTML = m.map(x => {
+    const sc = Number(x.score) || 0;
+    const cls = sc >= 75 ? 'hi' : (sc >= 45 ? 'mid' : 'lo');
+    const ref = x.ref_code || ('#' + x.id);
+    const poids = (x.or_grs != null) ? (fmt(x.or_grs) + ' grs') : '';
+    return `<a class="card" href="/stock">
+      <div class="ph" style="background-image:url('${x.photo}')"></div>
+      <div class="info">
+        <div class="ref">${esc(String(ref).startsWith('#') ? ref : '#' + ref)}</div>
+        <div class="nom">${esc(x.article || '')}</div>
+        <div class="meta">${poids}</div>
+        <span class="badge ${cls}">${sc}% ressemblance</span>
+        ${x.raison ? `<div class="raison">${esc(x.raison)}</div>` : ''}
+      </div>
+    </a>`;
+  }).join('');
+}
+
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmt(n){const v=parseFloat(n);return isNaN(v)?'':v.toLocaleString('fr-FR',{maximumFractionDigits:2});}
+</script>
+</body>
+</html>
