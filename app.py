@@ -16,6 +16,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
 import hmac
 import hashlib
 import webbrowser
@@ -552,7 +553,21 @@ def get_photo_bytes(ref):
     return None
 
 
-def gemini_generate(parts, want_json=False, timeout=60):
+def shrink_jpeg(data_bytes, max_dim=512, quality=72):
+    """Réduit une image avant l'envoi à l'IA : plus elle est petite, moins elle
+    coûte de « tokens » (évite l'erreur 429 quand on compare plusieurs photos)."""
+    try:
+        from PIL import Image
+        im = Image.open(io.BytesIO(data_bytes)).convert("RGB")
+        im.thumbnail((max_dim, max_dim))
+        out = io.BytesIO()
+        im.save(out, format="JPEG", quality=quality)
+        return out.getvalue()
+    except Exception:
+        return data_bytes  # en dernier recours, on garde l'original
+
+
+def gemini_generate(parts, want_json=False, timeout=60, _retries=2):
     """Appelle l'API Gemini (generateContent). 'parts' = liste de {text} et/ou
     {inline_data:{mime_type,data}}. Renvoie le texte de la réponse.
     Lève RuntimeError si la clé manque ou si l'API échoue."""
@@ -566,8 +581,17 @@ def gemini_generate(parts, want_json=False, timeout=60):
     req = urllib.request.Request(
         url, data=json.dumps(body).encode(),
         headers={"Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        data = json.loads(resp.read().decode())
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        if e.code == 429:
+            if _retries > 0:
+                time.sleep(4)   # l'IA gratuite est saturée → petite pause + réessai
+                return gemini_generate(parts, want_json, timeout, _retries - 1)
+            raise RuntimeError("L'IA gratuite est momentanément saturée "
+                               "(trop de requêtes). Réessaie dans une minute.")
+        raise
     try:
         return data["candidates"][0]["content"]["parts"][0]["text"]
     except (KeyError, IndexError):
@@ -2501,6 +2525,12 @@ function filter(type, btn) {{
         if not img_b64:
             self.send_json({"error": "Aucune image reçue"}, 400); return
 
+        # Réduire la photo de requête (moins de tokens → pas d'erreur 429)
+        try:
+            img_b64 = base64.b64encode(shrink_jpeg(base64.b64decode(img_b64))).decode()
+        except Exception:
+            pass
+
         query_img = {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
 
         # 1) Décrire la pièce photographiée
@@ -2528,10 +2558,11 @@ function filter(type, btn) {{
         MAX = 12
         candidats = candidats[:MAX]
 
-        # Télécharger les photos des candidats en parallèle (rapide)
+        # Télécharger + réduire les photos des candidats en parallèle (rapide,
+        # et surtout léger pour l'IA : chaque photo passe de ~2 Mo à ~40 Ko)
         def charger(a):
             b = get_photo_bytes(a.get("id"))
-            return (a, b) if b else None
+            return (a, shrink_jpeg(b)) if b else None
         with ThreadPoolExecutor(max_workers=8) as ex:
             paires = [r for r in ex.map(charger, candidats) if r]
 
