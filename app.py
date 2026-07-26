@@ -585,13 +585,18 @@ def gemini_generate(parts, want_json=False, timeout=60, _retries=2):
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
+        detail = ""
+        try:
+            detail = e.read().decode()[:800]
+        except Exception:
+            pass
         if e.code == 429:
             if _retries > 0:
                 time.sleep(4)   # l'IA gratuite est saturée → petite pause + réessai
                 return gemini_generate(parts, want_json, timeout, _retries - 1)
-            raise RuntimeError("L'IA gratuite est momentanément saturée "
-                               "(trop de requêtes). Réessaie dans une minute.")
-        raise
+            # On remonte le détail de Google (quota précis) pour diagnostiquer
+            raise RuntimeError("429 — limite Gemini atteinte. Détail Google : " + detail)
+        raise RuntimeError(f"Gemini HTTP {e.code} : {detail}")
     try:
         return data["candidates"][0]["content"]["parts"][0]["text"]
     except (KeyError, IndexError):
