@@ -204,6 +204,7 @@ CREATE TABLE IF NOT EXISTS print_queue (
 CREATE TABLE IF NOT EXISTS paniers_attente (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     employe     TEXT DEFAULT '',
+    client      TEXT DEFAULT '',
     items       TEXT DEFAULT '[]',
     prix_global REAL DEFAULT 0,
     created_at  TEXT
@@ -488,6 +489,12 @@ def init_db():
         try:
             conn.execute("ALTER TABLE factures ADD COLUMN total_global REAL DEFAULT 0")
             print("[DB] Colonne 'total_global' ajoutée aux factures.")
+        except Exception:
+            pass
+        # Panier employé : nom du client (ajouté après la 1re version de la table)
+        try:
+            conn.execute("ALTER TABLE paniers_attente ADD COLUMN client TEXT DEFAULT ''")
+            print("[DB] Colonne 'client' ajoutée aux paniers_attente.")
         except Exception:
             pass
         # Migration 6 : table sessions persistantes
@@ -1065,14 +1072,15 @@ def clear_pending_print_jobs():
         conn.execute("DELETE FROM print_queue WHERE status='pending'")
 
 # ─── Paniers en attente (préparés par un employé, validés par l'admin) ────────
-def add_panier(employe, items, prix_global):
+def add_panier(employe, items, prix_global, client=""):
     """Enregistre un panier préparé par l'employé (en attente de validation)."""
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     with get_conn() as conn:
         cur = conn.execute(
-            "INSERT INTO paniers_attente (employe, items, prix_global, created_at) "
-            "VALUES (?,?,?,?)",
-            (str(employe or ""), json.dumps(items, ensure_ascii=False),
+            "INSERT INTO paniers_attente (employe, client, items, prix_global, created_at) "
+            "VALUES (?,?,?,?,?)",
+            (str(employe or ""), str(client or ""),
+             json.dumps(items, ensure_ascii=False),
              float(prix_global or 0), now)
         )
         return cur.lastrowid
@@ -1081,7 +1089,7 @@ def get_paniers():
     """Retourne les paniers en attente (plus récents d'abord)."""
     with get_conn() as conn:
         rows = conn.execute(
-            "SELECT id, employe, items, prix_global, created_at "
+            "SELECT id, employe, client, items, prix_global, created_at "
             "FROM paniers_attente ORDER BY id DESC"
         ).fetchall()
     out = []
@@ -1090,7 +1098,9 @@ def get_paniers():
             items = json.loads(r["items"] or "[]")
         except Exception:
             items = []
-        out.append({"id": r["id"], "employe": r["employe"], "items": items,
+        out.append({"id": r["id"], "employe": r["employe"],
+                    "client": (r["client"] if "client" in r.keys() else "") or "",
+                    "items": items,
                     "prix_global": r["prix_global"], "created_at": r["created_at"]})
     return out
 

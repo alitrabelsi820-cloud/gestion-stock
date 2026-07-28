@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "70"
+ASSET_VERSION = "71"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -2443,28 +2443,37 @@ function filter(type, btn) {{
         On ne stocke que les références + quantités + prix global : l'admin
         validera ensuite via la fenêtre Nouvelle Vente."""
         items = data.get("items") or []
-        prix_global = data.get("prix_global") or 0
         employe = str(data.get("employe") or "Employé").strip()[:60] or "Employé"
+        client = str(data.get("client") or "").strip()[:80]
         arts = {a["id"]: a for a in load_articles()}
         clean = []
+        total = 0
         for it in items:
             try:
                 ref = int(it.get("ref"))
             except (TypeError, ValueError):
                 continue
+            try:
+                pv = float(it.get("pv") or 0)
+            except (TypeError, ValueError):
+                pv = 0
             a = arts.get(ref)
             clean.append({
                 "ref": ref,
                 "article": (a.get("article") if a else it.get("article")) or "",
+                "pv": pv,
                 "quantite": max(1, int(it.get("quantite") or 1)),
             })
+            total += pv
         if not clean:
             self.send_json({"error": "Panier vide"}, 400); return
         try:
-            prix_global = float(prix_global)
+            prix_global = float(data.get("prix_global"))
         except (TypeError, ValueError):
             prix_global = 0
-        pid = db.add_panier(employe, clean, prix_global)
+        if not prix_global:
+            prix_global = total
+        pid = db.add_panier(employe, clean, prix_global, client)
         push_db_background()
         self.send_json({"success": True, "id": pid})
 

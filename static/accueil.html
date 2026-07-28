@@ -703,6 +703,12 @@ body.dark .acc-shortcut-btn{color:#fff;}
     </div>
     <div class="home-divider"></div>
 
+    <!-- Ventes en attente (préparées par les employés) — pleine largeur -->
+    <div class="gs-fiche-card" id="paniers-card-desk" style="display:none;border:1.5px solid var(--gold);margin-bottom:20px;max-width:760px;">
+      <div class="gs-fiche-card-title">🛒 Ventes en attente (<span id="paniers-count-desk">0</span>)</div>
+      <div id="paniers-box-desk"></div>
+    </div>
+
     <!-- Horloge + Calendrier -->
     <div class="gs-home-row">
 
@@ -717,12 +723,6 @@ body.dark .acc-shortcut-btn{color:#fff;}
         <div class="gs-clock-time-row">
           <span class="gs-clock-digital" id="gs-clock-digital">00:00</span><span class="gs-clock-sec" id="gs-clock-sec">:00</span>
         </div>
-      </div>
-
-      <!-- Paniers en attente (préparés par les employés) -->
-      <div class="gs-fiche-card" id="paniers-card-desk" style="display:none;border:1.5px solid var(--gold);margin-bottom:16px;">
-        <div class="gs-fiche-card-title">🛒 Ventes en attente (<span id="paniers-count-desk">0</span>)</div>
-        <div id="paniers-box-desk"></div>
       </div>
 
       <!-- Fiche Référence -->
@@ -1084,11 +1084,14 @@ function escP(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g
 function renderPanier(p){
   var arts=(p.items||[]).map(function(it){
     return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:3px 0">'
-      +'<span>#'+escP(it.ref)+' — '+escP(it.article||'')+'</span>'
-      +(it.quantite>1?'<span style="color:var(--muted)">×'+it.quantite+'</span>':'')+'</div>';
+      +'<span>#'+escP(it.ref)+' — '+escP(it.article||'')+(it.quantite>1?' ×'+it.quantite:'')+'</span>'
+      +'<span style="font-weight:700;color:var(--gold-l,#7a5c20);white-space:nowrap">'+(it.pv?fmtNF(it.pv)+' DHS':'—')+'</span></div>';
   }).join('');
+  var clientLine = (p.client && p.client.trim())
+    ? '<div style="font-size:13px;font-weight:700;margin-bottom:6px">🧑 Client : '+escP(p.client)+'</div>' : '';
   return '<div style="border:1px solid var(--bd);border-radius:10px;padding:11px 13px;margin-bottom:10px;background:var(--bg2,#fff)">'
     +'<div style="font-size:11px;color:var(--muted);margin-bottom:7px">👤 '+escP(p.employe||'Employé')+' · '+escP(p.created_at||'')+'</div>'
+    +clientLine
     +arts
     +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);font-size:14px;font-weight:800;color:var(--gold-l,#7a5c20)">Total proposé : '+fmtNF(p.prix_global)+' DHS</div>'
     +'<div style="display:flex;gap:8px;margin-top:10px">'
@@ -1101,7 +1104,10 @@ function validerPanier(id){
     var p=(d.paniers||[]).find(function(x){return x.id===id;});
     if(!p){chargerPaniers();return;}
     localStorage.setItem('gs_valider_panier', JSON.stringify({
-      id:p.id, refs:(p.items||[]).map(function(it){return it.ref;}), prix_global:p.prix_global
+      id:p.id,
+      items:(p.items||[]).map(function(it){return {ref:it.ref, pv:it.pv||0};}),
+      client:p.client||'',
+      prix_global:p.prix_global
     }));
     location.href='/vendu';
   });

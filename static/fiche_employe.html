@@ -177,36 +177,44 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <div class="emp-topbar-logo">T</div>
     <div class="emp-topbar-name">Trabelsi</div>
   </div>
-  <div class="emp-topbar-actions">
-    <button class="emp-topbar-btn" onclick="toggleBasketSheet()">
-      🗂️<span class="emp-badge" id="basket-nav-count">0</span>
-    </button>
-  </div>
+  <div class="emp-topbar-actions"></div>
 </div>
 
-<!-- Basket Sheet -->
-<div class="emp-sheet-overlay" id="emp-sheet-overlay" onclick="closeBasketSheet()"></div>
-<div class="emp-sheet" id="emp-basket-sheet">
+<!-- Feuille « Nouvelle vente » -->
+<div class="emp-sheet-overlay" id="emp-sheet-overlay" onclick="closeSaleSheet()"></div>
+<div class="emp-sheet" id="emp-sale-sheet">
   <div class="emp-sheet-head">
-    <div class="emp-sheet-title">🗂️ Session (<span id="emp-basket-count">0</span>)</div>
-    <div style="display:flex;gap:8px;">
-      <button onclick="copyBasket(this)" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(184,146,60,.25);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">📋</button>
-      <button onclick="clearBasket()" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(231,76,60,.25);background:transparent;color:#e74c3c;cursor:pointer;font-size:13px;">🗑️</button>
-      <button onclick="closeBasketSheet()" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(184,146,60,.15);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">✕</button>
+    <div class="emp-sheet-title">🧾 Nouvelle vente</div>
+    <button onclick="closeSaleSheet()" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(184,146,60,.15);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">✕</button>
+  </div>
+  <div class="emp-sheet-body">
+    <!-- Nom du client -->
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">👤 Nom du client</div>
+    <input id="sale-client" type="text" placeholder="Ex : Mohamed Alami"
+      style="width:100%;padding:11px 13px;background:rgba(184,146,60,.05);border:1px solid rgba(184,146,60,.25);border-radius:10px;font-size:15px;color:var(--txt);outline:none;margin-bottom:16px"
+      onfocus="this.style.borderColor='var(--gold-l)'" onblur="this.style.borderColor='rgba(184,146,60,.25)'">
+    <!-- Ajouter une référence -->
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">➕ Ajouter un article</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <input id="sale-ref" type="text" inputmode="numeric" placeholder="Numéro de référence…"
+        style="flex:1;padding:11px 13px;background:rgba(184,146,60,.05);border:1px solid rgba(184,146,60,.25);border-radius:10px;font-size:15px;color:var(--txt);outline:none;min-width:0"
+        onkeydown="if(event.key==='Enter')addSaleRef()"
+        onfocus="this.style.borderColor='var(--gold-l)'" onblur="this.style.borderColor='rgba(184,146,60,.25)'">
+      <button onclick="addSaleRef()" style="padding:11px 18px;border:none;border-radius:10px;background:linear-gradient(135deg,#c9a84c,#7a5c20);color:#fff;font-size:20px;font-weight:800;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent">＋</button>
+    </div>
+    <div id="sale-msg" style="font-size:12px;color:#e74c3c;margin-bottom:12px;min-height:15px"></div>
+    <!-- Lignes d'articles -->
+    <div id="sale-lines"></div>
+    <!-- Total -->
+    <div id="sale-total-row" style="display:none;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(184,146,60,.25)">
+      <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Total</span>
+      <span id="sale-total" style="font-size:21px;font-weight:900;color:var(--gold-d)">0 MAD</span>
     </div>
   </div>
-  <div class="emp-sheet-body" id="emp-basket-list"></div>
-  <div id="emp-basket-foot" style="display:none;padding:12px 14px;border-top:1px solid var(--bd);background:var(--bg);">
-    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">💰 Prix global de la vente</div>
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
-      <input id="emp-prix-global" type="number" inputmode="decimal" min="0" placeholder="Total pour tous les articles"
-        style="flex:1;padding:10px 12px;background:var(--bg2);border:1.5px solid var(--bd);border-radius:8px;color:var(--txt);font-size:15px;font-weight:700;outline:none;min-width:0"
-        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--bd)'">
-      <span style="font-size:12px;color:var(--muted);font-weight:600">MAD</span>
-    </div>
-    <button id="emp-save-vente" onclick="enregistrerVente(this)"
-      style="width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;font-size:15px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent">
-      🧾 Enregistrer la vente
+  <div style="padding:12px 14px;border-top:1px solid rgba(184,146,60,.15);background:var(--bg);flex-shrink:0">
+    <button id="sale-save-btn" onclick="enregistrerVente(this)"
+      style="width:100%;padding:14px;border:none;border-radius:11px;background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;font-size:16px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent">
+      ✅ Enregistrer la vente
     </button>
   </div>
 </div>
@@ -226,7 +234,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         ontouchstart="openNumpad()" onclick="openNumpad()"
         onkeydown="if(event.key==='Enter')search()">
       <button class="emp-fiche-btn" onclick="search()">🔍</button>
-      <button class="emp-keep-btn" id="btn-garder" onclick="garder()" disabled>📌</button>
     </div>
     <div id="result">
       <div class="emp-empty">
@@ -493,38 +500,103 @@ function closeBasketSheet(){
   document.getElementById('emp-basket-sheet').classList.remove('open');
   document.getElementById('emp-sheet-overlay').classList.remove('open');
 }
+/* ═══════════════════════════════════════════
+   NOUVELLE VENTE — panier envoyé au patron
+   (réf une par une + prix de vente + nom client)
+   ═══════════════════════════════════════════ */
+let saleItems=[];   // {ref, article, pv}
+
+function openSaleSheet(){
+  document.getElementById('emp-sale-sheet').classList.add('open');
+  document.getElementById('emp-sheet-overlay').classList.add('open');
+  if(!saleItems.length) renderSale();
+}
+function closeSaleSheet(){
+  document.getElementById('emp-sale-sheet').classList.remove('open');
+  document.getElementById('emp-sheet-overlay').classList.remove('open');
+}
+function saleMsg(t){ var el=document.getElementById('sale-msg'); if(el)el.textContent=t||''; }
+
+function addSaleRef(){
+  var inp=document.getElementById('sale-ref');
+  var ref=parseInt((inp.value||'').trim(),10);
+  if(!ref){ saleMsg('Entre un numéro de référence.'); return; }
+  if(saleItems.some(function(i){return i.ref===ref;})){ saleMsg('Article déjà ajouté.'); inp.value=''; return; }
+  saleMsg('');
+  fetch('/api/articles/'+ref).then(function(r){return r.json().then(function(a){return {ok:r.ok,a:a};});})
+  .then(function(res){
+    if(!res.ok || !res.a || res.a.error || res.a.id==null){ saleMsg('Référence #'+ref+' introuvable.'); return; }
+    saleItems.push({ref:res.a.id, article:res.a.article||'', pv:''});
+    inp.value='';
+    renderSale();
+  }).catch(function(){ saleMsg('Erreur réseau, réessaie.'); });
+}
+
+function removeSaleLine(idx){ saleItems.splice(idx,1); renderSale(); }
+function setSalePv(idx,val){ if(saleItems[idx]) saleItems[idx].pv=val; renderSaleTotal(); }
+
+function renderSaleTotal(){
+  var tot=saleItems.reduce(function(s,i){return s+(parseFloat(i.pv)||0);},0);
+  var row=document.getElementById('sale-total-row');
+  var el=document.getElementById('sale-total');
+  if(row)row.style.display=saleItems.length?'flex':'none';
+  if(el)el.textContent=fmtN(tot)+' MAD';
+}
+
+function escFE(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function renderSale(){
+  var box=document.getElementById('sale-lines');
+  if(!box)return;
+  box.innerHTML=saleItems.length===0
+    ?'<div style="text-align:center;padding:16px 0;color:var(--muted);font-size:13px">Aucun article — ajoute une référence ci-dessus.</div>'
+    :saleItems.map(function(it,idx){
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#fff;border:1px solid rgba(184,146,60,.2);border-radius:11px;margin-bottom:9px">'
+        +'<img src="/api/photo/'+it.ref+'" style="width:42px;height:42px;object-fit:contain;border-radius:7px;background:var(--bg);border:1px solid var(--bd);flex-shrink:0" onerror="this.style.visibility=\'hidden\'">'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-family:monospace;font-weight:800;color:var(--gold-d);font-size:14px">#'+it.ref+'</div>'
+          +'<div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(escFE(it.article)||'—')+'</div>'
+          +'<div style="display:flex;align-items:center;gap:5px;margin-top:5px">'
+            +'<input type="number" inputmode="decimal" min="0" placeholder="Prix de vente" value="'+it.pv+'" '
+              +'oninput="setSalePv('+idx+',this.value)" '
+              +'style="width:130px;padding:6px 9px;background:var(--bg);border:1.5px solid rgba(184,146,60,.3);border-radius:7px;color:var(--txt);font-size:14px;font-weight:700;outline:none" '
+              +'onfocus="this.style.borderColor=\'var(--gold)\'" onblur="this.style.borderColor=\'rgba(184,146,60,.3)\'">'
+            +'<span style="font-size:11px;color:var(--muted);font-weight:600">MAD</span>'
+          +'</div>'
+        +'</div>'
+        +'<button onclick="removeSaleLine('+idx+')" style="background:transparent;border:none;color:rgba(231,76,60,.55);cursor:pointer;font-size:16px;padding:4px 7px;flex-shrink:0">✕</button>'
+      +'</div>';
+    }).join('');
+  renderSaleTotal();
+}
+
 function enregistrerVente(btn){
-  if(!basket.length)return;
-  const inp=document.getElementById('emp-prix-global');
-  const prix=parseFloat(inp.value);
-  if(!prix||prix<=0){
-    inp.style.borderColor='#e74c3c';
-    inp.focus();
-    setTimeout(()=>{inp.style.borderColor='var(--bd)';},1500);
-    return;
-  }
-  const orig=btn.textContent;
+  if(!saleItems.length){ saleMsg('Ajoute au moins un article.'); return; }
+  if(saleItems.some(function(i){return !(parseFloat(i.pv)>0);})){ saleMsg('Mets un prix de vente pour chaque article.'); return; }
+  saleMsg('');
+  var client=(document.getElementById('sale-client').value||'').trim();
+  var orig=btn.textContent;
   btn.disabled=true; btn.style.opacity='.6'; btn.textContent='⏳ Enregistrement…';
   fetch('/api/paniers',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      items: basket.map(b=>({ref:b.ref, article:b.article, quantite:1})),
-      prix_global: prix,
-      employe: 'Employé'
+      client:client,
+      employe:'Employé',
+      items: saleItems.map(function(i){return {ref:i.ref, article:i.article, pv:parseFloat(i.pv)||0, quantite:1};})
     })
   })
-  .then(r=>r.json().then(d=>({ok:r.ok,d})))
-  .then(({ok,d})=>{
-    if(!ok) throw new Error(d.error||'Échec');
+  .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
+  .then(function(res){
+    if(!res.ok) throw new Error(res.d.error||'Échec');
     btn.textContent='✅ Vente enregistrée';
-    basket=[]; inp.value='';
-    renderBasket();
-    setTimeout(()=>{btn.disabled=false;btn.style.opacity='1';btn.textContent=orig;closeBasketSheet();},1400);
+    saleItems=[]; document.getElementById('sale-client').value=''; document.getElementById('sale-ref').value='';
+    renderSale();
+    setTimeout(function(){btn.disabled=false;btn.style.opacity='1';btn.textContent=orig;closeSaleSheet();},1300);
   })
-  .catch(e=>{
+  .catch(function(e){
     btn.textContent='⚠️ '+(e.message||'Échec — réessaie');
-    setTimeout(()=>{btn.disabled=false;btn.style.opacity='1';btn.textContent=orig;},2200);
+    setTimeout(function(){btn.disabled=false;btn.style.opacity='1';btn.textContent=orig;},2200);
   });
 }
 
@@ -676,6 +748,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
 <!-- Bottom bar -->
 <div class="emp-bottombar">
+  <button class="emp-bottom-btn" onclick="openSaleSheet()"
+    style="flex:2.4;flex-direction:row;gap:9px;background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;font-size:15px;font-weight:800;">
+    <span class="emp-bottom-ico" style="font-size:20px">🧾</span>
+    <span>Enregistrer une vente</span>
+  </button>
   <button class="emp-bottom-btn emp-logout" onclick="if(confirm('Fermer la session ?')) window.location.href='/logout';">
     <span class="emp-bottom-ico">⎋</span>
     <span>Déconnexion</span>

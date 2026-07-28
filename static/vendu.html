@@ -1531,14 +1531,21 @@ function closeNVModal(e){
 // Pré-remplit la Nouvelle Vente depuis un panier préparé par un employé.
 async function prefillFromPanier(data){
   openNVModal();
-  const arts = await Promise.all((data.refs||[]).map(function(ref){
-    return fetch('/api/articles/'+ref).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});
+  var items = data.items || (data.refs||[]).map(function(ref){return {ref:ref, pv:0};});
+  const results = await Promise.all(items.map(function(it){
+    return fetch('/api/articles/'+it.ref).then(function(r){return r.ok?r.json():null;})
+      .catch(function(){return null;}).then(function(a){return {a:a, pv:it.pv};});
   }));
   nvPanier=[];
-  arts.forEach(function(a){ if(a && !a.error && a.id!=null) nvPanier.push({article:a, pv:0}); });
+  results.forEach(function(res){
+    if(res.a && !res.a.error && res.a.id!=null) nvPanier.push({article:res.a, pv:parseFloat(res.pv)||0});
+  });
   renderNVPanier();
-  const pg=document.getElementById('nv-prix-global');
-  if(pg && data.prix_global){ pg.value=data.prix_global; repartirPrixGlobal(); }
+  // Nom du client (préparé par l'employé)
+  if(data.client){ var c=document.getElementById('nv-client'); if(c) c.value=data.client; }
+  // Prix global = somme des prix de vente (indicatif) — chaque article a déjà son prix
+  var somme = nvPanier.reduce(function(s,i){return s+(i.pv||0);},0);
+  var pg=document.getElementById('nv-prix-global'); if(pg) pg.value = somme||'';
   window._validerPanierId=data.id||null;
   if(!nvPanier.length) toast('Articles du panier introuvables en stock','error');
   else toast('Panier employé chargé — vérifie et enregistre','success');
@@ -1552,7 +1559,8 @@ window.addEventListener('DOMContentLoaded', function(){
     try{ localStorage.removeItem('gs_valider_panier'); }catch(e){}
     try{
       var data=JSON.parse(raw);
-      if(data && data.refs && data.refs.length) setTimeout(function(){prefillFromPanier(data);}, 350);
+      var n = (data && data.items && data.items.length) || (data && data.refs && data.refs.length);
+      if(n) setTimeout(function(){prefillFromPanier(data);}, 350);
     }catch(e){}
   }
 });
