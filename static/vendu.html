@@ -1528,6 +1528,35 @@ function closeNVModal(e){
   }
 }
 
+// Pré-remplit la Nouvelle Vente depuis un panier préparé par un employé.
+async function prefillFromPanier(data){
+  openNVModal();
+  const arts = await Promise.all((data.refs||[]).map(function(ref){
+    return fetch('/api/articles/'+ref).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});
+  }));
+  nvPanier=[];
+  arts.forEach(function(a){ if(a && !a.error && a.id!=null) nvPanier.push({article:a, pv:0}); });
+  renderNVPanier();
+  const pg=document.getElementById('nv-prix-global');
+  if(pg && data.prix_global){ pg.value=data.prix_global; repartirPrixGlobal(); }
+  window._validerPanierId=data.id||null;
+  if(!nvPanier.length) toast('Articles du panier introuvables en stock','error');
+  else toast('Panier employé chargé — vérifie et enregistre','success');
+}
+
+// Au chargement : si on arrive depuis « Valider » un panier employé, le charger.
+window.addEventListener('DOMContentLoaded', function(){
+  var raw=null;
+  try{ raw=localStorage.getItem('gs_valider_panier'); }catch(e){}
+  if(raw){
+    try{ localStorage.removeItem('gs_valider_panier'); }catch(e){}
+    try{
+      var data=JSON.parse(raw);
+      if(data && data.refs && data.refs.length) setTimeout(function(){prefillFromPanier(data);}, 350);
+    }catch(e){}
+  }
+});
+
 function closeIsmailAlert(e){
   const ov=document.getElementById('ov-ismail');
   if(!e||e.target===ov) ov.style.display='none';
@@ -1675,6 +1704,11 @@ async function submitNV(){
   } else {
     const msg=statut==='totalite'?`✅ ${ok} vente(s) enregistrée(s) !`:'✅ Vente enregistrée et crédit client créé.';
     toast(msg,'success');
+    // Si cette vente venait d'un panier employé → le retirer de la file d'attente
+    if(window._validerPanierId){
+      fetch('/api/paniers/'+window._validerPanierId,{method:'DELETE'}).catch(()=>{});
+      window._validerPanierId=null;
+    }
     closeNVModal();
     if(hadIsmail) setTimeout(()=>{document.getElementById('ov-ismail').style.display='flex';},600);
     await load();

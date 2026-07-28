@@ -196,6 +196,19 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     </div>
   </div>
   <div class="emp-sheet-body" id="emp-basket-list"></div>
+  <div id="emp-basket-foot" style="display:none;padding:12px 14px;border-top:1px solid var(--bd);background:var(--bg);">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">💰 Prix global de la vente</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+      <input id="emp-prix-global" type="number" inputmode="decimal" min="0" placeholder="Total pour tous les articles"
+        style="flex:1;padding:10px 12px;background:var(--bg2);border:1.5px solid var(--bd);border-radius:8px;color:var(--txt);font-size:15px;font-weight:700;outline:none;min-width:0"
+        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--bd)'">
+      <span style="font-size:12px;color:var(--muted);font-weight:600">MAD</span>
+    </div>
+    <button id="emp-save-vente" onclick="enregistrerVente(this)"
+      style="width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;font-size:15px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent">
+      🧾 Enregistrer la vente
+    </button>
+  </div>
 </div>
 
 
@@ -389,6 +402,8 @@ function renderBasket(){
   const countEl=document.getElementById('emp-basket-count');
   if(badge){badge.style.display=basket.length?'block':'none';badge.textContent=basket.length;}
   if(countEl)countEl.textContent=basket.length;
+  const foot=document.getElementById('emp-basket-foot');
+  if(foot)foot.style.display=basket.length?'block':'none';
   // Contenu dropdown
   document.getElementById('emp-basket-list').innerHTML=basket.length===0
     ?'<div style="text-align:center;padding:28px 0;color:var(--muted);font-size:13px">Aucun article gardé</div>'
@@ -478,6 +493,41 @@ function closeBasketSheet(){
   document.getElementById('emp-basket-sheet').classList.remove('open');
   document.getElementById('emp-sheet-overlay').classList.remove('open');
 }
+function enregistrerVente(btn){
+  if(!basket.length)return;
+  const inp=document.getElementById('emp-prix-global');
+  const prix=parseFloat(inp.value);
+  if(!prix||prix<=0){
+    inp.style.borderColor='#e74c3c';
+    inp.focus();
+    setTimeout(()=>{inp.style.borderColor='var(--bd)';},1500);
+    return;
+  }
+  const orig=btn.textContent;
+  btn.disabled=true; btn.style.opacity='.6'; btn.textContent='⏳ Enregistrement…';
+  fetch('/api/paniers',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      items: basket.map(b=>({ref:b.ref, article:b.article, quantite:1})),
+      prix_global: prix,
+      employe: 'Employé'
+    })
+  })
+  .then(r=>r.json().then(d=>({ok:r.ok,d})))
+  .then(({ok,d})=>{
+    if(!ok) throw new Error(d.error||'Échec');
+    btn.textContent='✅ Vente enregistrée';
+    basket=[]; inp.value='';
+    renderBasket();
+    setTimeout(()=>{btn.disabled=false;btn.style.opacity='1';btn.textContent=orig;closeBasketSheet();},1400);
+  })
+  .catch(e=>{
+    btn.textContent='⚠️ '+(e.message||'Échec — réessaie');
+    setTimeout(()=>{btn.disabled=false;btn.style.opacity='1';btn.textContent=orig;},2200);
+  });
+}
+
 function copyBasket(el){
   if(!basket.length)return;
   const lines=basket.map(item=>{

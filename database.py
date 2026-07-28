@@ -201,6 +201,13 @@ CREATE TABLE IF NOT EXISTS print_queue (
     created_at TEXT,
     printed_at TEXT
 );
+CREATE TABLE IF NOT EXISTS paniers_attente (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    employe     TEXT DEFAULT '',
+    items       TEXT DEFAULT '[]',
+    prix_global REAL DEFAULT 0,
+    created_at  TEXT
+);
 """
 
 
@@ -1056,6 +1063,41 @@ def clear_pending_print_jobs():
     """Vide la file d'attente (annule tout ce qui n'est pas encore imprimé)."""
     with get_conn() as conn:
         conn.execute("DELETE FROM print_queue WHERE status='pending'")
+
+# ─── Paniers en attente (préparés par un employé, validés par l'admin) ────────
+def add_panier(employe, items, prix_global):
+    """Enregistre un panier préparé par l'employé (en attente de validation)."""
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    with get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO paniers_attente (employe, items, prix_global, created_at) "
+            "VALUES (?,?,?,?)",
+            (str(employe or ""), json.dumps(items, ensure_ascii=False),
+             float(prix_global or 0), now)
+        )
+        return cur.lastrowid
+
+def get_paniers():
+    """Retourne les paniers en attente (plus récents d'abord)."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT id, employe, items, prix_global, created_at "
+            "FROM paniers_attente ORDER BY id DESC"
+        ).fetchall()
+    out = []
+    for r in rows:
+        try:
+            items = json.loads(r["items"] or "[]")
+        except Exception:
+            items = []
+        out.append({"id": r["id"], "employe": r["employe"], "items": items,
+                    "prix_global": r["prix_global"], "created_at": r["created_at"]})
+    return out
+
+def delete_panier(panier_id):
+    """Supprime un panier (après validation ou refus)."""
+    with get_conn() as conn:
+        conn.execute("DELETE FROM paniers_attente WHERE id=?", (int(panier_id),))
 
 def get_audit_logs(limit=200, entity=None, action=None):
     """Retourne les entrées d'audit récentes (plus récentes d'abord)."""

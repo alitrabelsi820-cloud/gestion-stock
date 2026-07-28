@@ -625,6 +625,15 @@ body.dark .acc-shortcut-btn{color:#fff;}
 
   <div class="mob-content">
 
+    <!-- Paniers en attente (préparés par les employés) -->
+    <div class="mob-card" id="paniers-card-mob" style="display:none;border:1.5px solid var(--gold);">
+      <div class="mob-card-header">
+        <span style="font-size:16px">🛒</span>
+        <span class="mob-card-title">Ventes en attente (<span id="paniers-count-mob">0</span>)</span>
+      </div>
+      <div id="paniers-box-mob" style="padding:8px 14px 14px;"></div>
+    </div>
+
     <!-- Fiche Référence -->
     <div class="mob-card">
       <div class="mob-card-header">
@@ -708,6 +717,12 @@ body.dark .acc-shortcut-btn{color:#fff;}
         <div class="gs-clock-time-row">
           <span class="gs-clock-digital" id="gs-clock-digital">00:00</span><span class="gs-clock-sec" id="gs-clock-sec">:00</span>
         </div>
+      </div>
+
+      <!-- Paniers en attente (préparés par les employés) -->
+      <div class="gs-fiche-card" id="paniers-card-desk" style="display:none;border:1.5px solid var(--gold);margin-bottom:16px;">
+        <div class="gs-fiche-card-title">🛒 Ventes en attente (<span id="paniers-count-desk">0</span>)</div>
+        <div id="paniers-box-desk"></div>
       </div>
 
       <!-- Fiche Référence -->
@@ -1047,6 +1062,55 @@ function saveBasket(b){ localStorage.setItem(BASKET_KEY,JSON.stringify(b)); }
 function fmtF(v,d){ d=d==null?2:d; return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:d}); }
 function fmtNF(v){ return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0}); }
 function fmtDF(d){ if(!d)return '—'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+/* ══════════════════════════════
+   VENTES EN ATTENTE (paniers préparés par les employés)
+══════════════════════════════ */
+function chargerPaniers(){
+  fetch('/api/paniers').then(r=>r.ok?r.json():{paniers:[]}).then(d=>{
+    var list=d.paniers||[];
+    ['mob','desk'].forEach(function(v){
+      var card=document.getElementById('paniers-card-'+v);
+      var box=document.getElementById('paniers-box-'+v);
+      var cnt=document.getElementById('paniers-count-'+v);
+      if(!card||!box)return;
+      if(cnt)cnt.textContent=list.length;
+      card.style.display=list.length?'block':'none';
+      box.innerHTML=list.map(renderPanier).join('');
+    });
+  }).catch(function(){});
+}
+function escP(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function renderPanier(p){
+  var arts=(p.items||[]).map(function(it){
+    return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:3px 0">'
+      +'<span>#'+escP(it.ref)+' — '+escP(it.article||'')+'</span>'
+      +(it.quantite>1?'<span style="color:var(--muted)">×'+it.quantite+'</span>':'')+'</div>';
+  }).join('');
+  return '<div style="border:1px solid var(--bd);border-radius:10px;padding:11px 13px;margin-bottom:10px;background:var(--bg2,#fff)">'
+    +'<div style="font-size:11px;color:var(--muted);margin-bottom:7px">👤 '+escP(p.employe||'Employé')+' · '+escP(p.created_at||'')+'</div>'
+    +arts
+    +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);font-size:14px;font-weight:800;color:var(--gold-l,#7a5c20)">Total proposé : '+fmtNF(p.prix_global)+' DHS</div>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
+      +'<button onclick="validerPanier('+p.id+')" style="flex:1;padding:10px;border:none;border-radius:8px;background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;font-size:13px;font-weight:800;cursor:pointer">✅ Valider</button>'
+      +'<button onclick="supprimerPanier('+p.id+')" style="padding:10px 14px;border:1px solid rgba(231,76,60,.35);border-radius:8px;background:transparent;color:#e74c3c;font-size:13px;font-weight:700;cursor:pointer">🗑️</button>'
+    +'</div></div>';
+}
+function validerPanier(id){
+  fetch('/api/paniers').then(function(r){return r.json();}).then(function(d){
+    var p=(d.paniers||[]).find(function(x){return x.id===id;});
+    if(!p){chargerPaniers();return;}
+    localStorage.setItem('gs_valider_panier', JSON.stringify({
+      id:p.id, refs:(p.items||[]).map(function(it){return it.ref;}), prix_global:p.prix_global
+    }));
+    location.href='/vendu';
+  });
+}
+function supprimerPanier(id){
+  if(!confirm('Supprimer cette vente en attente ? (elle ne sera pas enregistrée)'))return;
+  fetch('/api/paniers/'+id,{method:'DELETE'}).then(function(){chargerPaniers();});
+}
+document.addEventListener('DOMContentLoaded',function(){ chargerPaniers(); setInterval(chargerPaniers,20000); });
 
 /* ── Replier / déplier les tableaux d'accueil (état mémorisé) ── */
 function accToggle(cle){

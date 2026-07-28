@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "69"
+ASSET_VERSION = "70"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1981,6 +1981,10 @@ function filter(type, btn) {{
             }
             self.send_json(result); return
 
+        # ── Paniers en attente (préparés par les employés) ────────────────────
+        if path == "/api/paniers":
+            self.send_json({"paniers": db.get_paniers()}); return
+
         # ── API ventes ────────────────────────────────────────────────────────
         if path == "/api/ventes":
             self.send_json(load_ventes()); return
@@ -2434,6 +2438,36 @@ function filter(type, btn) {{
         self.send_response(404)
         self.end_headers()
 
+    def _creer_panier(self, data):
+        """Enregistre un panier préparé par un employé (vente en attente).
+        On ne stocke que les références + quantités + prix global : l'admin
+        validera ensuite via la fenêtre Nouvelle Vente."""
+        items = data.get("items") or []
+        prix_global = data.get("prix_global") or 0
+        employe = str(data.get("employe") or "Employé").strip()[:60] or "Employé"
+        arts = {a["id"]: a for a in load_articles()}
+        clean = []
+        for it in items:
+            try:
+                ref = int(it.get("ref"))
+            except (TypeError, ValueError):
+                continue
+            a = arts.get(ref)
+            clean.append({
+                "ref": ref,
+                "article": (a.get("article") if a else it.get("article")) or "",
+                "quantite": max(1, int(it.get("quantite") or 1)),
+            })
+        if not clean:
+            self.send_json({"error": "Panier vide"}, 400); return
+        try:
+            prix_global = float(prix_global)
+        except (TypeError, ValueError):
+            prix_global = 0
+        pid = db.add_panier(employe, clean, prix_global)
+        push_db_background()
+        self.send_json({"success": True, "id": pid})
+
     def do_POST(self):
         # Verrou : une seule écriture à la fois (anti perte de données)
         with _WRITE_LOCK:
@@ -2482,6 +2516,16 @@ function filter(type, btn) {{
         # ── Protection POST (admin uniquement pour les routes sensibles) ──────
         if not is_authenticated(self.headers):
             self.send_json({"error": "Non authentifié"}, 401); return
+
+        # Panier employé : SEULE route POST autorisée à un employé (il prépare
+        # une vente que l'admin validera ensuite). Doit passer AVANT le filtre admin.
+        if path == "/api/paniers":
+            try:
+                data = json.loads(body) if body else {}
+            except:
+                self.send_json({"error": "JSON invalide"}, 400); return
+            self._creer_panier(data); return
+
         if not is_admin(self.headers):
             self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
 
@@ -3913,6 +3957,18 @@ function filter(type, btn) {{
 
     def _handle_DELETE(self):
         path = urllib.parse.urlparse(self.path).path
+
+        # ── Supprimer un panier en attente (admin uniquement) ─────────────────
+        if path.startswith("/api/paniers/"):
+            if not is_admin(self.headers):
+                self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
+            try:
+                pid = int(path.split("/")[-1])
+                db.delete_panier(pid)
+                push_db_background()
+                self.send_json({"success": True}); return
+            except Exception:
+                self.send_json({"error": "Identifiant invalide"}, 400); return
 
         # ── Supprimer un article du stock ─────────────────────────────────────
         if path.startswith("/api/articles/"):
