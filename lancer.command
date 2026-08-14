@@ -14,6 +14,10 @@ if [ -n "$OLD_PID" ]; then
 fi
 
 echo ""
+echo "→ Mise à jour des données depuis la production..."
+python3 sync_local.py
+
+echo ""
 echo "╔══════════════════════════════════════════╗"
 echo "║    TRABELSI — Gestion de Stock           ║"
 echo "╠══════════════════════════════════════════╣"
