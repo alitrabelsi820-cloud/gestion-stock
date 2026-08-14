@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "76"
+ASSET_VERSION = "77"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -3347,6 +3347,72 @@ function filter(type, btn) {{
             self.send_json({"success": True, "facture": facture, "nb_ventes": len(new_ventes)}); return
 
         # ── Créer un crédit client ────────────────────────────────────────────
+        # ── Convertir une réservation en vente (le client emporte l'article) ──
+        if path.startswith("/api/reservations/") and path.endswith("/convertir"):
+            try:
+                rid = int(path.split("/")[3])
+            except (ValueError, IndexError):
+                self.send_json({"error": "Identifiant invalide"}, 400); return
+            credits = load_credits()
+            idx = next((i for i, c in enumerate(credits)
+                        if c["id"] == rid and c.get("type") == "reservation"), None)
+            if idx is None:
+                self.send_json({"error": "Réservation introuvable"}, 404); return
+            credit = credits[idx]
+            refs = [int(r) for r in str(credit.get("refs") or "").split(",") if r.strip().isdigit()]
+            articles = load_articles()
+            art_by_id = {a["id"]: a for a in articles}
+            present = [r for r in refs if r in art_by_id]
+            if not present:
+                self.send_json({"error": "Les articles ne sont plus en stock"}, 400); return
+            total = float(credit.get("montant_total") or 0)
+            pas = [float(art_by_id[r].get("pa") or 0) for r in present]
+            sumpa = sum(pas)
+            # Répartir le prix total sur les articles (au prorata du coût, sinon égal)
+            pvs = []
+            for i, r in enumerate(present):
+                pvs.append(round(total * pas[i] / sumpa) if sumpa > 0 else round(total / len(present)))
+            if pvs:
+                pvs[-1] += round(total - sum(pvs))   # ajustement d'arrondi → somme exacte
+            now = datetime.now(); today = now.strftime("%Y-%m-%d")
+            ventes = load_ventes()
+            for i, r in enumerate(present):
+                a = art_by_id[r]; pv = pvs[i]; pa = a.get("pa") or 0
+                ventes.append({
+                    "id_vente": int(now.timestamp() * 1000) + i,
+                    "date_achat": a.get("date"), "date_vente": today,
+                    "ref": a["id"], "article": a.get("article"),
+                    "or_grs": a.get("or_grs"), "pa": pa,
+                    "d": a.get("d"), "em": a.get("em"), "r": a.get("r"), "s": a.get("s"),
+                    "p_fines": a.get("p_fines"), "rosaces": a.get("rosaces"),
+                    "em_clb": a.get("em_clb"), "perles": a.get("perles"),
+                    "pv": pv, "benef": pv - pa,
+                    "client": credit.get("client", ""), "telephone": credit.get("contact", "") or "",
+                    "mode_paiement": "", "commentaire": "Converti depuis une réservation",
+                    "type_vente": "produit",
+                })
+                aidx = next((j for j, x in enumerate(articles) if x["id"] == r), None)
+                if aidx is not None:
+                    q = int(articles[aidx].get("quantite") or 1)
+                    if q > 1:
+                        articles[aidx]["quantite"] = q - 1
+                    else:
+                        articles.pop(aidx)
+            save_articles(articles)
+            save_ventes(ventes)
+            # La réservation devient un crédit client normal (l'avance est conservée)
+            credit["type"] = "client"
+            recalc_credit(credit)
+            credits[idx] = credit
+            save_credits(credits)
+            r_, ip_, dev_ = self._actor()
+            db.log_audit("created", "vente", ", ".join(str(r) for r in present),
+                         f"Réservation convertie en vente — {credit.get('client','?')} · {total:.0f} MAD",
+                         r_, ip_, dev_)
+            merge_duplicate_factures(); auto_generate_missing_factures()
+            push_db_background()
+            self.send_json({"success": True}); return
+
         # ── Réservation : avance sur article(s) gardé(s) en stock (PAS une vente) ──
         if path == "/api/reservations":
             items = data.get("items") or []

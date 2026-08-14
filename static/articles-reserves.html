@@ -132,10 +132,21 @@ function renderRes(r){
     </div>
     ${r.note?`<div style="font-size:12px;color:var(--muted);margin-top:8px">📝 ${esc(r.note)}</div>`:''}
     <div class="res-actions">
-      <button class="btn btn-green" onclick="alert('La conversion en vente arrive à la prochaine étape 👍')">✅ Convertir en vente</button>
+      <button class="btn btn-green" onclick="convertir(${r.id}, this)">✅ Convertir en vente</button>
       <button class="btn btn-out" onclick="annuler(${r.id}, this)">🗑️ Annuler la réservation</button>
     </div>
   </div>`;
+}
+
+async function convertir(id, btn){
+  if(!confirm('Convertir en vente ?\n\nL\'article sort du stock et entre dans le CA. L\'avance déjà reçue est conservée — le reste devient un crédit client (payable via la page Crédits).')) return;
+  btn.disabled=true; btn.textContent='⏳ Conversion…';
+  try{
+    const r = await fetch('/api/reservations/'+id+'/convertir', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const d = await r.json().catch(()=>({}));
+    if(r.ok){ charger(); }
+    else { btn.disabled=false; btn.textContent='✅ Convertir en vente'; alert(d.error||'Échec de la conversion.'); }
+  }catch(e){ btn.disabled=false; btn.textContent='✅ Convertir en vente'; }
 }
 
 async function annuler(id, btn){
