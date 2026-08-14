@@ -236,6 +236,10 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
 #enc-comptant{color:#1a7a40!important;}
 #enc-credits{color:#2980b9!important;}
 #enc-ca{color:#7a5c20!important;}
+/* En-têtes repliables */
+.fold-head{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
+.fold-chev{display:inline-block;transition:transform .2s;font-size:11px;color:var(--muted);}
+.fold-head.open .fold-chev{transform:rotate(90deg);}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -358,8 +362,8 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
             </td>
           </tr>
           <!-- ─ Pierres ─ -->
-          <tr>
-            <td colspan="2" style="padding:9px 0 3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);">💎 Pierres &amp; Matières</td>
+          <tr class="fold-head" id="pierres-head" onclick="togglePierres()">
+            <td colspan="2" style="padding:9px 0 3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);cursor:pointer;">💎 Pierres &amp; Matières <span class="fold-chev" style="float:right;">▸</span></td>
           </tr>
           <tr style="border-bottom:1px solid var(--bd);">
             <td style="padding:7px 8px 7px 0;font-size:12px;color:var(--muted);"><span style="color:#f7dc6f">●</span> Diamants</td>
@@ -657,8 +661,10 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
         <div class="kpi-sub">valeur : <b id="fx-net-val">—</b> MAD</div>
       </div>
     </div>
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:16px 0 2px">🕒 Derniers mouvements (temps réel)</div>
-    <div class="flux-feed" id="fx-feed"></div>
+    <div class="fold-head" id="fx-feed-head" onclick="toggleFold('fx-feed')" style="display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:16px 0 2px">
+      <span>🕒 Derniers mouvements (temps réel)</span><span class="fold-chev">▸</span>
+    </div>
+    <div class="flux-feed" id="fx-feed" style="display:none"></div>
   </div>
 
   <!-- ══ SECTION 7 : ENCAISSEMENTS RÉELS ══ -->
@@ -679,8 +685,10 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     <div id="enc-ecart-box" style="margin:12px 0 0;padding:11px 14px;background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:10px;font-size:13px;display:none;">
       ⚠️ Reste à encaisser (vendu mais pas encore payé) : <b id="enc-ecart" style="color:#c0392b">—</b> MAD
     </div>
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:16px 0 2px">🕒 Derniers encaissements (temps réel)</div>
-    <div class="flux-feed" id="enc-feed"></div>
+    <div class="fold-head" id="enc-feed-head" onclick="toggleFold('enc-feed')" style="display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:16px 0 2px">
+      <span>🕒 Derniers encaissements (temps réel)</span><span class="fold-chev">▸</span>
+    </div>
+    <div class="flux-feed" id="enc-feed" style="display:none"></div>
   </div>
 
 </div>
@@ -1172,6 +1180,27 @@ async function loadFlux(mois){
     document.getElementById('enc-feed').innerHTML=(d.encaissement.mouvements||[]).map(encRow).join('')||emptyFeed();
   }catch(err){}
 }
+
+/* Listes repliables (dépliées au clic) */
+function toggleFold(id){
+  var el=document.getElementById(id); if(!el)return;
+  var head=document.getElementById(id+'-head');
+  var open=el.style.display==='none';
+  el.style.display=open?'':'none';
+  if(head)head.classList.toggle('open',open);
+}
+function togglePierres(){
+  var head=document.getElementById('pierres-head'); if(!head)return;
+  var tr=head.nextElementSibling;
+  var willOpen=tr && tr.style.display==='none';
+  while(tr){ tr.style.display=willOpen?'':'none'; tr=tr.nextElementSibling; }
+  head.classList.toggle('open',willOpen);
+}
+/* Replier les pierres par défaut (le script tourne après le DOM) */
+(function(){
+  var head=document.getElementById('pierres-head');
+  if(head){ var tr=head.nextElementSibling; while(tr){ tr.style.display='none'; tr=tr.nextElementSibling; } }
+})();
 
 load();
 setInterval(load, 60000);
