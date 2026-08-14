@@ -494,45 +494,12 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     </div>
   </div>
 
-  <!-- ══ COMPARAISON M vs M-1 ══ -->
-  <div class="panel" style="margin-bottom:16px;">
-    <div class="panel-title">📊 Ce mois vs Mois précédent</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;">
-      <div style="padding:4px 16px 4px 0;border-right:1px solid var(--bd);">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;">C.A</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:13px;color:var(--muted);" id="cmp-ca-prev">—</span>
-          <span style="color:var(--muted);font-size:11px;">→</span>
-          <span style="font-size:14px;font-weight:700;color:var(--gold-l);" id="cmp-ca-cur">—</span>
-          <span class="trend trend-flat" id="cmp-ca-trend">—</span>
-        </div>
-      </div>
-      <div style="padding:4px 16px;border-right:1px solid var(--bd);">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;">Bénéfice</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:13px;color:var(--muted);" id="cmp-b-prev">—</span>
-          <span style="color:var(--muted);font-size:11px;">→</span>
-          <span style="font-size:14px;font-weight:700;color:var(--gold-l);" id="cmp-b-cur">—</span>
-          <span class="trend trend-flat" id="cmp-b-trend">—</span>
-        </div>
-      </div>
-      <div style="padding:4px 0 4px 16px;">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;">Ventes (nb)</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:13px;color:var(--muted);" id="cmp-nb-prev">—</span>
-          <span style="color:var(--muted);font-size:11px;">→</span>
-          <span style="font-size:14px;font-weight:700;" id="cmp-nb-cur">—</span>
-          <span class="trend trend-flat" id="cmp-nb-trend">—</span>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Hidden for JS compatibility -->
   <div id="top-credits" style="display:none;"></div>
 
   <!-- ══ SECTION 4 : TOP MARGES + TOP VENDUS ══ -->
-  <div class="grid2" style="margin-bottom:20px;">
+  <div class="grid2" id="sec-top" style="margin-bottom:20px;">
     <div class="panel">
       <div class="panel-title">
         <span>💰 Top 5 Meilleures Marges</span>
@@ -777,7 +744,7 @@ async function load(){
     document.getElementById('v-ca-day').textContent  = 'CA : ' + fmtN(stats.ca_today) +'';
 
     // ── Comparaison M vs M-1 ──
-    renderComparison(moisCur, moisPrev);
+    /* comparaison M vs M-1 retirée */
 
     // ── Top créances ──
     renderTopCredits();
@@ -1204,6 +1171,15 @@ function foldRows(headId){
   var head=document.getElementById(hid);
   if(head){ var tr=head.nextElementSibling; while(tr){ tr.style.display='none'; tr=tr.nextElementSibling; } }
 });
+
+/* Remonter « Flux de stock » + « Encaissements réels » à la place de l'ancienne
+   comparaison M vs M-1 (juste après la vue principale, avant Top Marges) */
+(function(){
+  var top=document.getElementById('sec-top');
+  var flux=document.getElementById('flux-mois'); flux=flux?flux.closest('.panel-full'):null;
+  var enc=document.getElementById('enc-mois'); enc=enc?enc.closest('.panel-full'):null;
+  if(top&&flux&&enc){ top.parentNode.insertBefore(flux,top); top.parentNode.insertBefore(enc,top); }
+})();
 
 load();
 setInterval(load, 60000);
