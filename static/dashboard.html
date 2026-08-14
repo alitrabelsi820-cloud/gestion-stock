@@ -210,6 +210,32 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
   .nav-search-btn{display:none;}
   .nav-search-wrap{display:none!important;}
 }
+/* ── Flux de stock & Encaissements ── */
+.flux-mois-sel{background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;color:var(--gold-l);cursor:pointer;font-family:inherit;outline:none;}
+.flux-feed{max-height:360px;overflow-y:auto;margin-top:4px;}
+.flux-row{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--bd);}
+.flux-row:last-child{border-bottom:none;}
+.flux-badge{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.flux-badge.in,.flux-badge.pay{background:rgba(46,204,113,.14);}
+.flux-badge.out{background:rgba(231,76,60,.12);}
+.flux-badge.cred{background:rgba(52,152,219,.14);}
+.flux-main{flex:1;min-width:0;}
+.flux-name{font-size:13px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.flux-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.flux-amt{font-weight:800;font-size:14px;white-space:nowrap;}
+.flux-amt.pos{color:#1a7a40;}
+.flux-amt.neg{color:#c0392b;}
+.enc-hero{background:linear-gradient(135deg,#0f6b54,#1abc9c);border-radius:14px;padding:20px 24px;color:#fff;margin-bottom:16px;box-shadow:0 6px 20px rgba(15,107,84,.22);}
+.enc-hero-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;opacity:.9;}
+.enc-hero-val{font-size:34px;font-weight:900;line-height:1.05;margin-top:5px;}
+/* Couleurs des chiffres (le thème force sinon la couleur du texte) */
+#fx-in-val{color:#1a7a40!important;}
+#fx-out-val{color:#c0392b!important;}
+#fx-net-or.fx-pos,#fx-net-val.fx-pos{color:#1a7a40!important;}
+#fx-net-or.fx-neg,#fx-net-val.fx-neg{color:#c0392b!important;}
+#enc-comptant{color:#1a7a40!important;}
+#enc-credits{color:#2980b9!important;}
+#enc-ca{color:#7a5c20!important;}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -603,6 +629,58 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
         <div id="no-annual" style="display:none;text-align:center;padding:30px;color:var(--muted)">Aucune donnée.</div>
       </div>
     </div>
+  </div>
+
+  <!-- ══ SECTION 6 : FLUX DE STOCK ══ -->
+  <div class="panel-full">
+    <div class="panel-title">
+      <span>📦 Flux de Stock — <span id="fx-mois-lbl" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);"></span></span>
+      <select class="flux-mois-sel" id="flux-mois" onchange="loadFlux(this.value)"></select>
+    </div>
+    <div class="grid3">
+      <div class="kpi">
+        <div class="kpi-ico">➕</div>
+        <div class="kpi-lbl">Entrées (stock ajouté)</div>
+        <div class="kpi-val" id="fx-in-val" style="color:#1a7a40">—</div>
+        <div class="kpi-sub"><b id="fx-in-or">—</b> g d'or · <b id="fx-in-nb">—</b> art.</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico">➖</div>
+        <div class="kpi-lbl">Sorties (ventes)</div>
+        <div class="kpi-val" id="fx-out-val" style="color:#c0392b">—</div>
+        <div class="kpi-sub"><b id="fx-out-or">—</b> g d'or · <b id="fx-out-nb">—</b> art.</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico">⚖️</div>
+        <div class="kpi-lbl">Variation nette du stock</div>
+        <div class="kpi-val" id="fx-net-or">—</div>
+        <div class="kpi-sub">valeur : <b id="fx-net-val">—</b> MAD</div>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:16px 0 2px">🕒 Derniers mouvements (temps réel)</div>
+    <div class="flux-feed" id="fx-feed"></div>
+  </div>
+
+  <!-- ══ SECTION 7 : ENCAISSEMENTS RÉELS ══ -->
+  <div class="panel-full">
+    <div class="panel-title">
+      <span>💵 Encaissements réels</span>
+      <select class="flux-mois-sel" id="enc-mois" onchange="loadFlux(this.value)"></select>
+    </div>
+    <div class="enc-hero">
+      <div class="enc-hero-lbl">💰 Argent réellement encaissé ce mois</div>
+      <div class="enc-hero-val"><span id="enc-total">—</span> <span style="font-size:16px;font-weight:600;opacity:.85">MAD</span></div>
+    </div>
+    <div class="grid3">
+      <div class="period-card"><label>💵 Ventes comptant</label><div class="val" id="enc-comptant" style="color:#1a7a40">—</div></div>
+      <div class="period-card"><label>🔄 Remboursements crédits</label><div class="val" id="enc-credits" style="color:var(--blue)">—</div></div>
+      <div class="period-card"><label>📈 Chiffre d'affaires (vendu)</label><div class="val" id="enc-ca" style="color:var(--gold-l)">—</div></div>
+    </div>
+    <div id="enc-ecart-box" style="margin:12px 0 0;padding:11px 14px;background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:10px;font-size:13px;display:none;">
+      ⚠️ Reste à encaisser (vendu mais pas encore payé) : <b id="enc-ecart" style="color:#c0392b">—</b> MAD
+    </div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:16px 0 2px">🕒 Derniers encaissements (temps réel)</div>
+    <div class="flux-feed" id="enc-feed"></div>
   </div>
 
 </div>
@@ -1033,8 +1111,72 @@ function filterModal(){
 
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
+/* ══════════════════════════════════════════════
+   FLUX DE STOCK + ENCAISSEMENTS RÉELS (lecture seule)
+══════════════════════════════════════════════ */
+function moisLabelFlux(m){ if(!m)return ''; const p=m.split('-'); return (NOMS_MOIS_L[parseInt(p[1],10)-1]||'')+' '+p[0]; }
+function escFlux(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fluxRow(x){
+  var isIn=x.sens==='in';
+  return '<div class="flux-row">'
+    +'<div class="flux-badge '+(isIn?'in':'out')+'">'+(isIn?'➕':'➖')+'</div>'
+    +'<div class="flux-main"><div class="flux-name">#'+escFlux(x.ref)+' — '+escFlux(x.article)+'</div>'
+    +'<div class="flux-meta">'+fmtD(x.date)+' · '+fmt(x.or)+' g d\'or</div></div>'
+    +'<div class="flux-amt '+(isIn?'pos':'neg')+'">'+(isIn?'+':'−')+fmtN(x.valeur)+'</div></div>';
+}
+function encRow(x){
+  var cred=x.type==='credit';
+  return '<div class="flux-row">'
+    +'<div class="flux-badge '+(cred?'cred':'pay')+'">'+(cred?'🔄':'💰')+'</div>'
+    +'<div class="flux-main"><div class="flux-name">'+(escFlux(x.client)||'—')+'</div>'
+    +'<div class="flux-meta">'+fmtD(x.date)+' · '+(cred?'Remboursement crédit':escFlux(x.label))+'</div></div>'
+    +'<div class="flux-amt pos">+'+fmtN(x.montant)+'</div></div>';
+}
+function emptyFeed(){ return '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucun mouvement ce mois.</div>'; }
+
+async function loadFlux(mois){
+  try{
+    var url='/api/dashboard/flux'+(mois?('?mois='+encodeURIComponent(mois)):'');
+    var d=await fetch(url).then(function(r){return r.json();});
+    // Sélecteurs de mois (synchronisés)
+    ['flux-mois','enc-mois'].forEach(function(id){
+      var sel=document.getElementById(id); if(!sel)return;
+      sel.innerHTML=(d.mois_dispo||[]).map(function(m){return '<option value="'+m+'">'+moisLabelFlux(m)+'</option>';}).join('');
+      sel.value=d.mois;
+    });
+    var lbl=document.getElementById('fx-mois-lbl'); if(lbl) lbl.textContent=moisLabelFlux(d.mois);
+    // Flux de stock
+    var s=d.stock.mois;
+    document.getElementById('fx-in-val').textContent=fmtN(s.entrees.valeur);
+    document.getElementById('fx-in-or').textContent=fmt(s.entrees.or);
+    document.getElementById('fx-in-nb').textContent=s.entrees.nb;
+    document.getElementById('fx-out-val').textContent=fmtN(s.sorties.valeur);
+    document.getElementById('fx-out-or').textContent=fmt(s.sorties.or);
+    document.getElementById('fx-out-nb').textContent=s.sorties.nb;
+    var netEl=document.getElementById('fx-net-or');
+    netEl.textContent=(s.net_or>=0?'+':'−')+fmt(Math.abs(s.net_or))+' g';
+    netEl.className='kpi-val '+(s.net_or>=0?'fx-pos':'fx-neg');
+    var nv=document.getElementById('fx-net-val');
+    nv.textContent=(s.net_valeur>=0?'+':'−')+fmtN(Math.abs(s.net_valeur));
+    nv.className=(s.net_valeur>=0?'fx-pos':'fx-neg');
+    document.getElementById('fx-feed').innerHTML=(d.stock.mouvements||[]).map(fluxRow).join('')||emptyFeed();
+    // Encaissements
+    var e=d.encaissement.mois;
+    document.getElementById('enc-total').textContent=fmtN(e.total);
+    document.getElementById('enc-comptant').textContent=fmtN(e.comptant);
+    document.getElementById('enc-credits').textContent=fmtN(e.credits);
+    document.getElementById('enc-ca').textContent=fmtN(e.ca);
+    var ecart=Math.max(0,(e.ca||0)-(e.total||0));
+    document.getElementById('enc-ecart').textContent=fmtN(ecart);
+    document.getElementById('enc-ecart-box').style.display=ecart>0?'block':'none';
+    document.getElementById('enc-feed').innerHTML=(d.encaissement.mouvements||[]).map(encRow).join('')||emptyFeed();
+  }catch(err){}
+}
+
 load();
 setInterval(load, 60000);
+loadFlux();
+setInterval(function(){ loadFlux(document.getElementById('flux-mois') && document.getElementById('flux-mois').value); }, 30000);
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
 <script src="/static/notifications.js?v=3"></script>

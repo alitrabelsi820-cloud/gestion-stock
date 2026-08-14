@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "71"
+ASSET_VERSION = "72"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -859,6 +859,138 @@ def annual_stats(ventes):
         y["ca"] = round(y["ca"], 0)
         y["benef"] = round(y["benef"], 0)
     return result
+
+def _mois_de(datestr):
+    """Renvoie le mois 'AAAA-MM' d'une date 'AAAA-MM-JJ' (ou '' si vide)."""
+    return (datestr or "")[:7]
+
+def dashboard_flux(mois=None):
+    """Flux de stock (entrées/sorties) + encaissements réels d'un mois.
+    100% LECTURE SEULE : tout est recalculé à partir des articles / ventes /
+    crédits, aucune écriture, aucune modification de la base."""
+    articles = load_articles()
+    ventes   = load_ventes()
+    credits  = load_credits()
+
+    now = datetime.now()
+    mois_cur = mois if (mois and len(mois) == 7) else now.strftime("%Y-%m")
+    y, mth = int(mois_cur[:4]), int(mois_cur[5:7])
+    prev_y, prev_m = (y - 1, 12) if mth == 1 else (y, mth - 1)
+    mois_prev = f"{prev_y:04d}-{prev_m:02d}"
+
+    # Mois disponibles (pour le sélecteur), du plus récent au plus ancien
+    mset = set()
+    for v in ventes:
+        if v.get("date_vente"): mset.add(_mois_de(v["date_vente"]))
+    for a in articles:
+        if a.get("date"): mset.add(_mois_de(a["date"]))
+    mset.add(now.strftime("%Y-%m"))
+    mois_dispo = sorted([x for x in mset if x], reverse=True)
+
+    qty = lambda a: int(a.get("quantite") or 1)
+    m   = lambda a: 1 if is_lot(a) else qty(a)
+
+    # ── FLUX DE STOCK ─────────────────────────────────────────────────────────
+    def stock_agg(mois):
+        e_or = e_val = e_nb = 0.0
+        # entrées encore en stock
+        for a in articles:
+            if _mois_de(a.get("date")) == mois:
+                e_or  += (a.get("or_grs") or 0) * m(a)
+                e_val += (a.get("pa") or 0) * m(a)
+                e_nb  += qty(a)
+        # entrées déjà revendues (reconstruites depuis les ventes via date_achat)
+        for v in ventes:
+            if _mois_de(v.get("date_achat")) == mois:
+                e_or  += (v.get("or_grs") or 0)
+                e_val += (v.get("pa") or 0)
+                e_nb  += 1
+        s_or = s_val = s_nb = 0.0
+        for v in ventes:
+            if _mois_de(v.get("date_vente")) == mois:
+                s_or  += (v.get("or_grs") or 0)
+                s_val += (v.get("pa") or 0)
+                s_nb  += 1
+        return {
+            "entrees": {"nb": int(e_nb), "or": round(e_or, 2), "valeur": round(e_val)},
+            "sorties": {"nb": int(s_nb), "or": round(s_or, 2), "valeur": round(s_val)},
+            "net_or": round(e_or - s_or, 2),
+            "net_valeur": round(e_val - s_val),
+        }
+
+    mvts = []
+    for a in articles:
+        d = a.get("date") or ""
+        if d:
+            mvts.append({"sens": "in", "date": d,
+                         "ref": a.get("ref_code") or a.get("id"),
+                         "article": a.get("article") or "",
+                         "or": round((a.get("or_grs") or 0) * m(a), 2),
+                         "valeur": round((a.get("pa") or 0) * m(a))})
+    for v in ventes:
+        d = v.get("date_vente") or ""
+        if d:
+            mvts.append({"sens": "out", "date": d, "ref": v.get("ref"),
+                         "article": v.get("article") or "",
+                         "or": round(v.get("or_grs") or 0, 2),
+                         "valeur": round(v.get("pa") or 0)})
+    mvts.sort(key=lambda x: x["date"], reverse=True)
+    mvts = mvts[:30]
+
+    # ── ENCAISSEMENTS RÉELS ───────────────────────────────────────────────────
+    # Références vendues à crédit → leur argent est suivi via les paiements, pas
+    # via le pv de la vente (sinon on compterait de l'argent pas encore encaissé).
+    credit_refs = set()
+    for c in credits:
+        for part in str(c.get("refs") or "").split(","):
+            part = part.strip()
+            if part.isdigit():
+                credit_refs.add(int(part))
+
+    def _ref_int(v):
+        try:
+            return int(v.get("ref"))
+        except (TypeError, ValueError):
+            return None
+
+    def enc_agg(mois):
+        comptant = cred = ca = 0.0
+        for v in ventes:
+            if _mois_de(v.get("date_vente")) == mois:
+                ca += (v.get("pv") or 0)
+                if _ref_int(v) not in credit_refs:
+                    comptant += (v.get("pv") or 0)
+        for c in credits:
+            for p in (c.get("paiements") or []):
+                if _mois_de(p.get("date")) == mois:
+                    cred += (p.get("montant") or 0)
+        return {"total": round(comptant + cred), "comptant": round(comptant),
+                "credits": round(cred), "ca": round(ca)}
+
+    enc_mvts = []
+    for v in ventes:
+        d = v.get("date_vente") or ""
+        if d and _ref_int(v) not in credit_refs:
+            enc_mvts.append({"date": d, "client": v.get("client") or "",
+                             "montant": round(v.get("pv") or 0), "type": "comptant",
+                             "label": v.get("article") or ""})
+    for c in credits:
+        for p in (c.get("paiements") or []):
+            d = p.get("date") or ""
+            if d:
+                enc_mvts.append({"date": d, "client": c.get("client") or "",
+                                 "montant": round(p.get("montant") or 0), "type": "credit",
+                                 "label": "Paiement crédit"})
+    enc_mvts.sort(key=lambda x: x["date"], reverse=True)
+    enc_mvts = enc_mvts[:30]
+
+    return {
+        "mois": mois_cur, "mois_prec": mois_prev, "mois_dispo": mois_dispo,
+        "stock": {"mois": stock_agg(mois_cur), "mois_prec": stock_agg(mois_prev),
+                  "mouvements": mvts},
+        "encaissement": {"mois": enc_agg(mois_cur), "mois_prec": enc_agg(mois_prev),
+                         "mouvements": enc_mvts},
+    }
 
 def parse_float(val, min_val=None, max_val=None):
     """Convertit une valeur en float, None si vide. Rejette les valeurs hors limites."""
@@ -1980,6 +2112,10 @@ function filter(type, btn) {{
                 "annual": annual_stats(ventes),
             }
             self.send_json(result); return
+
+        # ── Flux de stock + encaissements réels (dashboard, lecture seule) ────
+        if path == "/api/dashboard/flux":
+            self.send_json(dashboard_flux(params.get("mois", [None])[0])); return
 
         # ── Paniers en attente (préparés par les employés) ────────────────────
         if path == "/api/paniers":
