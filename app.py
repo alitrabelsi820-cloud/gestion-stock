@@ -710,6 +710,63 @@ def migrate_chain_codes():
         save_articles(articles)
         print("[MIGRATION] Codes de lots de chaînes restaurés (ref_code).")
 
+def migrate_reservations_v1():
+    """Convertit 5 ventes à crédit qui étaient en réalité des RÉSERVATIONS
+    (article gardé par la bijouterie, le client ne l'a jamais emporté) —
+    identifiées avec l'utilisateur. Pour chacune : remet l'article en stock
+    (reconstruit depuis la vente), supprime la vente (retire du CA), et passe le
+    crédit en type='reservation'. Idempotent (drapeau de config)."""
+    cfg = load_config()
+    if cfg.get("reservations_v1"):
+        return
+    # id du crédit -> mot-clé attendu du client (garde-fou anti-conversion erronée)
+    TARGETS = {2: "aicha", 3: "anissa", 4: "anissa", 46: "ihsane", 47: "leila"}
+    import unicodedata
+    def norm(s):
+        s = unicodedata.normalize("NFD", str(s or "").lower())
+        return "".join(ch for ch in s if unicodedata.category(ch) != "Mn")
+    credits = load_credits()
+    ventes = load_ventes()
+    articles = load_articles()
+    art_ids = {a["id"] for a in articles}
+    a_retirer = set()
+    details = []
+    for c in credits:
+        kw = TARGETS.get(c["id"])
+        if not kw or c.get("type") == "reservation":
+            continue
+        if kw not in norm(c.get("client")):
+            print(f"[MIGRATION résa] crédit #{c['id']} ignoré (client inattendu : {c.get('client')!r})")
+            continue
+        refs = [int(r) for r in str(c.get("refs") or "").split(",") if r.strip().isdigit()]
+        for ref in refs:
+            vs = [v for v in ventes if v.get("ref") == ref and kw in norm(v.get("client"))]
+            for v in vs:
+                a_retirer.add(v.get("id_vente"))
+            if ref not in art_ids and vs:
+                v = vs[-1]
+                articles.append({
+                    "id": ref, "date": v.get("date_achat"), "article": v.get("article"),
+                    "or_grs": v.get("or_grs"), "pa": v.get("pa"),
+                    "d": v.get("d"), "em": v.get("em"), "r": v.get("r"), "s": v.get("s"),
+                    "p_fines": v.get("p_fines"), "rosaces": v.get("rosaces"),
+                    "em_clb": v.get("em_clb"), "perles": v.get("perles"),
+                    "fabricant": None, "ismail_pierres": False, "quantite": 1,
+                    "note": "Remis en stock (réservation)", "ref_code": None, "vente_poids": None,
+                })
+                art_ids.add(ref)
+        c["type"] = "reservation"
+        details.append(f"#{c['id']} {c.get('client')}")
+    if not details:
+        save_config({"reservations_v1": 1})
+        return
+    ventes = [v for v in ventes if v.get("id_vente") not in a_retirer]
+    save_articles(articles)
+    save_ventes(ventes)
+    save_credits(credits)
+    save_config({"reservations_v1": 1})
+    print(f"[MIGRATION] {len(details)} ventes converties en réservations : {', '.join(details)}")
+
 def migrate_reprise_stock():
     """Corrige les reprises : bénéfice neutralisé (l'ancienne logique le mettait
     en négatif) et retrait des articles repris qui avaient été ajoutés
@@ -4471,6 +4528,8 @@ if __name__ == "__main__":
     migrate_chain_ids()
     # 0d. Chaînes : restaurer les codes de lot perdus lors d'une modification
     migrate_chain_codes()
+    # 0e. Convertir 5 ventes à crédit passées en réservations (article gardé)
+    migrate_reservations_v1()
     # 1. Fusionner les factures dupliquées (même client + même jour → une seule)
     merge_duplicate_factures()
     # 2. Générer les factures manquantes pour les ventes qui n'en ont pas
