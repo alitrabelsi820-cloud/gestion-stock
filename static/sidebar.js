@@ -55,6 +55,7 @@
         { label: 'Chèques',             href: '/cheques' },
       ]
     },
+    { type: 'link', icon: '🔒', label: 'Articles réservés', href: '/reserves' },
     {
       type: 'group', icon: '⚙️', label: 'Gestion', id: 'gestion',
       links: [
@@ -505,6 +506,7 @@
       { icon: '📋', label: 'Chèques',             href: '/cheques' },
     ]},
     { icon: '☰',  label: 'Plus',     id: 'plus', links: [
+      { icon: '🔒', label: 'Articles réservés',   href: '/reserves' },
       { icon: '📊', label: 'Dashboard',           href: '/dashboard' },
       { icon: '🏭', label: 'Fournisseurs',        href: '/fournisseurs' },
       { icon: '🔍', label: 'Fiche référence',     href: '/fiche' },

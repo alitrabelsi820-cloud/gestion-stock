@@ -106,7 +106,8 @@ CREATE TABLE IF NOT EXISTS credits (
     reste         REAL,
     statut        TEXT DEFAULT 'rien',
     date_solde    TEXT,
-    note          TEXT DEFAULT ''
+    note          TEXT DEFAULT '',
+    type          TEXT DEFAULT 'client'
 );
 
 CREATE TABLE IF NOT EXISTS fournisseurs (
@@ -497,6 +498,12 @@ def init_db():
             print("[DB] Colonne 'client' ajoutée aux paniers_attente.")
         except Exception:
             pass
+        # Réservations : type de crédit ('client' normal / 'reservation')
+        try:
+            conn.execute("ALTER TABLE credits ADD COLUMN type TEXT DEFAULT 'client'")
+            print("[DB] Colonne 'type' ajoutée aux crédits.")
+        except Exception:
+            pass
         # Migration 6 : table sessions persistantes
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS sessions (
@@ -646,6 +653,7 @@ def _row_to_credit(row):
         "paiements": json.loads(row["paiements"] or "[]"),
         "reste": row["reste"], "statut": row["statut"],
         "date_solde": row["date_solde"], "note": row["note"] or "",
+        "type": (row["type"] if "type" in row.keys() else "client") or "client",
     }
 
 def load_credits():
@@ -659,14 +667,15 @@ def save_credits(credits):
         conn.executemany("""
             INSERT INTO credits
             (id,client,contact,date_achat,refs,article,montant_total,
-             paiements,reste,statut,date_solde,note)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+             paiements,reste,statut,date_solde,note,type)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, [(c["id"], c.get("client"), c.get("contact"),
                c.get("date_achat"), c.get("refs"), c.get("article"),
                c.get("montant_total"),
                json.dumps(c.get("paiements",[]), ensure_ascii=False),
                c.get("reste"), c.get("statut","rien"),
-               c.get("date_solde"), c.get("note","")) for c in credits])
+               c.get("date_solde"), c.get("note",""),
+               c.get("type","client")) for c in credits])
 
 
 # ─── FOURNISSEURS ─────────────────────────────────────────────────────────────

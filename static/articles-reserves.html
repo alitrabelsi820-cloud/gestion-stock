@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#c9a84c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Trabelsi">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Articles Réservés — TRABELSI</title>
+<style>
+:root{--gold:#b8923c;--gold-l:#7a5c20;--gold-d:#9a7530;--bg:#f8f5f0;--bg2:#ffffff;--bg3:#f2ede6;--bd:#e8e0d4;--txt:#1a1612;--muted:#9a8e7e;--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--orange:#e67e22;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 #e8e0d4,0 2px 8px rgba(0,0,0,.06);}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;text-decoration:none;color:inherit;}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a1200;}
+.nav-title{font-size:17px;font-weight:700;color:#1a1612;letter-spacing:.5px;}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;}
+.nav-links a{padding:8px 14px;border-radius:8px;color:#6a6058;text-decoration:none;font-size:13px;font-weight:500;}
+.nav-links a.active{color:var(--gold);background:rgba(201,168,76,.15);}
+.hamburger{display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--gold-d);}
+
+.page{padding:28px 24px 90px;max-width:1000px;margin:0 auto;}
+.page-header{margin-bottom:20px;}
+.page-header h1{font-size:23px;color:var(--gold-l);}
+.page-header p{color:var(--muted);margin-top:6px;font-size:14px;}
+
+.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;}
+.sum-card{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 18px;flex:1;min-width:150px;}
+.sum-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;}
+.sum-val{font-size:22px;font-weight:900;margin-top:4px;color:var(--gold-l);}
+
+.res-card{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:16px 18px;margin-bottom:14px;border-left:4px solid var(--orange);}
+.res-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+.res-client{font-size:16px;font-weight:800;color:var(--txt);}
+.res-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.res-badge{background:rgba(230,126,34,.14);color:#b85c00;border:1px solid rgba(230,126,34,.4);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:800;white-space:nowrap;}
+.res-items{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+.res-item{display:flex;align-items:center;gap:11px;padding:8px;background:var(--bg3);border-radius:10px;}
+.res-item img{width:46px;height:46px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid var(--bd);flex-shrink:0;}
+.res-item-ref{font-family:monospace;font-weight:800;color:var(--gold-l);font-size:14px;}
+.res-item-nom{font-size:13px;color:var(--txt);}
+.res-money{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0 4px;padding-top:12px;border-top:1px solid var(--bd);}
+.res-money div{font-size:12px;color:var(--muted);}
+.res-money b{display:block;font-size:17px;font-weight:900;margin-top:2px;}
+.m-prix b{color:var(--gold-l);} .m-avance b{color:#1a7a40;} .m-reste b{color:#c0392b;}
+.res-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+.btn{padding:10px 16px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:700;-webkit-tap-highlight-color:transparent;}
+.btn-green{background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;}
+.btn-out{background:transparent;border:1px solid rgba(231,76,60,.35);color:#e74c3c;}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-ico{font-size:52px;opacity:.2;margin-bottom:14px;}
+.info-note{background:rgba(52,152,219,.07);border:1px solid rgba(52,152,219,.2);border-radius:10px;padding:11px 14px;font-size:12px;color:#2471a3;margin-bottom:18px;}
+</style>
+<link rel="stylesheet" href="/static/mobile.css">
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+<nav>
+  <a href="/accueil" class="nav-brand"><div class="nav-logo">♦</div><div class="nav-title">GESTION STOCK</div></a>
+  <div class="nav-links" id="nav-links"><a href="/reserves" class="active">🔒 Articles réservés</a></div>
+  <button class="hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>🔒 Articles Réservés</h1>
+    <p>Articles gardés en stock avec une avance reçue — pas encore vendus, rien dans le CA.</p>
+  </div>
+
+  <div class="info-note">💡 L'article reste dans ton stock. L'avance est comptée dans tes <b>Encaissements</b> mais <b>pas</b> dans le chiffre d'affaires. Il devient une vente le jour où le client l'emporte.</div>
+
+  <div class="summary" id="summary"></div>
+  <div id="list"></div>
+</div>
+
+<script>
+const fmtN = v => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
+const fmtD = d => { if(!d) return '—'; const p=String(d).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d; };
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+async function charger(){
+  let data;
+  try{
+    const r = await fetch('/api/reservations');
+    if(r.status===401){ location.href='/login'; return; }
+    data = await r.json();
+  }catch(e){ document.getElementById('list').innerHTML='<div class="empty">Erreur de chargement.</div>'; return; }
+  const list = data.reservations||[];
+  // Résumé
+  const totAvance = list.reduce((s,r)=>s+(r.avance||0),0);
+  const totReste  = list.reduce((s,r)=>s+(r.reste||0),0);
+  document.getElementById('summary').innerHTML =
+     `<div class="sum-card"><div class="sum-lbl">🔒 Réservations</div><div class="sum-val">${list.length}</div></div>`
+    +`<div class="sum-card"><div class="sum-lbl">💵 Avances reçues</div><div class="sum-val" style="color:#1a7a40">${fmtN(totAvance)}</div></div>`
+    +`<div class="sum-card"><div class="sum-lbl">⏳ Reste à venir</div><div class="sum-val" style="color:#c0392b">${fmtN(totReste)}</div></div>`;
+
+  if(!list.length){
+    document.getElementById('list').innerHTML='<div class="empty"><div class="empty-ico">🔒</div><div style="font-size:15px;font-weight:600">Aucun article réservé</div><div style="font-size:13px;margin-top:6px">Choisis « Réservation » lors d\'une nouvelle vente pour en créer une.</div></div>';
+    return;
+  }
+  document.getElementById('list').innerHTML = list.map(renderRes).join('');
+}
+
+function renderRes(r){
+  const items = (r.items||[]).map(it=>
+    `<div class="res-item">
+       <img src="/api/photo/${it.ref}" onerror="this.style.visibility='hidden'">
+       <div style="flex:1;min-width:0">
+         <div class="res-item-ref">#${it.ref}</div>
+         <div class="res-item-nom">${esc(it.article)||'—'}${it.or_grs?' · '+fmtN(it.or_grs)+' g':''}</div>
+       </div>
+       ${it.in_stock?'<span style="font-size:11px;color:#1a7a40;font-weight:700">✅ en stock</span>':'<span style="font-size:11px;color:#c0392b;font-weight:700">⚠️ hors stock</span>'}
+     </div>`).join('');
+  return `<div class="res-card">
+    <div class="res-top">
+      <div>
+        <div class="res-client">🧑 ${esc(r.client)||'Client'}</div>
+        <div class="res-meta">${r.contact?('📞 '+esc(r.contact)+' · '):''}Réservé le ${fmtD(r.date)}</div>
+      </div>
+      <span class="res-badge">🔒 Réservé</span>
+    </div>
+    <div class="res-items">${items}</div>
+    <div class="res-money">
+      <div class="m-prix">Prix convenu<b>${fmtN(r.montant_total)} MAD</b></div>
+      <div class="m-avance">Avance reçue<b>${fmtN(r.avance)} MAD</b></div>
+      <div class="m-reste">Reste<b>${fmtN(r.reste)} MAD</b></div>
+    </div>
+    ${r.note?`<div style="font-size:12px;color:var(--muted);margin-top:8px">📝 ${esc(r.note)}</div>`:''}
+    <div class="res-actions">
+      <button class="btn btn-green" onclick="alert('La conversion en vente arrive à la prochaine étape 👍')">✅ Convertir en vente</button>
+      <button class="btn btn-out" onclick="annuler(${r.id}, this)">🗑️ Annuler la réservation</button>
+    </div>
+  </div>`;
+}
+
+async function annuler(id, btn){
+  if(!confirm('Annuler cette réservation ? (l\'article reste en stock, l\'avance n\'est plus enregistrée)')) return;
+  btn.disabled=true; btn.textContent='…';
+  try{
+    const r = await fetch('/api/credits/'+id, {method:'DELETE'});
+    if(r.ok){ charger(); } else { btn.disabled=false; btn.textContent='🗑️ Annuler la réservation'; alert('Échec de l\'annulation.'); }
+  }catch(e){ btn.disabled=false; btn.textContent='🗑️ Annuler la réservation'; }
+}
+
+charger();
+</script>
+</body>
+</html>

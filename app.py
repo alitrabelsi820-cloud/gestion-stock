@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "75"
+ASSET_VERSION = "76"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1875,6 +1875,8 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "vendu.html"); return
         if path == "/dashboard":
             self.send_html(STATIC_DIR / "dashboard.html"); return
+        if path == "/reserves":
+            self.send_html(STATIC_DIR / "articles-reserves.html"); return
         if path == "/fiche":
             self.send_html(STATIC_DIR / "fiche.html"); return
         if path == "/credit":
@@ -2163,12 +2165,44 @@ function filter(type, btn) {{
                 self.send_response(500); self.end_headers()
             return
 
+        # ── Articles réservés (avances sur articles gardés en stock) ──────────
+        if path == "/api/reservations":
+            credits = load_credits()
+            arts = {a["id"]: a for a in load_articles()}
+            res = []
+            for c in credits:
+                if c.get("type") != "reservation":
+                    continue
+                avance = round(sum(p.get("montant") or 0 for p in (c.get("paiements") or [])))
+                items = []
+                for r in str(c.get("refs") or "").split(","):
+                    r = r.strip()
+                    if not r.isdigit():
+                        continue
+                    rid = int(r)
+                    a = arts.get(rid)
+                    items.append({"ref": rid,
+                                  "article": (a.get("article") if a else ""),
+                                  "or_grs": (a.get("or_grs") if a else None),
+                                  "in_stock": rid in arts})
+                res.append({
+                    "id": c["id"], "client": c.get("client"), "contact": c.get("contact"),
+                    "date": c.get("date_achat"), "montant_total": c.get("montant_total"),
+                    "avance": avance, "reste": c.get("reste"), "statut": c.get("statut"),
+                    "paiements": c.get("paiements") or [], "note": c.get("note") or "",
+                    "items": items,
+                })
+            res.sort(key=lambda x: x["id"], reverse=True)
+            self.send_json({"reservations": res}); return
+
         # ── API crédits clients ───────────────────────────────────────────────
         if path == "/api/credits":
             self.send_json(load_credits()); return
 
         if path == "/api/credits/stats":
             credits = load_credits()
+            # Les réservations ne sont pas des dettes clients → exclues du total dû
+            credits = [c for c in credits if c.get("type") != "reservation"]
             ouverts = [c for c in credits if c["statut"] in ("rien", "avance")]
             self.send_json({
                 "total_du": round(sum(c.get("reste", 0) for c in ouverts), 0),
@@ -3313,6 +3347,63 @@ function filter(type, btn) {{
             self.send_json({"success": True, "facture": facture, "nb_ventes": len(new_ventes)}); return
 
         # ── Créer un crédit client ────────────────────────────────────────────
+        # ── Réservation : avance sur article(s) gardé(s) en stock (PAS une vente) ──
+        if path == "/api/reservations":
+            items = data.get("items") or []
+            arts = {a["id"]: a for a in load_articles()}
+            refs = []; noms = []; total = 0.0
+            for it in items:
+                try:
+                    ref = int(it.get("ref"))
+                except (TypeError, ValueError):
+                    continue
+                a = arts.get(ref)
+                refs.append(ref)
+                noms.append((a.get("article") if a else it.get("article")) or "")
+                try:
+                    total += float(it.get("pv") or 0)
+                except (TypeError, ValueError):
+                    pass
+            if not refs:
+                self.send_json({"error": "Aucun article à réserver"}, 400); return
+            try:
+                avance = float(data.get("avance") or 0)
+            except (TypeError, ValueError):
+                avance = 0
+            if avance < 0:
+                self.send_json({"error": "L'avance ne peut pas être négative"}, 400); return
+            now = datetime.now()
+            date_res = data.get("date") or now.strftime("%Y-%m-%d")
+            paiements = []
+            if avance > 0:
+                paiements.append({"montant": avance, "date": date_res,
+                                  "mode": str(data.get("mode_paiement", "")).strip()})
+            credits = load_credits()
+            new_id = max((c["id"] for c in credits), default=0) + 1
+            reservation = {
+                "id": new_id,
+                "client": str(data.get("client", "")).strip(),
+                "contact": str(data.get("contact", "")).strip() or None,
+                "date_achat": date_res,
+                "refs": ", ".join(str(r) for r in refs),
+                "article": ", ".join(n for n in noms if n),
+                "montant_total": round(total, 2),
+                "paiements": paiements,
+                "reste": 0, "statut": "rien", "date_solde": None,
+                "note": str(data.get("note", "")).strip(),
+                "type": "reservation",
+            }
+            recalc_credit(reservation)
+            credits.append(reservation)
+            save_credits(credits)
+            r_, ip_, dev_ = self._actor()
+            db.log_audit("created", "reservation", ", ".join(str(r) for r in refs),
+                         f"Réservation — {reservation['article']} · "
+                         f"{reservation['client'] or '?'} · avance {avance:.0f} / {total:.0f} MAD",
+                         r_, ip_, dev_)
+            push_db_background()
+            self.send_json({"success": True, "reservation": reservation}); return
+
         if path == "/api/credits":
             credits = load_credits()
             now = datetime.now()

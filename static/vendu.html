@@ -525,7 +525,12 @@ td.has{color:#82e0aa;}
             <input type="radio" name="nv-statut" id="nv-st-rien" value="rien" onchange="onNVStatutChange()" style="display:none">
             <div id="nv-st-rien-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);transition:all .2s">❌ Rien</div>
           </label>
+          <label style="flex:1;cursor:pointer">
+            <input type="radio" name="nv-statut" id="nv-st-reservation" value="reservation" onchange="onNVStatutChange()" style="display:none">
+            <div id="nv-st-reservation-btn" style="border-radius:8px;padding:9px 10px;text-align:center;font-size:12px;font-weight:700;border:2px solid var(--bd);background:var(--bg3);color:var(--muted);transition:all .2s">🔒 Réservation</div>
+          </label>
         </div>
+        <div id="nv-reservation-hint" style="display:none;margin-top:8px;font-size:12px;color:#b85c00;background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.25);border-radius:8px;padding:9px 11px">🔒 <b>Réservation</b> : l'article <b>reste en stock</b>, l'avance va dans les encaissements, <b>rien dans le CA</b>. Il deviendra une vente quand le client l'emportera.</div>
       </div>
       <div id="nv-avance-bloc" style="display:none;background:rgba(230,126,34,.06);border:1px solid rgba(230,126,34,.25);border-radius:10px;padding:12px;margin-bottom:10px">
         <div style="font-size:11px;color:var(--orange);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:10px">💰 Détails de l'avance</div>
@@ -1573,13 +1578,15 @@ function closeIsmailAlert(e){
 function onNVStatutChange(){
   const val = document.querySelector('input[name="nv-statut"]:checked').value;
   const styles = {
-    totalite: {btn:'nv-st-total-btn', border:'var(--green)', bg:'rgba(46,204,113,.12)', color:'var(--green)'},
-    avance:   {btn:'nv-st-avance-btn', border:'var(--orange)', bg:'rgba(230,126,34,.12)', color:'var(--orange)'},
-    rien:     {btn:'nv-st-rien-btn', border:'var(--red)', bg:'rgba(231,76,60,.12)', color:'var(--red)'},
+    totalite:    {btn:'nv-st-total-btn', border:'var(--green)', bg:'rgba(46,204,113,.12)', color:'var(--green)'},
+    avance:      {btn:'nv-st-avance-btn', border:'var(--orange)', bg:'rgba(230,126,34,.12)', color:'var(--orange)'},
+    rien:        {btn:'nv-st-rien-btn', border:'var(--red)', bg:'rgba(231,76,60,.12)', color:'var(--red)'},
+    reservation: {btn:'nv-st-reservation-btn', border:'#b85c00', bg:'rgba(230,126,34,.14)', color:'#b85c00'},
   };
-  ['totalite','avance','rien'].forEach(k=>{
+  ['totalite','avance','rien','reservation'].forEach(k=>{
     const s=styles[k];
     const el=document.getElementById(s.btn);
+    if(!el) return;
     if(k===val){
       el.style.border='2px solid '+s.border;
       el.style.background=s.bg;
@@ -1590,9 +1597,12 @@ function onNVStatutChange(){
       el.style.color='var(--muted)';
     }
   });
-  document.getElementById('nv-avance-bloc').style.display  = val==='avance'?'block':'none';
-  document.getElementById('nv-credit-alert').style.display = val!=='totalite'?'block':'none';
-  if(val!=='avance'){document.getElementById('nv-avance').value='';document.getElementById('nv-reste-display').textContent='—';}
+  // Avance saisie pour 'avance' ET 'reservation'
+  document.getElementById('nv-avance-bloc').style.display  = (val==='avance'||val==='reservation')?'block':'none';
+  document.getElementById('nv-reservation-hint').style.display = val==='reservation'?'block':'none';
+  // L'alerte "crédit client" ne concerne pas la réservation
+  document.getElementById('nv-credit-alert').style.display = (val!=='totalite'&&val!=='reservation')?'block':'none';
+  if(val!=='avance'&&val!=='reservation'){document.getElementById('nv-avance').value='';document.getElementById('nv-reste-display').textContent='—';}
 }
 
 function calcNVBenef(){
@@ -1664,6 +1674,34 @@ async function submitNV(){
   const statut=document.querySelector('input[name="nv-statut"]:checked').value;
   const avance=parseFloat(document.getElementById('nv-avance').value)||0;
   if(statut==='avance'&&!avance){toast('Entrez le montant de l\'avance','error');return;}
+
+  // ── Cas RÉSERVATION : article gardé en stock, PAS de vente, PAS de CA ──
+  if(statut==='reservation'){
+    const resItems=nvPanier.filter(i=>!i.chain && i.article && i.article.id!=null)
+                           .map(i=>({ref:i.article.id, pv:i.pv||0}));
+    if(!resItems.length){toast('La réservation ne gère que les articles du stock (pas les lots de chaînes)','error');return;}
+    const rClient=document.getElementById('nv-client').value.trim();
+    const rContact=document.getElementById('nv-contact').value.trim();
+    const rDate=document.getElementById('nv-date').value||new Date().toISOString().split('T')[0];
+    const rNote=document.getElementById('nv-note').value.trim();
+    const rMode=document.getElementById('nv-mode').value;
+    const rbtn=document.getElementById('nv-confirm-btn');
+    const rorig=rbtn.textContent; rbtn.disabled=true; rbtn.textContent='⏳ Traitement…';
+    try{
+      const res=await fetch('/api/reservations',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({items:resItems, client:rClient, contact:rContact, avance, mode_paiement:rMode, date:rDate, note:rNote})});
+      const d=await res.json();
+      if(res.ok){
+        toast('🔒 Réservation enregistrée — article gardé en stock','success');
+        closeNVModal(); await load();
+      }else{
+        toast(d.error||'Échec de la réservation','error');
+        rbtn.disabled=false; rbtn.textContent=rorig;
+      }
+    }catch(e){ toast('Erreur réseau','error'); rbtn.disabled=false; rbtn.textContent=rorig; }
+    return;
+  }
+
   const btn=document.getElementById('nv-confirm-btn');
   btn.disabled=true;btn.textContent='⏳ Traitement…';
   const client=document.getElementById('nv-client').value.trim();
