@@ -299,7 +299,7 @@ nav{
           <span class="cc-val" id="c-cc">—</span>
         </div>
         <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(230,126,34,.3);padding-top:8px">
-          <span class="ccbang-lbl">CC ❗ · ne vont pas payer maintenant</span>
+          <span class="ccbang-lbl">CC ❗</span>
           <span class="ccbang-val" id="c-ccbang">—</span>
         </div>
       </div>
@@ -397,16 +397,15 @@ async function load(){
         let resaTag = '';
         if(c.nbResa>0 && c.nbAutre===0) resaTag = '<span class="tag-resa">🔒 réservation</span>';
         else if(c.nbResa>0)             resaTag = '<span class="tag-resa">🔒 dont réservation</span>';
-        const geleTag = c.gele ? '<span class="tag-gele">❗ gelé</span>' : '';
         return `
           <div class="client-row${c.gele?' gele':''}">
             <div class="client-avatar">${initials}</div>
             <div class="client-info">
               <div class="client-name">${c.client||'—'}${badge}</div>
-              <div class="client-date">${date}${(resaTag||geleTag)?' · ':''}${resaTag}${geleTag}</div>
+              <div class="client-date">${date}${resaTag?' · ':''}${resaTag}</div>
             </div>
             <div class="client-amount">${fmtN(c.reste)} MAD</div>
-            <button class="gele-btn${c.gele?' on':''}" title="${c.gele?'Dégeler ce client':'Geler (ne va pas payer maintenant)'}" onclick='toggleGele(${JSON.stringify(c.ids)}, ${c.gele?0:1}, this)'>${c.gele?'🔒':'❄️'}</button>
+            <button class="gele-btn${c.gele?' on':''}" title="${c.gele?'Dégeler':'Geler'}" onclick='toggleGele(${JSON.stringify(c.ids)}, ${c.gele?0:1}, this)'>${c.gele?'🔒':'❄️'}</button>
           </div>`;
       }).join('');
     }
