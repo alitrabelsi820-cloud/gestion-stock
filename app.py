@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "78"
+ASSET_VERSION = "79"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -766,6 +766,29 @@ def migrate_reservations_v1():
     save_credits(credits)
     save_config({"reservations_v1": 1})
     print(f"[MIGRATION] {len(details)} ventes converties en réservations : {', '.join(details)}")
+
+def migrate_credits_geles_v1():
+    """Marque comme « gelés » (crédits à risque, additionnés à part) les crédits
+    de certains clients identifiés avec l'utilisateur. Idempotent (drapeau)."""
+    cfg = load_config()
+    if cfg.get("credits_geles_v1"):
+        return
+    import unicodedata
+    def norm(s):
+        s = unicodedata.normalize("NFD", str(s or "").lower())
+        return "".join(ch for ch in s if unicodedata.category(ch) != "Mn")
+    NOMS = ["aziz trabelsi", "kamal belabssir", "abdenbi", "jimmy", "boutaleb", "hadef"]
+    credits = load_credits()
+    touched = False
+    for c in credits:
+        cn = norm(c.get("client"))
+        if any(n in cn for n in NOMS) and not c.get("gele"):
+            c["gele"] = 1
+            touched = True
+    if touched:
+        save_credits(credits)
+        print("[MIGRATION] Crédits gelés (à risque) marqués.")
+    save_config({"credits_geles_v1": 1})
 
 def migrate_reprise_stock():
     """Corrige les reprises : bénéfice neutralisé (l'ancienne logique le mettait
@@ -3568,6 +3591,21 @@ function filter(type, btn) {{
             self.send_json({"success": True, "credit": credit}); return
 
         # ── Ajouter un paiement sur un crédit client ──────────────────────────
+        # ── Geler / dégeler un crédit (crédit « à risque », additionné à part) ──
+        if path.startswith("/api/credits/") and path.endswith("/gele"):
+            try:
+                cid = int(path.split("/")[3])
+            except (ValueError, IndexError):
+                self.send_json({"error": "Identifiant invalide"}, 400); return
+            credits = load_credits()
+            idx = next((i for i, c in enumerate(credits) if c["id"] == cid), None)
+            if idx is None:
+                self.send_json({"error": "Crédit introuvable"}, 404); return
+            credits[idx]["gele"] = 1 if data.get("gele") else 0
+            save_credits(credits)
+            push_db_background()
+            self.send_json({"success": True, "gele": credits[idx]["gele"]}); return
+
         if path.startswith("/api/credits/") and path.endswith("/paiement"):
             parts = path.split("/")
             try:
@@ -4530,6 +4568,8 @@ if __name__ == "__main__":
     migrate_chain_codes()
     # 0e. Convertir 5 ventes à crédit passées en réservations (article gardé)
     migrate_reservations_v1()
+    # 0f. Marquer les crédits « gelés » (à risque) de certains clients
+    migrate_credits_geles_v1()
     # 1. Fusionner les factures dupliquées (même client + même jour → une seule)
     merge_duplicate_factures()
     # 2. Générer les factures manquantes pour les ventes qui n'en ont pas

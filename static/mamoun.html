@@ -141,6 +141,15 @@ nav{
 .client-name{font-size:15px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .client-date{font-size:12px;color:var(--muted);margin-top:2px;}
 .client-amount{font-size:18px;font-weight:900;color:var(--red);white-space:nowrap;}
+/* Crédits gelés (à risque) + tags */
+.client-row.gele{background:rgba(230,126,34,.10);}
+.tag-resa{display:inline-block;font-size:10px;font-weight:700;color:#b85c00;background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.3);border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap;}
+.tag-gele{display:inline-block;font-size:10px;font-weight:800;color:#c05000;background:rgba(230,126,34,.2);border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap;}
+.gele-btn{background:transparent;border:1px solid var(--bd);border-radius:9px;padding:6px 9px;font-size:15px;cursor:pointer;color:var(--muted);flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.gele-btn.on{border-color:rgba(230,126,34,.55);background:rgba(230,126,34,.1);}
+.cc-val{font-size:28px;font-weight:900;color:var(--red);}
+.ccbang-val{font-size:16px;font-weight:900;color:#b85c00;}
+.ccbang-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#b85c00;}
 
 /* ── BOUTON IMPRIMER ── */
 .btn-print{
@@ -284,9 +293,15 @@ nav{
       <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </div>
     <div class="panel-body">
-      <div class="credit-total">
-        <span class="lbl">Total dû</span>
-        <span class="val" id="c-total">—</span>
+      <div class="credit-total" style="flex-direction:column;align-items:stretch;gap:8px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <span class="lbl">CC · Crédits clients</span>
+          <span class="cc-val" id="c-cc">—</span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(230,126,34,.3);padding-top:8px">
+          <span class="ccbang-lbl">CC ❗ · ne vont pas payer maintenant</span>
+          <span class="ccbang-val" id="c-ccbang">—</span>
+        </div>
       </div>
       <div id="c-list"><div class="empty">Chargement…</div></div>
       <button class="btn-print" onclick="imprimerCredits()">🖨️ Imprimer la liste des crédits</button>
@@ -349,9 +364,11 @@ async function load(){
   try{
     const credits = await fetch('/api/credits').then(r=>r.json());
     const ouverts = credits.filter(c => c.statut === 'rien' || c.statut === 'avance');
-    const totalDu = ouverts.reduce((s,c) => s + (c.reste||0), 0);
-
-    document.getElementById('c-total').textContent = fmtN(totalDu) + ' MAD';
+    // CC = crédits normaux (non gelés) · CC❗ = crédits gelés (à risque)
+    const cc     = ouverts.filter(c=>!c.gele).reduce((s,c)=>s+(c.reste||0),0);
+    const ccBang = ouverts.filter(c=> c.gele).reduce((s,c)=>s+(c.reste||0),0);
+    document.getElementById('c-cc').textContent     = fmtN(cc) + ' MAD';
+    document.getElementById('c-ccbang').textContent = fmtN(ccBang) + ' MAD';
 
     const list = document.getElementById('c-list');
     if(ouverts.length === 0){
@@ -361,29 +378,35 @@ async function load(){
       const cmap = new Map();
       ouverts.forEach(c => {
         const key = (c.client||'?').trim().toLowerCase();
+        const isResa = c.type === 'reservation';
         if(cmap.has(key)){
           const e = cmap.get(key);
-          e.reste += (c.reste||0);
-          e.minId = Math.min(e.minId, c.id||0);
-          e.nb += 1;
+          e.reste += (c.reste||0); e.minId = Math.min(e.minId, c.id||0); e.nb += 1;
+          e.ids.push(c.id); if(c.gele) e.gele = true;
+          if(isResa) e.nbResa += 1; else e.nbAutre += 1;
         } else {
-          cmap.set(key, {client:c.client||'—', reste:(c.reste||0), minId:(c.id||0), date:c.date, nb:1});
+          cmap.set(key, {client:c.client||'—', reste:(c.reste||0), minId:(c.id||0), date:c.date,
+                         nb:1, ids:[c.id], gele:!!c.gele, nbResa:isResa?1:0, nbAutre:isResa?0:1});
         }
       });
-      // Trier par ordre d'ajout (premier crédit en haut)
       const groupes = [...cmap.values()].sort((a,b) => a.minId - b.minId);
       list.innerHTML = groupes.map(c => {
         const initials = (c.client||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
         const date = c.date ? new Date(c.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
         const badge = c.nb > 1 ? ` <span style="font-size:10px;color:var(--muted);font-weight:600">(${c.nb} crédits)</span>` : '';
+        let resaTag = '';
+        if(c.nbResa>0 && c.nbAutre===0) resaTag = '<span class="tag-resa">🔒 réservation</span>';
+        else if(c.nbResa>0)             resaTag = '<span class="tag-resa">🔒 dont réservation</span>';
+        const geleTag = c.gele ? '<span class="tag-gele">❗ gelé</span>' : '';
         return `
-          <div class="client-row">
+          <div class="client-row${c.gele?' gele':''}">
             <div class="client-avatar">${initials}</div>
             <div class="client-info">
               <div class="client-name">${c.client||'—'}${badge}</div>
-              <div class="client-date">${date}</div>
+              <div class="client-date">${date}${(resaTag||geleTag)?' · ':''}${resaTag}${geleTag}</div>
             </div>
             <div class="client-amount">${fmtN(c.reste)} MAD</div>
+            <button class="gele-btn${c.gele?' on':''}" title="${c.gele?'Dégeler ce client':'Geler (ne va pas payer maintenant)'}" onclick='toggleGele(${JSON.stringify(c.ids)}, ${c.gele?0:1}, this)'>${c.gele?'🔒':'❄️'}</button>
           </div>`;
       }).join('');
     }
@@ -410,6 +433,15 @@ async function load(){
   }catch(e){}
 }
 
+async function toggleGele(ids, gele, btn){
+  btn.disabled = true;
+  try{
+    await Promise.all((ids||[]).map(id =>
+      fetch('/api/credits/'+id+'/gele', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gele:gele})})));
+    load();
+  }catch(e){ btn.disabled = false; }
+}
+
 load();
 setInterval(load, 30000);
 
@@ -426,7 +458,8 @@ function imprimerCredits(){
   const heureStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
 
   const rows = document.querySelectorAll('#c-list .client-row');
-  const total = document.getElementById('c-total').textContent;
+  const _num = s => parseFloat(String(s||'').replace(/[^\d]/g,'')) || 0;
+  const total = fmtN(_num(document.getElementById('c-cc').textContent) + _num(document.getElementById('c-ccbang').textContent)) + ' MAD';
 
   // ── Regrouper les clients en double (PDF uniquement) ──
   const map = new Map(); // clé = nom normalisé

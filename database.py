@@ -107,7 +107,8 @@ CREATE TABLE IF NOT EXISTS credits (
     statut        TEXT DEFAULT 'rien',
     date_solde    TEXT,
     note          TEXT DEFAULT '',
-    type          TEXT DEFAULT 'client'
+    type          TEXT DEFAULT 'client',
+    gele          INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS fournisseurs (
@@ -504,6 +505,12 @@ def init_db():
             print("[DB] Colonne 'type' ajoutée aux crédits.")
         except Exception:
             pass
+        # Crédits « gelés » (à risque, à additionner à part)
+        try:
+            conn.execute("ALTER TABLE credits ADD COLUMN gele INTEGER DEFAULT 0")
+            print("[DB] Colonne 'gele' ajoutée aux crédits.")
+        except Exception:
+            pass
         # Migration 6 : table sessions persistantes
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS sessions (
@@ -654,6 +661,7 @@ def _row_to_credit(row):
         "reste": row["reste"], "statut": row["statut"],
         "date_solde": row["date_solde"], "note": row["note"] or "",
         "type": (row["type"] if "type" in row.keys() else "client") or "client",
+        "gele": (1 if ("gele" in row.keys() and row["gele"]) else 0),
     }
 
 def load_credits():
@@ -667,15 +675,15 @@ def save_credits(credits):
         conn.executemany("""
             INSERT INTO credits
             (id,client,contact,date_achat,refs,article,montant_total,
-             paiements,reste,statut,date_solde,note,type)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+             paiements,reste,statut,date_solde,note,type,gele)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, [(c["id"], c.get("client"), c.get("contact"),
                c.get("date_achat"), c.get("refs"), c.get("article"),
                c.get("montant_total"),
                json.dumps(c.get("paiements",[]), ensure_ascii=False),
                c.get("reste"), c.get("statut","rien"),
                c.get("date_solde"), c.get("note",""),
-               c.get("type","client")) for c in credits])
+               c.get("type","client"), 1 if c.get("gele") else 0) for c in credits])
 
 
 # ─── FOURNISSEURS ─────────────────────────────────────────────────────────────
