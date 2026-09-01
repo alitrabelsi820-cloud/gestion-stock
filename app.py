@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "88"
+ASSET_VERSION = "89"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -4355,10 +4355,14 @@ function filter(type, btn) {{
     def _handle_DELETE(self):
         path = urllib.parse.urlparse(self.path).path
 
+        # ── SÉCURITÉ : toute suppression exige une session ADMIN valide ───────
+        # (Un utilisateur non connecté ne peut PAS supprimer article, vente,
+        #  crédit, fournisseur, chèque, facture, devis ni rejeter une notif.)
+        if not is_admin(self.headers):
+            self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
+
         # ── Supprimer un panier en attente (admin uniquement) ─────────────────
         if path.startswith("/api/paniers/"):
-            if not is_admin(self.headers):
-                self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
             try:
                 pid = int(path.split("/")[-1])
                 db.delete_panier(pid)
