@@ -4148,6 +4148,12 @@ function filter(type, btn) {{
         except:
             self.send_json({"error": "JSON invalide"}, 400); return
 
+        # ── SÉCURITÉ : toute modification exige une session ADMIN valide ──────
+        # (config/prix de l'or, articles, ventes, crédits, fournisseurs, chèques,
+        #  factures) — un utilisateur non connecté ne peut rien modifier.
+        if not is_admin(self.headers):
+            self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
+
         # ── Modifier la configuration (prix de l'or) ──────────────────────────
         if path == "/api/config":
             cfg = load_config()
