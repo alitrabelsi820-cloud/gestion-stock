@@ -5,7 +5,7 @@
    Override pur CSS — ne touche à aucune logique ni donnée
    ═══════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700;900&display=swap');
 
 /* ── FIX NAV DESKTOP : forcer l'affichage des liens nav (NE PAS TOUCHER) ── */
 @media (min-width: 861px) {
@@ -47,41 +47,50 @@
    1. TOKENS — palette niveaux de gris
    ═══════════════════════════════════════════════════════════ */
 :root {
-  /* Encre (texte) */
-  --ink:        #16191D;   /* texte principal, presque noir   */
-  --ink-2:      #3A4047;   /* texte secondaire fort           */
-  --ink-soft:   #5C636B;   /* texte secondaire                */
-  --ink-faint:  #8A9099;   /* labels discrets, placeholders   */
-  /* Surfaces */
-  --canvas:     #F6F7F9;   /* fond de page                    */
+  /* Encre (texte) — encre chaude, presque noir-brun */
+  --ink:        #221c12;   /* texte principal                 */
+  --ink-2:      #443b2c;   /* texte secondaire fort           */
+  --ink-soft:   #6b6152;   /* texte secondaire                */
+  --ink-faint:  #9a8e79;   /* labels discrets, placeholders   */
+  /* Surfaces — crème chaleureuse */
+  --canvas:     #f6f1e8;   /* fond de page (crème)            */
   --surface:    #FFFFFF;   /* cartes, panneaux                */
-  --surface-2:  #F1F3F5;   /* fonds doux, hover               */
-  /* Lignes */
-  --line:       #E4E7EB;   /* bordures hairline               */
-  --line-2:     #EEF0F2;   /* séparateurs très doux           */
-  /* Accent neutre (actions primaires, états actifs) */
-  --accent:     #16191D;
-  --accent-2:   #2C3138;
-  /* Montants — seules couleurs conservées, sobres */
+  --surface-2:  #f3ecdf;   /* fonds doux, hover               */
+  /* Lignes — hairline chaude */
+  --line:       #e8ddc7;   /* bordures hairline               */
+  --line-2:     #f0e8d8;   /* séparateurs très doux           */
+  /* Accent (actions primaires, états actifs) — espresso */
+  --accent:     #2a1d08;
+  --accent-2:   #43310f;
+  /* Montants — verts/rouges sobres */
   --pos:        #15803D;   --pos-bg: rgba(21,128,61,.08);
   --neg:        #B42318;   --neg-bg: rgba(180,35,24,.08);
 
-  /* ── Remap des variables historiques des pages → grayscale ── */
-  --gold:    #16191D !important;
-  --gold-l:  #16191D !important;
-  --gold-d:  #2C3138 !important;
-  --gold-pale: rgba(0,0,0,0.04) !important;
-  --bg:      #F6F7F9 !important;
+  /* ── Palette premium OR (redéfinie ici aussi pour les pages
+     sans sidebar.css, ex. login) ── */
+  --gs-esp-1:  #1c1409;  --gs-esp-2: #0e0902;
+  --gs-gold-1: #e8c968;  --gs-gold-2: #a5812f;  --gs-gold-3: #7a5c20;
+  --gs-gold-txt: #f0e0b8;
+  /* Dégradés or réutilisables */
+  --grad-gold: linear-gradient(135deg, #e8c968, #a5812f);
+  --grad-esp:  linear-gradient(135deg, #2a1d08, #43310f);
+
+  /* ── Remap des variables historiques des pages → espresso chaud ── */
+  --gold:    #2a1d08 !important;
+  --gold-l:  #2a1d08 !important;
+  --gold-d:  #43310f !important;
+  --gold-pale: rgba(122,92,32,0.06) !important;
+  --bg:      #f6f1e8 !important;
   --bg2:     #FFFFFF !important;
-  --bg3:     #F1F3F5 !important;
-  --bd:      #E4E7EB !important;
-  --txt:     #16191D !important;
-  --muted:   #8A9099 !important;
-  --blue:    #3A4047 !important;
-  --orange:  #5C636B !important;
-  --purple:  #4A5058 !important;
-  --teal:    #3A4047 !important;
-  --indigo:  #2C3138 !important;
+  --bg3:     #f3ecdf !important;
+  --bd:      #e8ddc7 !important;
+  --txt:     #221c12 !important;
+  --muted:   #9a8e79 !important;
+  --blue:    #443b2c !important;
+  --orange:  #6b6152 !important;
+  --purple:  #4a4032 !important;
+  --teal:    #443b2c !important;
+  --indigo:  #43310f !important;
   --green:   #15803D !important;
   --red:     #B42318 !important;
 }
@@ -160,11 +169,11 @@ nav {
    ═══════════════════════════════════════════════════════════ */
 .page { background: var(--canvas) !important; }
 .page-header h1, .page-title {
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 600 !important;
-  font-size: 22px !important;
-  color: var(--ink) !important;
-  letter-spacing: -0.01em !important;
+  font-family: 'Cinzel', 'Inter', serif !important;
+  font-weight: 700 !important;
+  font-size: 24px !important;
+  color: var(--accent) !important;
+  letter-spacing: .3px !important;
 }
 .page-sub, .page-header .page-sub { color: var(--ink-soft) !important; }
 .date-badge { background: var(--surface) !important; border: 1px solid var(--line) !important; color: var(--ink-soft) !important; border-radius: 6px !important; }
@@ -178,13 +187,14 @@ nav {
 .card, .kpi, .stat-card, .stat {
   background: var(--surface) !important;
   border: 1px solid var(--line) !important;
-  border-radius: 8px !important;
-  box-shadow: none !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 28px rgba(60,40,10,.07), 0 2px 6px rgba(60,40,10,.04) !important;
+  transition: transform .2s, box-shadow .2s, border-color .2s !important;
 }
 .card:hover, .kpi:hover, .stat-card:hover {
-  transform: none !important;
-  border-color: var(--ink-faint) !important;
-  box-shadow: 0 1px 3px rgba(16,19,23,.05) !important;
+  transform: translateY(-3px) !important;
+  border-color: rgba(201,168,76,.4) !important;
+  box-shadow: 0 18px 40px rgba(60,40,10,.12), 0 4px 12px rgba(60,40,10,.06) !important;
 }
 /* Supprimer les barres d'accent colorées en haut des cartes */
 .card::before, .kpi::before,
@@ -216,25 +226,32 @@ nav {
 /* ═══════════════════════════════════════════════════════════
    6. BOUTONS
    ═══════════════════════════════════════════════════════════ */
-.btn { border-radius: 6px !important; font-weight: 600 !important; letter-spacing: .2px !important; text-transform: none !important; transition: all .15s !important; }
+.btn { border-radius: 10px !important; font-weight: 700 !important; letter-spacing: .2px !important; text-transform: none !important; transition: all .18s !important; }
 .btn-gold, .btn-primary, button.btn-gold {
-  background: var(--accent) !important;
-  color: #FFFFFF !important;
-  border: 1px solid var(--accent) !important;
+  background: var(--grad-gold) !important;
+  color: #1a1200 !important;
+  border: 1px solid rgba(165,129,47,.55) !important;
+  box-shadow: 0 6px 18px rgba(201,168,76,.32) !important;
   filter: none !important;
 }
-.btn-gold:hover, .btn-primary:hover { background: var(--accent-2) !important; color: #FFFFFF !important; transform: none !important; filter: none !important; }
+.btn-gold:hover, .btn-primary:hover {
+  background: linear-gradient(135deg, #f0d478, #b08e36) !important;
+  color: #1a1200 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 26px rgba(201,168,76,.42) !important;
+  filter: none !important;
+}
 
-/* Boutons primaires dorés codés en INLINE (dégradé var(--gold)) :
-   ex. "Nouvel article", "Enregistrer une vente"… → charbon + texte BLANC.
-   Corrige le texte sombre devenu illisible sur fond sombre. */
+/* Boutons primaires codés en INLINE (dégradé var(--gold)) :
+   ex. "Nouvel article", "Enregistrer une vente"… → dégradé OR + texte espresso. */
 [style*="linear-gradient(135deg,var(--gold)"],
 [style*="linear-gradient(135deg, var(--gold)"],
 [style*="linear-gradient(135deg,var(--gold-d)"],
 [style*="135deg,var(--gold),var(--gold-d)"] {
-  background: var(--accent) !important;
-  color: #FFFFFF !important;
-  border-color: var(--accent) !important;
+  background: var(--grad-gold) !important;
+  color: #1a1200 !important;
+  border-color: rgba(165,129,47,.55) !important;
+  box-shadow: 0 6px 18px rgba(201,168,76,.3) !important;
 }
 .btn-outline, .btn-out {
   background: var(--surface) !important;
@@ -287,7 +304,7 @@ th.num, td.num { text-align: right !important; }
 /* Tableaux mensuels / analyses */
 .monthly-table th { color: var(--ink-faint) !important; }
 .bar-fill, .credit-bar, .progress-fill, .bar-wrap > div {
-  background: var(--accent) !important;
+  background: var(--grad-gold) !important;
 }
 .bar-wrap, .credit-bar-wrap { background: var(--surface-2) !important; }
 
@@ -306,14 +323,15 @@ th.num, td.num { text-align: right !important; }
 }
 .tab:hover { border-color: var(--ink-faint) !important; color: var(--ink) !important; background: var(--surface) !important; }
 .tab.active {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-  color: #FFFFFF !important;
+  background: var(--grad-gold) !important;
+  border-color: rgba(165,129,47,.55) !important;
+  color: #1a1200 !important;
+  box-shadow: 0 4px 12px rgba(201,168,76,.28) !important;
 }
 .btn-quick { border:1px solid var(--line) !important; color: var(--ink-soft) !important; border-radius:6px !important; background:var(--surface) !important; }
-.btn-quick:hover, .btn-quick.active { background: var(--accent) !important; color:#fff !important; border-color:var(--accent) !important; }
+.btn-quick:hover, .btn-quick.active { background: var(--grad-gold) !important; color:#1a1200 !important; border-color:rgba(165,129,47,.55) !important; }
 .pill { border:1px solid var(--line) !important; color: var(--ink-soft) !important; background: var(--surface) !important; border-radius:6px !important; }
-.pill.active { background: var(--accent) !important; color:#fff !important; border-color: var(--accent) !important; }
+.pill.active { background: var(--grad-gold) !important; color:#1a1200 !important; border-color: rgba(165,129,47,.55) !important; }
 
 /* ═══════════════════════════════════════════════════════════
    9. CHAMPS DE SAISIE
@@ -329,9 +347,9 @@ input[type=search], select, textarea, .search-wrap input {
 }
 input::placeholder, textarea::placeholder { color: var(--ink-faint) !important; }
 input:focus, select:focus, textarea:focus, .search-wrap input:focus {
-  border-color: var(--accent) !important;
+  border-color: rgba(165,129,47,.7) !important;
   outline: none !important;
-  box-shadow: 0 0 0 3px rgba(22,25,29,.06) !important;
+  box-shadow: 0 0 0 3px rgba(201,168,76,.16) !important;
 }
 label, .form-label, .mf label {
   font-size: 10px !important;
@@ -347,8 +365,8 @@ label, .form-label, .mf label {
 .panel, .panel-full, .form-card, .feed {
   background: var(--surface) !important;
   border: 1px solid var(--line) !important;
-  border-radius: 8px !important;
-  box-shadow: none !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 28px rgba(60,40,10,.07), 0 2px 6px rgba(60,40,10,.04) !important;
 }
 .panel-title, .section-title, .panel h2 {
   font-family: 'Inter', sans-serif !important;
@@ -432,7 +450,7 @@ label, .form-label, .mf label {
 .toast.success { background: var(--ink) !important; border: 1px solid var(--ink) !important; color: #fff !important; }
 .toast.error   { background: var(--neg) !important; border: 1px solid var(--neg) !important; color: #fff !important; }
 a { color: var(--ink); }
-a:hover { color: var(--accent-2); }
+a:hover { color: var(--gs-gold-3); }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(16,19,23,.18) !important; border-radius: 6px; border: 2px solid var(--canvas); }
