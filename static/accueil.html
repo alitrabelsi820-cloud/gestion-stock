@@ -277,6 +277,42 @@ body.dark .acc-shortcut-btn{color:#fff;}
 .mob-mamoun-sub{font-size:11px;color:var(--muted);margin-top:2px;}
 .mob-mamoun-arrow{font-size:22px;color:rgba(184,146,60,.4);font-weight:300;}
 
+/* ── Accueil premium (actions) ── */
+.acc2-title{font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);opacity:.72;margin:2px;}
+.acc2-hero{position:relative;overflow:hidden;border-radius:22px;padding:22px 20px;display:flex;align-items:center;gap:16px;
+  background:linear-gradient(135deg,#1c1305 0%,#33240a 58%,#4a3410 100%);color:#fff;text-decoration:none;
+  box-shadow:0 14px 34px rgba(26,18,0,.30);transition:transform .15s;}
+.acc2-hero::before{content:'';position:absolute;top:-60%;right:-15%;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,168,76,.42),transparent 68%);pointer-events:none;}
+.acc2-hero:active{transform:scale(.985);}
+.acc2-hero-ic{width:58px;height:58px;border-radius:17px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#e8c968,#a5812f);box-shadow:0 8px 20px rgba(201,168,76,.45);position:relative;z-index:1;}
+.acc2-hero-ic svg{width:30px;height:30px;}
+.acc2-hero-txt{flex:1;min-width:0;position:relative;z-index:1;}
+.acc2-hero-txt h3{font-size:19px;font-weight:800;letter-spacing:.4px;}
+.acc2-hero-txt p{font-size:12.5px;color:rgba(255,255,255,.62);margin-top:3px;}
+.acc2-hero-arrow{font-size:26px;color:rgba(232,201,104,.72);font-weight:300;position:relative;z-index:1;}
+.acc2-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.acc2-btn{position:relative;overflow:hidden;background:#fff;border:1px solid rgba(184,146,60,.16);border-radius:20px;
+  padding:22px 14px;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:13px;
+  box-shadow:0 6px 18px rgba(184,146,60,.09);transition:transform .15s,box-shadow .15s;}
+.acc2-btn:active{transform:scale(.96);box-shadow:0 3px 10px rgba(184,146,60,.12);}
+.acc2-btn-ic{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;}
+.acc2-btn-ic svg{width:27px;height:27px;}
+.acc2-btn-lbl{font-size:13px;font-weight:800;letter-spacing:.4px;color:var(--gold-d);text-transform:uppercase;text-align:center;line-height:1.25;}
+.acc2-vente .acc2-btn-ic{background:linear-gradient(135deg,#0f6b54,#1abc9c);box-shadow:0 6px 16px rgba(26,188,156,.35);}
+.acc2-article .acc2-btn-ic{background:linear-gradient(135deg,#c9a84c,#7a5c20);box-shadow:0 6px 16px rgba(201,168,76,.35);}
+.acc2-mamoun{display:flex;align-items:center;gap:15px;background:#fff;border:1px solid rgba(184,146,60,.16);border-radius:20px;
+  padding:15px 18px;text-decoration:none;box-shadow:0 6px 18px rgba(184,146,60,.08);transition:transform .15s;}
+.acc2-mamoun:active{transform:scale(.98);}
+.acc2-mamoun-ic{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#f2ede0,#e2d3b4);}
+.acc2-mamoun-ic svg{width:23px;height:23px;}
+.acc2-mamoun-txt{flex:1;}
+.acc2-mamoun-txt h4{font-size:15px;font-weight:800;color:var(--gold-d);}
+.acc2-mamoun-txt p{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.acc2-mamoun-arrow{font-size:22px;color:rgba(184,146,60,.45);font-weight:300;}
+
 /* ══════════════════════════════════════════
    DESKTOP : sidebar + fond pur (>860px)
 ══════════════════════════════════════════ */
@@ -634,30 +670,35 @@ body.dark .acc-shortcut-btn{color:#fff;}
       <div id="paniers-box-mob" style="padding:8px 14px 14px;"></div>
     </div>
 
-    <!-- Actions rapides -->
-    <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold-d);margin:4px 2px 10px">⚡ Actions rapides</div>
-    <div class="mob-shortcuts">
-      <a href="/vendu?new=1" class="mob-shortcut mob-shortcut-gold" style="grid-column:1 / -1;flex-direction:row;gap:12px;padding:16px">
-        <span class="mob-shortcut-ico">💰</span> Enregistrer une vente
+    <!-- Fiche Référence — mise en avant -->
+    <a href="/fiche" class="acc2-hero">
+      <div class="acc2-hero-ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1a1200" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5l-4.2-4.2"/></svg>
+      </div>
+      <div class="acc2-hero-txt">
+        <h3>Fiche Référence</h3>
+        <p>Rechercher un article par sa référence</p>
+      </div>
+      <span class="acc2-hero-arrow">›</span>
+    </a>
+
+    <!-- Les deux autres actions -->
+    <div class="acc2-grid">
+      <a href="/vendu?new=1" class="acc2-btn acc2-vente">
+        <div class="acc2-btn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2.6"/><circle cx="12" cy="12" r="2.6"/><path d="M6 10v4M18 10v4"/></svg></div>
+        <span class="acc2-btn-lbl">Enregistrer<br>une vente</span>
       </a>
-      <a href="/ajouter" class="mob-shortcut">
-        <span class="mob-shortcut-ico">➕</span> Nouvel article
-      </a>
-      <a href="/fiche" class="mob-shortcut">
-        <span class="mob-shortcut-ico">🔍</span> Fiche référence
+      <a href="/ajouter" class="acc2-btn acc2-article">
+        <div class="acc2-btn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
+        <span class="acc2-btn-lbl">Nouvel<br>article</span>
       </a>
     </div>
 
-    <!-- Mamoun -->
-    <a href="/mamoun" class="mob-mamoun-card">
-      <div class="mob-mamoun-left">
-        <div class="mob-mamoun-ico">👤</div>
-        <div>
-          <div class="mob-mamoun-title">Espace Mamoun</div>
-          <div class="mob-mamoun-sub">Tableau de bord employé</div>
-        </div>
-      </div>
-      <span class="mob-mamoun-arrow">›</span>
+    <!-- Espace Mamoun — tout en bas -->
+    <a href="/mamoun" class="acc2-mamoun">
+      <div class="acc2-mamoun-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#7a5c20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.7 3.4-5.6 7-5.6s7 1.9 7 5.6"/></svg></div>
+      <div class="acc2-mamoun-txt"><h4>Espace Mamoun</h4><p>Tableau de bord employé</p></div>
+      <span class="acc2-mamoun-arrow">›</span>
     </a>
 
   </div>
