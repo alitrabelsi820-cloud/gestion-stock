@@ -83,11 +83,27 @@ nav{
   transition:background .18s;
   min-height:60px;
 }
-.panel-header:hover{background:rgba(184,146,60,.04);}
-.panel-ico{font-size:26px;flex-shrink:0;}
-.panel-title{flex:1;}
-.panel-title h2{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold-d);}
-.panel-title .sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.panel-header:hover{background:rgba(184,146,60,.05);}
+.panel-header:active{background:rgba(184,146,60,.09);}
+.panel-ico{
+  width:48px;height:48px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;border-radius:15px;
+  background:linear-gradient(135deg,#fbf3df,#eeddb2);
+  border:1px solid rgba(201,168,76,.32);
+  box-shadow:0 5px 14px rgba(201,168,76,.20);
+}
+.panel-header .panel-title{flex:1;min-width:0;border-bottom:none!important;}
+.panel-header .panel-title h2{font-family:'Cinzel',serif!important;font-size:16px!important;font-weight:700!important;
+  letter-spacing:.2px!important;color:var(--gold-d)!important;text-transform:none!important;
+  line-height:1.15!important;border-bottom:none!important;}
+.panel-header .panel-title .sub{font-size:11px!important;color:var(--muted)!important;margin-top:2px;
+  letter-spacing:.2px!important;text-transform:none!important;font-family:'Segoe UI',Arial,sans-serif!important;
+  font-weight:500!important;border-bottom:none!important;}
+.panel-preview{font-size:14px;font-weight:800;color:var(--gold-d);white-space:nowrap;letter-spacing:-.2px;}
+.panel-preview.pos{color:var(--green);}
+.panel-preview.neg{color:var(--red);}
+.panel:not(.collapsed) .panel-preview{display:none;}
 .panel-chevron{
   width:28px;height:28px;display:flex;align-items:center;justify-content:center;
   background:var(--bg3);border-radius:50%;
@@ -244,6 +260,7 @@ nav{
         <h2>Stock</h2>
         <div class="sub">Inventaire actuel</div>
       </div>
+      <span class="panel-preview" id="pv-stock">—</span>
       <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </div>
     <div class="panel-body">
@@ -283,6 +300,34 @@ nav{
     </div>
   </div>
 
+  <!-- ── VARIATION DU STOCK (ce mois) ── -->
+  <div class="panel collapsed" id="panel-flux">
+    <div class="panel-header" onclick="toggle('panel-flux')">
+      <span class="panel-ico">🔄</span>
+      <div class="panel-title">
+        <h2>Variation du Stock</h2>
+        <div class="sub">Ce mois-ci</div>
+      </div>
+      <span class="panel-preview" id="pv-flux">—</span>
+      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+    <div class="panel-body">
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#2e7d52"></span>Entrées (ajouts)</span>
+        <span class="s-val" id="fx-in">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#b5341e"></span>Sorties (ventes)</span>
+        <span class="s-val" id="fx-out">—</span>
+      </div>
+      <div class="gold-sep"></div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#c9a84c"></span>Variation nette</span>
+        <span class="s-val gold big" id="fx-net">—</span>
+      </div>
+    </div>
+  </div>
+
   <!-- ── CRÉDITS CLIENTS ── -->
   <div class="panel collapsed" id="panel-credits">
     <div class="panel-header" onclick="toggle('panel-credits')">
@@ -291,6 +336,7 @@ nav{
         <h2>Crédits Clients</h2>
         <div class="sub">Montants en attente</div>
       </div>
+      <span class="panel-preview neg" id="pv-credits">—</span>
       <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </div>
     <div class="panel-body">
@@ -317,6 +363,7 @@ nav{
         <h2>Chiffre d'Affaire</h2>
         <div class="sub">Ventes & bénéfices</div>
       </div>
+      <span class="panel-preview" id="pv-ca">—</span>
       <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </div>
     <div class="panel-body">
@@ -338,6 +385,33 @@ nav{
     </div>
   </div>
 
+  <!-- ── ENCAISSEMENTS RÉELS (ce mois) ── -->
+  <div class="panel collapsed" id="panel-enc">
+    <div class="panel-header" onclick="toggle('panel-enc')">
+      <span class="panel-ico">💵</span>
+      <div class="panel-title">
+        <h2>Encaissements Réels</h2>
+        <div class="sub">Argent encaissé ce mois</div>
+      </div>
+      <span class="panel-preview pos" id="pv-enc">—</span>
+      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+    <div class="panel-body">
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#c9a84c"></span>Total encaissé</span>
+        <span class="s-val gold big" id="enc-total">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#7ec8a0"></span>Ventes comptant</span>
+        <span class="s-val" id="enc-comptant">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label"><span class="s-dot" style="background:#8aaee8"></span>Paiements de crédits</span>
+        <span class="s-val" id="enc-credits">—</span>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Zone d'impression -->
@@ -352,6 +426,7 @@ async function load(){
   try{
     const s = await fetch('/api/stats').then(r=>r.json());
     document.getElementById('s-valeur').textContent   = fmtN(s.valeur_stock) + ' MAD';
+    document.getElementById('pv-stock').textContent   = fmtN(s.valeur_stock) + ' MAD';
     document.getElementById('s-or').textContent       = fmt2(s.total_or) + ' g';
     document.getElementById('s-nb').textContent       = fmtN(s.nb_articles) + ' articles';
     document.getElementById('s-diamants').textContent  = fmt2(s.diamants)  + ' ct';
@@ -370,6 +445,7 @@ async function load(){
     const ccBang = ouverts.filter(c=> c.gele).reduce((s,c)=>s+(c.reste||0),0);
     document.getElementById('c-cc').textContent     = fmtN(cc) + ' MAD';
     document.getElementById('c-ccbang').textContent = fmtN(ccBang) + ' MAD';
+    document.getElementById('pv-credits').textContent = fmtN(cc + ccBang) + ' MAD';
 
     const list = document.getElementById('c-list');
     if(ouverts.length === 0){
@@ -426,10 +502,34 @@ async function load(){
 
     document.getElementById('ca-mois').textContent  = fmtN(moisData.ca)    + ' MAD';
     document.getElementById('b-mois').textContent   = fmtN(moisData.benef) + ' MAD';
+    document.getElementById('pv-ca').textContent    = fmtN(moisData.ca)    + ' MAD';
     document.getElementById('ca-annee').textContent = fmtN(anneeData.ca)   + ' MAD';
     document.getElementById('b-annee').textContent  = fmtN(anneeData.benef)+ ' MAD';
     document.getElementById('ca-last').textContent  = fmtN(lastData.ca)    + ' MAD';
     document.getElementById('b-last').textContent   = fmtN(lastData.benef) + ' MAD';
+  }catch(e){}
+
+  // Variation du stock + Encaissements réels (mois en cours)
+  try{
+    const fx = await fetch('/api/dashboard/flux').then(r=>r.json());
+    const sm = fx.stock.mois;          // entrees/sorties/net_or/net_valeur
+    const em = fx.encaissement.mois;   // total/comptant/credits/ca
+    const signe = v => (v >= 0 ? '+' : '−') + fmt2(Math.abs(v)) + ' g';
+
+    // — Variation du stock —
+    document.getElementById('fx-in').textContent  = '+' + fmt2(sm.entrees.or) + ' g';
+    document.getElementById('fx-out').textContent = '−' + fmt2(sm.sorties.or) + ' g';
+    document.getElementById('fx-net').textContent = signe(sm.net_or);
+    const pvfx = document.getElementById('pv-flux');
+    pvfx.textContent = signe(sm.net_or);
+    pvfx.classList.toggle('pos', sm.net_or >= 0);
+    pvfx.classList.toggle('neg', sm.net_or < 0);
+
+    // — Encaissements réels —
+    document.getElementById('enc-total').textContent    = fmtN(em.total)    + ' MAD';
+    document.getElementById('enc-comptant').textContent = fmtN(em.comptant) + ' MAD';
+    document.getElementById('enc-credits').textContent  = fmtN(em.credits)  + ' MAD';
+    document.getElementById('pv-enc').textContent       = fmtN(em.total)    + ' MAD';
   }catch(e){}
 }
 

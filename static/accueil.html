@@ -23,6 +23,14 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;}
 
+/* ── Anti-rebond iOS (mobile/PWA) : le document ne « glisse » plus de haut en bas.
+   Le body est fixé au viewport, seul le contenu défile à l'intérieur si besoin. ── */
+@media(max-width:860px){
+  html{height:100%;overscroll-behavior:none;}
+  body{position:fixed;top:0;left:0;right:0;bottom:0;min-height:0;
+       overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:none;}
+}
+
 /* ── FOND DÉCORATIF ── */
 body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,8 57,38 87,38 64,56 72,86 50,68 28,86 36,56 13,38 43,38' fill='none' stroke='%23b8923c' stroke-width='0.6' opacity='0.11'/%3E%3C/svg%3E");
