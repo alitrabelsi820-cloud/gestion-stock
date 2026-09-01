@@ -1827,6 +1827,17 @@ function filter(type, btn) {{
             ".json": "application/json", ".js": "application/javascript",
             ".css": "text/css", ".svg": "image/svg+xml",
         }
+        # ── SÉCURITÉ : anti path traversal (../) ──────────────────────────────
+        # Le fichier résolu DOIT rester à l'intérieur du dossier static/, sinon
+        # on refuse (empêche /static/../data/gestionstock.db, /static/../app.py …).
+        try:
+            base = STATIC_DIR.resolve()
+            target = path.resolve()
+            if target != base and base not in target.parents:
+                self.send_response(403); self.end_headers()
+                self.wfile.write(b"Acces refuse"); return
+        except Exception:
+            self.send_response(404); self.end_headers(); return
         try:
             content = path.read_bytes()
             mime = MIME.get(path.suffix, "application/octet-stream")
