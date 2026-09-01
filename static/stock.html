@@ -169,6 +169,53 @@ td.has{color:#82e0aa;}
   .nav-search-btn{display:none;}
   .nav-search-wrap{display:none!important;}
 }
+
+/* ══════════════════════════════════════════
+   STOCK EN CARTES — mobile (≤860px)
+   Le tableau (14 colonnes) est illisible sur téléphone : on le masque
+   et on affiche des cartes élégantes à la place. Sur PC → tableau conservé.
+══════════════════════════════════════════ */
+.stock-cards{display:none;}
+@media(max-width:860px){
+  .tbl-wrap{padding:0 12px 24px !important; overflow:visible !important;}
+  .tbl-wrap table{display:none !important;}
+  .stock-cards{display:flex; flex-direction:column; gap:11px; margin-top:4px;}
+}
+.sc-card{
+  display:flex; align-items:center; gap:13px;
+  background:#fff; border:1px solid var(--bd);
+  border-radius:16px; padding:11px 13px;
+  box-shadow:0 6px 18px rgba(60,40,10,.07);
+  cursor:pointer; -webkit-tap-highlight-color:transparent;
+  transition:transform .14s, box-shadow .14s;
+}
+.sc-card:active{transform:scale(.985); box-shadow:0 3px 10px rgba(60,40,10,.10);}
+.sc-thumb{
+  width:58px; height:58px; flex-shrink:0; border-radius:13px; overflow:hidden;
+  background:linear-gradient(135deg,#fbf3df,#eeddb2);
+  border:1px solid rgba(201,168,76,.32);
+  display:flex; align-items:center; justify-content:center; position:relative;
+}
+.sc-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+.sc-thumb-ph{font-size:23px; opacity:.5;}
+.sc-main{flex:1; min-width:0;}
+.sc-top{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:5px;}
+.sc-ref{font-weight:800; font-size:14px; color:var(--gold-l); letter-spacing:-.2px;}
+.sc-qty{padding:1px 7px; border-radius:12px; font-size:11px; font-weight:700;
+  background:rgba(201,168,76,.2); color:var(--gold-l); border:1px solid rgba(201,168,76,.35);}
+.sc-metrics{display:flex; align-items:baseline; gap:13px;}
+.sc-or{font-size:17px; font-weight:800; color:var(--txt); white-space:nowrap;}
+.sc-or small{font-size:11px; font-weight:600; color:var(--muted);}
+.sc-pa{font-size:13px; font-weight:600; color:var(--muted); white-space:nowrap;}
+.sc-stones{display:flex; flex-wrap:wrap; gap:4px; margin-top:7px;}
+.sc-chip{font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px;
+  background:rgba(201,168,76,.12); color:#7a5c20; border:1px solid rgba(201,168,76,.28); white-space:nowrap;}
+.sc-fab{font-size:10.5px; color:var(--muted); margin-top:5px;}
+.sc-right{display:flex; flex-direction:column; align-items:center; gap:9px; flex-shrink:0;}
+.sc-edit{width:34px; height:34px; border-radius:10px; border:1px solid var(--bd);
+  background:var(--bg3); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  -webkit-tap-highlight-color:transparent;}
+.sc-chev{color:var(--gold); font-size:22px; font-weight:700; line-height:1; opacity:.65;}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -330,6 +377,7 @@ td.has{color:#82e0aa;}
     </thead>
     <tbody id="tbody"></tbody>
   </table>
+  <div id="cards" class="stock-cards"></div>
   <div id="empty" class="empty" style="display:none">
     <div class="spin">⏳</div>
     <p id="empty-msg" style="margin-top:12px">Chargement…</p>
@@ -691,7 +739,8 @@ function render() {
   const start = (page-1)*PG;
   const rows = filtered.slice(start, start+PG);
 
-  if(!rows.length){body.innerHTML='';empty.style.display='block';document.getElementById('empty-msg').textContent='Aucun article trouvé.';return;}
+  const cards = document.getElementById('cards');
+  if(!rows.length){body.innerHTML='';if(cards)cards.innerHTML='';empty.style.display='block';document.getElementById('empty-msg').textContent='Aucun article trouvé.';return;}
   empty.style.display='none';
 
   body.innerHTML = rows.map((a,i)=>`
@@ -720,6 +769,40 @@ function render() {
       </td>
     </tr>
   `).join('');
+
+  // ── Vue mobile : cartes élégantes (le tableau est masqué en ≤860px) ──
+  if(cards){
+    cards.innerHTML = rows.map((a,i)=>{
+      const idx = start+i;
+      const stones = [['D',a.d],['Em',a.em],['R',a.r],['S',a.s],['P.F',a.p_fines],['Ros',a.rosaces],['Em.C',a.em_clb],['Prl',a.perles]]
+        .filter(x=>x[1]).map(x=>`<span class="sc-chip">${x[0]} ${fmt(x[1])}</span>`).join('');
+      return `
+      <div class="sc-card" onclick="showDetail(${idx})">
+        <div class="sc-thumb">
+          <span class="sc-thumb-ph">💎</span>
+          <img loading="lazy" src="/api/photo/${a.id}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">
+        </div>
+        <div class="sc-main">
+          <div class="sc-top">
+            <span class="sc-ref">#${a.ref_code || a.id}</span>
+            <span class="badge ${badge(a.article)}">${a.article||'—'}</span>
+            ${(a.quantite&&a.quantite>1)?`<span class="sc-qty">×${a.quantite}</span>`:''}
+            ${a.ismail_pierres?`<span class="sc-chip" style="background:rgba(46,204,113,.12);color:#1e7e46;border-color:rgba(46,204,113,.3)">💎 Ismail</span>`:''}
+          </div>
+          <div class="sc-metrics">
+            <span class="sc-or">${a.or_grs!=null?fmt(a.or_grs):'—'}<small> grs</small></span>
+            ${a.pa!=null?`<span class="sc-pa">${fmtN(a.pa)} MAD</span>`:''}
+          </div>
+          ${stones?`<div class="sc-stones">${stones}</div>`:''}
+          ${a.fabricant?`<div class="sc-fab">${a.fabricant}</div>`:''}
+        </div>
+        <div class="sc-right">
+          <button class="sc-edit" onclick="event.stopPropagation();openEdit(${idx})">✏️</button>
+          <span class="sc-chev">›</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
 }
 
 function renderPag() {
