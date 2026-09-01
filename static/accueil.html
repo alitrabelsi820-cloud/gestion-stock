@@ -634,47 +634,18 @@ body.dark .acc-shortcut-btn{color:#fff;}
       <div id="paniers-box-mob" style="padding:8px 14px 14px;"></div>
     </div>
 
-    <!-- Fiche Référence -->
-    <div class="mob-card">
-      <div class="mob-card-header">
-        <span style="font-size:16px">🔍</span>
-        <span class="mob-card-header-title">Fiche Référence</span>
-      </div>
-      <div class="mob-fiche-row">
-        <input id="fiche-ref-input-m" type="text" inputmode="numeric"
-          class="mob-fiche-input" placeholder="Numéro de référence..."
-          onkeydown="if(event.key==='Enter') ficheRechercherM()">
-        <button class="mob-fiche-btn" onclick="ficheRechercherM()">🔍</button>
-        <button class="mob-fiche-btn" onclick="fichePrintM(this)" title="Imprimer le ticket">🏷️</button>
-      </div>
-      <div id="fiche-result-m">
-        <div class="mob-fiche-empty">
-          <div class="mob-fiche-empty-ico">💎</div>
-          Entrez une référence pour afficher la fiche article
-        </div>
-      </div>
-    </div>
-
-    <!-- Notes -->
-    <div class="memo-card">
-      <div class="memo-head" onclick="toggleMemo('m')">
-        <div class="memo-head-left">
-          <span style="font-size:16px">📝</span>
-          <span class="memo-title">Notes</span>
-          <span class="memo-count" id="memo-count-m">0</span>
-        </div>
-        <span class="memo-toggle" id="memo-toggle-m">▼</span>
-      </div>
-      <div class="memo-body" id="memo-body-m">
-        <div class="memo-list" id="memo-list-m"></div>
-        <div class="memo-empty" id="memo-empty-m">Aucune tâche — ajoutes-en une !</div>
-        <div class="memo-input-row">
-          <input class="memo-input" id="memo-input-m" type="text"
-            placeholder="Ajouter une tâche..." maxlength="120"
-            onkeydown="if(event.key==='Enter') addMemoItem('m')">
-          <button class="memo-add-btn" onclick="addMemoItem('m')">+</button>
-        </div>
-      </div>
+    <!-- Actions rapides -->
+    <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold-d);margin:4px 2px 10px">⚡ Actions rapides</div>
+    <div class="mob-shortcuts">
+      <a href="/vendu?new=1" class="mob-shortcut mob-shortcut-gold" style="grid-column:1 / -1;flex-direction:row;gap:12px;padding:16px">
+        <span class="mob-shortcut-ico">💰</span> Enregistrer une vente
+      </a>
+      <a href="/ajouter" class="mob-shortcut">
+        <span class="mob-shortcut-ico">➕</span> Nouvel article
+      </a>
+      <a href="/fiche" class="mob-shortcut">
+        <span class="mob-shortcut-ico">🔍</span> Fiche référence
+      </a>
     </div>
 
     <!-- Mamoun -->
