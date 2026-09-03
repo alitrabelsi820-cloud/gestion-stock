@@ -67,6 +67,15 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
   transition:transform .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;}
 .rc-add:active{transform:scale(.98);}
 .rc-add .rc-add-ic{font-size:22px;}
+/* Bouton Historique — mobile uniquement (sur PC c'est le panneau de droite) */
+.rc-hist-btn{display:none;align-items:center;justify-content:center;gap:9px;width:100%;
+  padding:15px;border:1px solid rgba(201,168,76,.4);border-radius:16px;cursor:pointer;margin-bottom:16px;
+  background:#fff;color:var(--gold-d);font-size:15px;font-weight:800;letter-spacing:.3px;
+  box-shadow:0 6px 16px rgba(60,40,10,.06);-webkit-tap-highlight-color:transparent;}
+.rc-hist-btn:active{transform:scale(.98);}
+.rc-hist-btn .n{background:linear-gradient(135deg,var(--gold-l),var(--gold-d));color:#fff;font-size:12px;
+  font-weight:800;padding:1px 9px;border-radius:20px;}
+@media(max-width:900px){.rc-hist-btn{display:flex;}}
 
 /* FILTRES */
 .rc-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
@@ -222,6 +231,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
   </button>
   <input type="file" id="rc-file" accept="image/*" style="display:none" onchange="onPhoto(event)">
 
+  <button class="rc-hist-btn" onclick="openHist()">🗂️ Historique <span class="n" id="rc-hist-count">0</span></button>
+
   <div class="rc-filters">
     <button class="rc-chip on" data-f="type" data-v="" onclick="setFilter(this)">Tout</button>
     <button class="rc-chip" data-f="type" data-v="reparation" onclick="setFilter(this)">🔧 Réparations</button>
@@ -286,6 +297,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
         <button class="rc-btn rc-btn-save" id="rc-save" onclick="save()">Enregistrer</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Historique (fenêtre mobile) -->
+<div class="rc-ov" id="rc-hist-ov">
+  <div class="rc-modal">
+    <div class="rc-detail-head">
+      <div class="rc-detail-client" style="font-size:18px">🗂️ Historique</div>
+      <button class="rc-btn rc-btn-cancel" style="flex:0 0 auto;padding:9px 15px" onclick="closeHist()">Fermer</button>
+    </div>
+    <div id="rc-histlist-m" style="padding:10px 13px 16px"></div>
   </div>
 </div>
 
@@ -449,16 +471,10 @@ function liveMarge(gid){
 
 /* ── Historique (colonne de droite) ── */
 function renderHistory(){
-  const el=document.getElementById('rc-histlist');
-  if(!el) return;
-  if(!GROUPS.length){
-    el.innerHTML='<div class="rc-hist-empty">Aucune commande / réparation groupée.<br>Coche des fiches puis « Créer un groupe » pour les voir ici.</div>';
-    return;
-  }
-  el.innerHTML = GROUPS.map(g=>{
+  const html = GROUPS.length ? GROUPS.map(g=>{
     const membres=g.membres.map(id=>ALL.find(r=>r.id===id)).filter(Boolean);
     const thumbs=membres.slice(0,3).map(r=>
-      `<span class="th">${r.has_photo?`<img src="/api/reparation-commande/photo/${r.id}" alt="" onerror="this.parentNode.textContent=(this.parentNode.dataset.ic||'📦')">`:(r.type==='commande'?'🛒':'🔧')}</span>`
+      `<span class="th">${r.has_photo?`<img src="/api/reparation-commande/photo/${r.id}" alt="" onerror="this.parentNode.textContent='📦'">`:(r.type==='commande'?'🛒':'🔧')}</span>`
     ).join('');
     return `<div class="rc-hist-item" onclick="openDetail(${g.id})">
       <div class="rc-hist-thumbs">${thumbs||'<span class="th">📦</span>'}</div>
@@ -468,11 +484,17 @@ function renderHistory(){
       </div>
       <div class="rc-hist-amount">${g.montant?fmtN(g.montant)+' MAD':'—'}</div>
     </div>`;
-  }).join('');
+  }).join('') : '<div class="rc-hist-empty">Aucune commande / réparation groupée.<br>Coche des fiches puis « Créer un groupe » pour les voir ici.</div>';
+  const d=document.getElementById('rc-histlist');   if(d) d.innerHTML=html;
+  const m=document.getElementById('rc-histlist-m'); if(m) m.innerHTML=html;
+  const c=document.getElementById('rc-hist-count'); if(c) c.textContent=GROUPS.length;
 }
+function openHist(){ document.getElementById('rc-hist-ov').classList.add('open'); }
+function closeHist(){ document.getElementById('rc-hist-ov').classList.remove('open'); }
 
 function openDetail(gid){
   const g=GROUPS.find(x=>x.id===gid); if(!g) return;
+  closeHist();
   const membres=g.membres.map(id=>ALL.find(r=>r.id===id)).filter(Boolean);
   const marge=(Number(g.montant)||0)-(Number(g.paye_fournisseur)||0);
   document.getElementById('rc-detail-modal').innerHTML=`
@@ -635,6 +657,7 @@ async function delCard(id){
 
 document.getElementById('rc-ov').addEventListener('click',e=>{ if(e.target.id==='rc-ov') closeModal(); });
 document.getElementById('rc-detail-ov').addEventListener('click',e=>{ if(e.target.id==='rc-detail-ov') closeDetail(); });
+document.getElementById('rc-hist-ov').addEventListener('click',e=>{ if(e.target.id==='rc-hist-ov') closeHist(); });
 load();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
