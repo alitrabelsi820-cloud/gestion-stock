@@ -38,13 +38,15 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
 
 /* GRILLE DE CARTES */
 .rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
-.rc-card{position:relative;background:var(--bg2);border:1px solid var(--bd);border-radius:18px;overflow:hidden;
-  box-shadow:0 8px 22px rgba(60,40,10,.07);display:flex;flex-direction:column;}
-.rc-photo{width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#fbf3df,#eeddb2);
-  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
-.rc-photo img{width:100%;height:100%;object-fit:cover;display:block;}
-.rc-photo .ph{font-size:40px;opacity:.5;}
-.rc-body{padding:13px 14px 14px;display:flex;flex-direction:column;gap:10px;}
+.rc-card{position:relative;display:flex;align-items:flex-start;gap:11px;background:var(--bg2);
+  border:1px solid var(--bd);border-radius:16px;padding:11px 12px;box-shadow:0 8px 22px rgba(60,40,10,.07);}
+.rc-thumb{width:58px;height:58px;flex-shrink:0;border-radius:13px;overflow:hidden;position:relative;cursor:pointer;
+  background:linear-gradient(135deg,#fbf3df,#eeddb2);display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(201,168,76,.28);transition:transform .12s;}
+.rc-thumb:active{transform:scale(.94);}
+.rc-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.rc-thumb .ph{font-size:23px;opacity:.5;}
+.rc-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px;}
 .rc-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
 .rc-badge{font-size:11px;font-weight:800;padding:3px 11px;border-radius:20px;letter-spacing:.2px;}
 .rc-badge.reparation{background:rgba(52,152,219,.13);color:#1c5e86;border:1px solid rgba(52,152,219,.3);}
@@ -94,7 +96,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
 @media(max-width:860px){ .rc-grid{grid-template-columns:1fr;} }
 
 /* ── SÉLECTION (cases à cocher) ── */
-.rc-check{position:absolute;top:9px;left:9px;width:27px;height:27px;border-radius:8px;z-index:3;
+.rc-check{flex-shrink:0;width:26px;height:26px;margin-top:16px;border-radius:8px;
   border:2px solid rgba(201,168,76,.55);background:rgba(255,255,255,.92);
   display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;font-weight:800;
   color:transparent;transition:all .12s;-webkit-tap-highlight-color:transparent;}
@@ -141,7 +143,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
 .rc-marge.neg .val{color:var(--red);}
 .rc-group-members{padding:12px 13px;display:flex;flex-direction:column;gap:9px;}
 .rc-mini{display:flex;gap:11px;align-items:flex-start;background:var(--bg3);border:1px solid var(--bd);border-radius:13px;padding:9px 10px;}
-.rc-mini-thumb{width:54px;height:54px;border-radius:11px;flex-shrink:0;overflow:hidden;position:relative;
+.rc-mini-thumb{width:54px;height:54px;border-radius:11px;flex-shrink:0;overflow:hidden;position:relative;cursor:pointer;
   background:linear-gradient(135deg,#fbf3df,#eeddb2);display:flex;align-items:center;justify-content:center;}
 .rc-mini-thumb img{width:100%;height:100%;object-fit:cover;}
 .rc-mini-thumb .ph{font-size:21px;opacity:.5;}
@@ -151,6 +153,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
 .rc-ungroup{background:#fff;border:1px solid var(--bd);color:var(--muted);border-radius:9px;width:30px;height:30px;
   flex-shrink:0;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
 .rc-ungroup:active{background:var(--bg3);}
+
+/* ── VISIONNEUSE PLEIN ÉCRAN (zoom photo) ── */
+#rc-zoom{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:2000;
+  align-items:center;justify-content:center;padding:16px;cursor:zoom-out;}
+#rc-zoom.open{display:flex;}
+#rc-zoom img{max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6);object-fit:contain;}
+#rc-zoom .rc-zoom-x{position:absolute;top:16px;right:18px;color:#fff;font-size:34px;font-weight:300;
+  line-height:1;background:none;border:none;cursor:pointer;opacity:.85;}
 
 /* Toast */
 #rc-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
@@ -234,6 +244,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
   </div>
 </div>
 
+<!-- Visionneuse plein écran -->
+<div id="rc-zoom" onclick="if(event.target.id==='rc-zoom'||event.target.className==='rc-zoom-x')this.classList.remove('open')">
+  <button class="rc-zoom-x">✕</button>
+  <img id="rc-zoom-img" alt="">
+</div>
+
 <div id="rc-toast"></div>
 
 <script>
@@ -246,6 +262,12 @@ const fmtN = v => Number(v||0).toLocaleString('fr-FR',{maximumFractionDigits:0})
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function toast(m){const t=document.getElementById('rc-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+function zoom(id){
+  const r=ALL.find(x=>x.id===id);
+  if(!r || !r.has_photo){ toast('Pas de photo'); return; }
+  document.getElementById('rc-zoom-img').src='/api/reparation-commande/photo/'+id;
+  document.getElementById('rc-zoom').classList.add('open');
+}
 
 async function load(){
   try{
@@ -301,7 +323,7 @@ function render(){
     grid.innerHTML = rows.map(r=>`
       <div class="rc-card ${selected.has(r.id)?'sel':''}">
         <div class="rc-check" onclick="toggleSel(${r.id})">✓</div>
-        <div class="rc-photo">${photoHtml(r)}</div>
+        <div class="rc-thumb" onclick="zoom(${r.id})">${photoHtml(r)}</div>
         <div class="rc-body">
           <div class="rc-badges">${badgeHtml(r)}<span class="rc-date">${esc(r.created_at)}</span></div>
           ${noteHtml(r)}
@@ -354,7 +376,7 @@ function renderGroup(g){
     <div class="rc-group-members">
       ${membres.map(r=>`
         <div class="rc-mini">
-          <div class="rc-mini-thumb">${photoHtml(r)}</div>
+          <div class="rc-mini-thumb" onclick="zoom(${r.id})">${photoHtml(r)}</div>
           <div class="rc-mini-body">
             <div class="rc-badges">${badgeHtml(r)}</div>
             ${noteHtml(r)}
