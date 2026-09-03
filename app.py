@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "90"
+ASSET_VERSION = "91"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -2002,6 +2002,8 @@ function filter(type, btn) {{
             self.send_html(STATIC_DIR / "etiquettes.html"); return
         if path == "/reparations":
             self.send_html(STATIC_DIR / "reparations.html"); return
+        if path == "/reparation-commande":
+            self.send_html(STATIC_DIR / "reparation_commande.html"); return
         if path == "/reprise":
             self.send_html(STATIC_DIR / "reprise.html"); return
         if path == "/corbeille":
@@ -2257,6 +2259,33 @@ function filter(type, btn) {{
             return
 
         # ── Articles réservés (avances sur articles gardés en stock) ──────────
+        # ── Réparations & commandes (atelier) ────────────────────────────────
+        if path == "/api/reparation-commande":
+            self.send_json(db.get_reparations()); return
+        if path.startswith("/api/reparation-commande/photo/"):
+            try:
+                rid = int(path.rstrip("/").split("/")[-1])
+            except ValueError:
+                self.send_response(400); self.end_headers(); return
+            ref = f"rep-{rid}"
+            url = find_photo_url(ref)
+            if url:
+                self.send_response(302); self.send_header("Location", url)
+                self.end_headers(); return
+            photo = find_photo_local(ref)
+            if photo is None:
+                self.send_response(404); self.end_headers(); return
+            try:
+                content = photo.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "image/jpeg")
+                self.send_header("Content-Length", len(content))
+                self.send_header("Cache-Control", "no-cache")
+                self.end_headers(); self.wfile.write(content)
+            except Exception:
+                self.send_response(500); self.end_headers()
+            return
+
         if path == "/api/reservations":
             credits = load_credits()
             arts = {a["id"]: a for a in load_articles()}
@@ -3933,6 +3962,29 @@ function filter(type, btn) {{
             except Exception as e:
                 self.send_json({"error": str(e)}, 400); return
 
+        # ── Réparation / commande : créer une fiche (photo + type + préparateur) ─
+        if path == "/api/reparation-commande":
+            type_ = (data.get("type") or "reparation").strip()
+            if type_ not in ("reparation", "commande"):
+                type_ = "reparation"
+            prep = (data.get("preparateur") or "").strip()
+            note = (data.get("note") or "").strip()
+            photo_b64 = data.get("photo_base64")
+            rid = db.add_reparation(type_, prep, note, 1 if photo_b64 else 0)
+            if photo_b64:
+                try:
+                    photo_bytes = base64.b64decode(photo_b64)
+                    filename = f"rep-{rid}.jpg"
+                    if R2_ACCESS_KEY and R2_SECRET_KEY:
+                        _upload_to_r2(filename, photo_bytes)
+                    else:
+                        PHOTOS_DIR_COMPRESSED.mkdir(parents=True, exist_ok=True)
+                        (PHOTOS_DIR_COMPRESSED / filename).write_bytes(photo_bytes)
+                except Exception:
+                    db.set_reparation_photo(rid, 0)
+            push_db_background()
+            self.send_json({"success": True, "id": rid}); return
+
         # ── Enregistrer un devis ─────────────────────────────────────────────
         if path == "/api/devis":
             client = str(data.get("client","")).strip()
@@ -4165,6 +4217,16 @@ function filter(type, btn) {{
         if not is_admin(self.headers):
             self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
 
+        # ── Réparation / commande : modifier (note, type, préparateur, statut) ─
+        if path.startswith("/api/reparation-commande/"):
+            try:
+                rid = int(path.rstrip("/").split("/")[-1])
+            except ValueError:
+                self.send_json({"error": "ID invalide"}, 400); return
+            db.update_reparation(rid, data)
+            push_db_background()
+            self.send_json({"success": True}); return
+
         # ── Modifier la configuration (prix de l'or) ──────────────────────────
         if path == "/api/config":
             cfg = load_config()
@@ -4377,6 +4439,21 @@ function filter(type, btn) {{
         #  crédit, fournisseur, chèque, facture, devis ni rejeter une notif.)
         if not is_admin(self.headers):
             self.send_json({"error": "Accès réservé à l'administrateur"}, 403); return
+
+        # ── Réparation / commande : supprimer une fiche ───────────────────────
+        if path.startswith("/api/reparation-commande/"):
+            try:
+                rid = int(path.rstrip("/").split("/")[-1])
+            except ValueError:
+                self.send_json({"error": "ID invalide"}, 400); return
+            db.delete_reparation(rid)
+            try:
+                p = PHOTOS_DIR_COMPRESSED / f"rep-{rid}.jpg"
+                if p.exists(): p.unlink()
+            except Exception:
+                pass
+            push_db_background()
+            self.send_json({"success": True}); return
 
         # ── Supprimer un panier en attente (admin uniquement) ─────────────────
         if path.startswith("/api/paniers/"):

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&display=swap" rel="stylesheet">
+<title>Réparation & Commande — TRABELSI</title>
+<style>
+:root{--gold:#b8923c;--gold-l:#c9a84c;--gold-d:#7a5c20;--esp1:#1c1409;--esp2:#0e0902;
+  --bg:#f6f1e8;--bg2:#ffffff;--bg3:#f3ecdf;--bd:#e8ddc7;--txt:#221c12;--muted:#9a8e79;--green:#2e7d52;--red:#b5341e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+.page{padding:20px 16px 90px;max-width:1100px;margin:0 auto;}
+
+/* HERO */
+.rc-hero{position:relative;overflow:hidden;text-align:center;padding:26px 20px 22px;
+  background:linear-gradient(135deg,var(--esp1),var(--esp2));border-radius:20px;margin-bottom:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);}
+.rc-hero h1{font-family:'Cinzel',serif;font-size:24px;font-weight:700;letter-spacing:1px;
+  background:linear-gradient(90deg,#f7ead0,#d8b968 55%,#f7ead0);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.rc-hero p{font-size:12px;color:rgba(232,201,104,.75);letter-spacing:1.5px;text-transform:uppercase;margin-top:5px;}
+
+/* BOUTON AJOUTER */
+.rc-add{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;
+  padding:18px;border:none;border-radius:16px;cursor:pointer;margin-bottom:16px;
+  background:linear-gradient(135deg,var(--gold-l),var(--gold-d));color:#1a1200;
+  font-size:16px;font-weight:800;letter-spacing:.3px;box-shadow:0 8px 22px rgba(201,168,76,.35);
+  transition:transform .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;}
+.rc-add:active{transform:scale(.98);}
+.rc-add .rc-add-ic{font-size:22px;}
+
+/* FILTRES */
+.rc-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.rc-chip{padding:8px 15px;border-radius:22px;border:1px solid var(--bd);background:var(--bg2);
+  color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.rc-chip.on{background:linear-gradient(135deg,var(--gold-l),var(--gold-d));color:#1a1200;border-color:rgba(165,129,47,.5);}
+
+/* GRILLE DE CARTES */
+.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.rc-card{background:var(--bg2);border:1px solid var(--bd);border-radius:18px;overflow:hidden;
+  box-shadow:0 8px 22px rgba(60,40,10,.07);display:flex;flex-direction:column;}
+.rc-photo{width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#fbf3df,#eeddb2);
+  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.rc-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.rc-photo .ph{font-size:40px;opacity:.5;}
+.rc-body{padding:13px 14px 14px;display:flex;flex-direction:column;gap:10px;}
+.rc-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.rc-badge{font-size:11px;font-weight:800;padding:3px 11px;border-radius:20px;letter-spacing:.2px;}
+.rc-badge.reparation{background:rgba(52,152,219,.13);color:#1c5e86;border:1px solid rgba(52,152,219,.3);}
+.rc-badge.commande{background:rgba(155,89,182,.13);color:#7d3ca1;border:1px solid rgba(155,89,182,.3);}
+.rc-prep{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
+  background:rgba(201,168,76,.14);color:var(--gold-d);border:1px solid rgba(201,168,76,.3);}
+.rc-date{font-size:11px;color:var(--muted);margin-left:auto;}
+.rc-note{width:100%;min-height:70px;resize:vertical;border:1px solid var(--bd);border-radius:11px;
+  padding:10px 12px;font-family:inherit;font-size:13.5px;color:var(--txt);background:var(--bg3);outline:none;
+  transition:border-color .15s,background .15s;line-height:1.45;}
+.rc-note:focus{border-color:rgba(201,168,76,.6);background:#fff;}
+.rc-note::placeholder{color:var(--muted);}
+.rc-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.rc-saved{font-size:11px;font-weight:700;color:var(--green);opacity:0;transition:opacity .2s;}
+.rc-saved.show{opacity:1;}
+.rc-del{background:transparent;border:1px solid rgba(181,52,30,.3);color:var(--red);
+  border-radius:10px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;
+  -webkit-tap-highlight-color:transparent;}
+.rc-del:active{background:rgba(181,52,30,.08);}
+
+.rc-empty{text-align:center;padding:50px 20px;color:var(--muted);}
+.rc-empty .big{font-size:42px;opacity:.5;margin-bottom:12px;}
+
+/* MODAL */
+.rc-ov{display:none;position:fixed;inset:0;background:rgba(20,14,4,.55);backdrop-filter:blur(3px);
+  z-index:1000;align-items:center;justify-content:center;padding:18px;}
+.rc-ov.open{display:flex;}
+.rc-modal{background:var(--bg2);border-radius:20px;width:100%;max-width:420px;overflow:hidden;
+  box-shadow:0 30px 70px rgba(0,0,0,.4);max-height:92vh;overflow-y:auto;}
+.rc-modal-photo{width:100%;aspect-ratio:4/3;background:#00000010;object-fit:cover;display:block;}
+.rc-modal-body{padding:18px 18px 20px;}
+.rc-modal h2{font-family:'Cinzel',serif;font-size:19px;color:var(--gold-d);margin-bottom:16px;text-align:center;}
+.rc-field{margin-bottom:16px;}
+.rc-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;display:block;}
+.rc-opts{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.rc-opt{padding:13px 10px;border:1.5px solid var(--bd);border-radius:13px;background:var(--bg3);
+  cursor:pointer;text-align:center;font-size:14px;font-weight:700;color:var(--txt);transition:all .15s;
+  -webkit-tap-highlight-color:transparent;}
+.rc-opt.on{border-color:var(--gold);background:rgba(201,168,76,.12);color:var(--gold-d);box-shadow:0 4px 12px rgba(201,168,76,.2);}
+.rc-modal .rc-note{min-height:80px;}
+.rc-modal-actions{display:flex;gap:10px;margin-top:6px;}
+.rc-btn{flex:1;padding:13px;border-radius:13px;border:none;cursor:pointer;font-size:14px;font-weight:800;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.rc-btn-save{background:linear-gradient(135deg,var(--gold-l),var(--gold-d));color:#1a1200;box-shadow:0 6px 16px rgba(201,168,76,.32);}
+.rc-btn-save:disabled{opacity:.55;}
+.rc-btn-cancel{background:var(--bg3);color:var(--muted);flex:0 0 auto;padding:13px 18px;}
+
+@media(max-width:860px){ .rc-grid{grid-template-columns:1fr;} }
+
+/* Toast */
+#rc-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--esp1);color:#f0e0b8;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);opacity:0;transition:all .25s;z-index:1100;pointer-events:none;white-space:nowrap;}
+#rc-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+<link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+<nav style="display:none"></nav>
+
+<div class="page">
+  <div class="rc-hero">
+    <h1>🛠️ Réparation &amp; Commande</h1>
+    <p>Atelier · Hicham &amp; Driss</p>
+  </div>
+
+  <button class="rc-add" onclick="document.getElementById('rc-file').click()">
+    <span class="rc-add-ic">📸</span> Nouvelle photo
+  </button>
+  <input type="file" id="rc-file" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(event)">
+
+  <div class="rc-filters">
+    <button class="rc-chip on" data-f="type" data-v="" onclick="setFilter(this)">Tout</button>
+    <button class="rc-chip" data-f="type" data-v="reparation" onclick="setFilter(this)">🔧 Réparations</button>
+    <button class="rc-chip" data-f="type" data-v="commande" onclick="setFilter(this)">🛒 Commandes</button>
+    <span style="flex:1"></span>
+    <button class="rc-chip on" data-f="prep" data-v="" onclick="setFilter(this)">Tous</button>
+    <button class="rc-chip" data-f="prep" data-v="Hicham" onclick="setFilter(this)">👤 Hicham</button>
+    <button class="rc-chip" data-f="prep" data-v="Driss" onclick="setFilter(this)">👤 Driss</button>
+  </div>
+
+  <div id="rc-grid" class="rc-grid"></div>
+  <div id="rc-empty" class="rc-empty" style="display:none">
+    <div class="big">🛠️</div>
+    <p>Aucune fiche pour le moment.<br>Prends une photo pour commencer.</p>
+  </div>
+</div>
+
+<!-- MODAL création -->
+<div class="rc-ov" id="rc-ov">
+  <div class="rc-modal">
+    <img id="rc-modal-photo" class="rc-modal-photo" alt="">
+    <div class="rc-modal-body">
+      <h2>Nouvelle fiche</h2>
+      <div class="rc-field">
+        <span class="rc-label">Type</span>
+        <div class="rc-opts">
+          <div class="rc-opt on" data-g="type" data-v="reparation" onclick="pick(this)">🔧 Réparation</div>
+          <div class="rc-opt" data-g="type" data-v="commande" onclick="pick(this)">🛒 Commande</div>
+        </div>
+      </div>
+      <div class="rc-field">
+        <span class="rc-label">Qui prépare ?</span>
+        <div class="rc-opts">
+          <div class="rc-opt" data-g="prep" data-v="Hicham" onclick="pick(this)">👤 Hicham</div>
+          <div class="rc-opt" data-g="prep" data-v="Driss" onclick="pick(this)">👤 Driss</div>
+        </div>
+      </div>
+      <div class="rc-field">
+        <span class="rc-label">Note (facultatif)</span>
+        <textarea class="rc-note" id="rc-modal-note" placeholder="Ce qui sera fait…"></textarea>
+      </div>
+      <div class="rc-modal-actions">
+        <button class="rc-btn rc-btn-cancel" onclick="closeModal()">Annuler</button>
+        <button class="rc-btn rc-btn-save" id="rc-save" onclick="save()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="rc-toast"></div>
+
+<script>
+let ALL = [];
+let filterType = '', filterPrep = '';
+let pending = { photo:null, type:'reparation', prep:'' };
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(m){const t=document.getElementById('rc-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+
+async function load(){
+  try{ ALL = await fetch('/api/reparation-commande').then(r=>r.json()); }
+  catch(e){ ALL = []; }
+  render();
+}
+
+function setFilter(btn){
+  const f=btn.dataset.f, v=btn.dataset.v;
+  document.querySelectorAll(`.rc-chip[data-f="${f}"]`).forEach(c=>c.classList.toggle('on', c===btn));
+  if(f==='type') filterType=v; else filterPrep=v;
+  render();
+}
+
+function render(){
+  const grid=document.getElementById('rc-grid');
+  const empty=document.getElementById('rc-empty');
+  let rows = ALL.filter(r =>
+    (!filterType || r.type===filterType) &&
+    (!filterPrep || r.preparateur===filterPrep));
+  if(!rows.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  grid.innerHTML = rows.map(r=>{
+    const label = r.type==='commande' ? '🛒 Commande' : '🔧 Réparation';
+    return `
+    <div class="rc-card">
+      <div class="rc-photo">
+        <span class="ph">${r.type==='commande'?'🛒':'🔧'}</span>
+        ${r.has_photo?`<img loading="lazy" src="/api/reparation-commande/photo/${r.id}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">`:''}
+      </div>
+      <div class="rc-body">
+        <div class="rc-badges">
+          <span class="rc-badge ${r.type}">${label}</span>
+          ${r.preparateur?`<span class="rc-prep">👤 ${esc(r.preparateur)}</span>`:''}
+          <span class="rc-date">${esc(r.created_at)}</span>
+        </div>
+        <textarea class="rc-note" placeholder="Décris ce qui sera fait…" onfocus="this._old=this.value" onblur="saveNote(${r.id},this)">${esc(r.note)}</textarea>
+        <div class="rc-foot">
+          <span class="rc-saved" id="sv-${r.id}">✓ Enregistré</span>
+          <button class="rc-del" onclick="delCard(${r.id})">🗑️ Supprimer</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Compression photo côté client ── */
+function compress(file){
+  return new Promise((resolve,reject)=>{
+    const fr=new FileReader();
+    fr.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const max=1100; let w=img.width,h=img.height;
+        if(w>h && w>max){h=Math.round(h*max/w);w=max;}
+        else if(h>=w && h>max){w=Math.round(w*max/h);h=max;}
+        const c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/jpeg',0.82));
+      };
+      img.onerror=reject; img.src=e.target.result;
+    };
+    fr.onerror=reject; fr.readAsDataURL(file);
+  });
+}
+
+async function onPhoto(ev){
+  const file=ev.target.files&&ev.target.files[0];
+  ev.target.value='';
+  if(!file) return;
+  toast('Compression de la photo…');
+  try{
+    const dataUrl=await compress(file);
+    pending={ photo:dataUrl, type:'reparation', prep:'' };
+    document.getElementById('rc-modal-photo').src=dataUrl;
+    document.getElementById('rc-modal-note').value='';
+    // reset des choix
+    document.querySelectorAll('.rc-opt[data-g="type"]').forEach(o=>o.classList.toggle('on',o.dataset.v==='reparation'));
+    document.querySelectorAll('.rc-opt[data-g="prep"]').forEach(o=>o.classList.remove('on'));
+    document.getElementById('rc-ov').classList.add('open');
+  }catch(e){ toast('Erreur photo'); }
+}
+
+function pick(el){
+  const g=el.dataset.g;
+  document.querySelectorAll(`.rc-opt[data-g="${g}"]`).forEach(o=>o.classList.toggle('on',o===el));
+  if(g==='type') pending.type=el.dataset.v; else pending.prep=el.dataset.v;
+}
+
+function closeModal(){ document.getElementById('rc-ov').classList.remove('open'); pending.photo=null; }
+
+async function save(){
+  if(!pending.photo){ closeModal(); return; }
+  const btn=document.getElementById('rc-save'); btn.disabled=true; btn.textContent='Enregistrement…';
+  const body={
+    type: pending.type,
+    preparateur: pending.prep,
+    note: document.getElementById('rc-modal-note').value.trim(),
+    photo_base64: pending.photo.split(',')[1]
+  };
+  try{
+    const res=await fetch('/api/reparation-commande',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok) throw new Error();
+    closeModal(); toast('Fiche créée ✓'); await load();
+  }catch(e){ toast('Erreur : non enregistré'); }
+  finally{ btn.disabled=false; btn.textContent='Enregistrer'; }
+}
+
+async function saveNote(id, ta){
+  if(ta._old===ta.value) return;
+  try{
+    await fetch('/api/reparation-commande/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:ta.value})});
+    const sv=document.getElementById('sv-'+id); if(sv){sv.classList.add('show');setTimeout(()=>sv.classList.remove('show'),1600);}
+    const r=ALL.find(x=>x.id===id); if(r) r.note=ta.value;
+  }catch(e){ toast('Note non enregistrée'); }
+}
+
+async function delCard(id){
+  if(!confirm('Supprimer cette fiche ?')) return;
+  try{
+    await fetch('/api/reparation-commande/'+id,{method:'DELETE'});
+    ALL=ALL.filter(x=>x.id!==id); render(); toast('Fiche supprimée');
+  }catch(e){ toast('Suppression impossible'); }
+}
+
+document.getElementById('rc-ov').addEventListener('click',e=>{ if(e.target.id==='rc-ov') closeModal(); });
+load();
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+</body>
+</html>

@@ -211,6 +211,15 @@ CREATE TABLE IF NOT EXISTS paniers_attente (
     prix_global REAL DEFAULT 0,
     created_at  TEXT
 );
+CREATE TABLE IF NOT EXISTS reparations (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    type        TEXT DEFAULT 'reparation',   -- 'reparation' | 'commande'
+    preparateur TEXT DEFAULT '',             -- 'Hicham' | 'Driss'
+    note        TEXT DEFAULT '',
+    statut      TEXT DEFAULT 'en_cours',     -- 'en_cours' | 'termine'
+    has_photo   INTEGER DEFAULT 0,
+    created_at  TEXT
+);
 """
 
 
@@ -1125,6 +1134,58 @@ def delete_panier(panier_id):
     """Supprime un panier (après validation ou refus)."""
     with get_conn() as conn:
         conn.execute("DELETE FROM paniers_attente WHERE id=?", (int(panier_id),))
+
+# ─── Réparations & commandes (atelier : Hicham / Driss) ──────────────────────
+def _row_to_reparation(r):
+    return {
+        "id": r["id"],
+        "type": r["type"] or "reparation",
+        "preparateur": r["preparateur"] or "",
+        "note": r["note"] or "",
+        "statut": r["statut"] or "en_cours",
+        "has_photo": bool(r["has_photo"]),
+        "created_at": r["created_at"] or "",
+    }
+
+def add_reparation(type_, preparateur, note="", has_photo=0):
+    """Crée une fiche réparation/commande. Retourne l'id créé."""
+    now = datetime.now().strftime("%d/%m/%Y %H:%M")
+    with get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO reparations (type, preparateur, note, statut, has_photo, created_at) "
+            "VALUES (?,?,?,?,?,?)",
+            (str(type_ or "reparation"), str(preparateur or ""), str(note or ""),
+             "en_cours", 1 if has_photo else 0, now)
+        )
+        return cur.lastrowid
+
+def set_reparation_photo(rep_id, has_photo=1):
+    with get_conn() as conn:
+        conn.execute("UPDATE reparations SET has_photo=? WHERE id=?",
+                     (1 if has_photo else 0, int(rep_id)))
+
+def get_reparations():
+    """Liste des fiches réparation/commande, plus récentes d'abord."""
+    with get_conn() as conn:
+        rows = conn.execute("SELECT * FROM reparations ORDER BY id DESC").fetchall()
+    return [_row_to_reparation(r) for r in rows]
+
+def update_reparation(rep_id, fields):
+    """Met à jour les champs autorisés d'une fiche (note, type, preparateur, statut)."""
+    allowed = ("type", "preparateur", "note", "statut")
+    sets, args = [], []
+    for k in allowed:
+        if k in fields:
+            sets.append(f"{k}=?"); args.append(str(fields[k]))
+    if not sets:
+        return
+    args.append(int(rep_id))
+    with get_conn() as conn:
+        conn.execute(f"UPDATE reparations SET {', '.join(sets)} WHERE id=?", args)
+
+def delete_reparation(rep_id):
+    with get_conn() as conn:
+        conn.execute("DELETE FROM reparations WHERE id=?", (int(rep_id),))
 
 def get_audit_logs(limit=200, entity=None, action=None):
     """Retourne les entrées d'audit récentes (plus récentes d'abord)."""

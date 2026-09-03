@@ -67,6 +67,7 @@
         { label: '📊 Résumé Mamoun',     href: '/mamoun' },
       ]
     },
+    { type: 'link', icon: '🛠️', label: 'Réparation et commande', href: '/reparation-commande' },
   ];
 
   /* ── Helpers actif ── */
@@ -514,6 +515,7 @@
       { icon: '👁️', label: 'Activité employés',   href: '/activite-employes' },
       { icon: '🗑️', label: 'Corbeille & Audit',   href: '/corbeille' },
       { icon: '📊', label: 'Résumé Mamoun',        href: '/mamoun' },
+      { icon: '🛠️', label: 'Réparation et commande', href: '/reparation-commande' },
       { icon: '⎋',  label: 'Déconnexion',         href: '/logout' },
     ]},
   ];
