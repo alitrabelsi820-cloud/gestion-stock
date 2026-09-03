@@ -11,7 +11,45 @@
   --bg:#f6f1e8;--bg2:#ffffff;--bg3:#f3ecdf;--bd:#e8ddc7;--txt:#221c12;--muted:#9a8e79;--green:#2e7d52;--red:#b5341e;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
-.page{padding:20px 16px 90px;max-width:1100px;margin:0 auto;}
+.page{padding:20px 16px 90px;max-width:1240px;margin:0 auto;}
+
+/* ── LAYOUT : contenu + historique vertical à droite (PC) ── */
+.rc-layout{display:flex;gap:18px;align-items:flex-start;}
+.rc-main{flex:1;min-width:0;}
+.rc-history{width:330px;flex-shrink:0;position:sticky;top:16px;background:#fff;border:1px solid var(--bd);
+  border-radius:18px;box-shadow:0 8px 22px rgba(60,40,10,.07);padding:14px 14px 10px;
+  max-height:calc(100vh - 32px);overflow-y:auto;}
+.rc-history .rc-section-title{margin:2px 2px 12px;}
+@media(max-width:900px){ .rc-layout{display:block;} .rc-history{display:none;} }
+
+.rc-hist-item{display:flex;align-items:center;gap:11px;padding:9px 9px;border-radius:12px;cursor:pointer;
+  border:1px solid transparent;transition:all .13s;margin-bottom:5px;-webkit-tap-highlight-color:transparent;}
+.rc-hist-item:hover{background:var(--bg3);border-color:var(--bd);}
+.rc-hist-thumbs{display:flex;flex-shrink:0;}
+.rc-hist-thumbs .th{width:36px;height:36px;border-radius:9px;overflow:hidden;border:2px solid #fff;margin-left:-11px;
+  background:linear-gradient(135deg,#fbf3df,#eeddb2);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.rc-hist-thumbs .th:first-child{margin-left:0;}
+.rc-hist-thumbs img{width:100%;height:100%;object-fit:cover;}
+.rc-hist-info{flex:1;min-width:0;}
+.rc-hist-client{font-size:13.5px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rc-hist-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.rc-hist-amount{font-size:13px;font-weight:800;color:var(--gold-d);white-space:nowrap;}
+.rc-hist-empty{color:var(--muted);font-size:13px;text-align:center;padding:26px 12px;line-height:1.5;}
+
+/* ── DÉTAIL D'UN GROUPE (au clic depuis l'historique) ── */
+.rc-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:18px 18px 13px;border-bottom:1px solid var(--bd);}
+.rc-detail-client{font-family:'Cinzel',serif;font-size:19px;color:var(--gold-d);}
+.rc-detail-date{font-size:12px;color:var(--muted);margin-top:3px;}
+.rc-detail-money{display:flex;gap:8px;padding:14px 18px 8px;flex-wrap:wrap;}
+.rc-detail-money .dm{flex:1;min-width:92px;background:var(--bg3);border:1px solid var(--bd);border-radius:12px;padding:9px 11px;}
+.rc-detail-money .dm span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:800;margin-bottom:3px;}
+.rc-detail-money .dm b{font-size:16px;color:var(--txt);}
+.rc-detail-money .dm.marge{background:rgba(46,125,82,.09);border-color:rgba(46,125,82,.2);}
+.rc-detail-money .dm.marge b{color:var(--green);}
+.rc-detail-money .dm.marge.neg{background:rgba(181,52,30,.08);border-color:rgba(181,52,30,.2);}
+.rc-detail-money .dm.marge.neg b{color:var(--red);}
+.rc-detail-pieces{padding:8px 15px 18px;display:flex;flex-direction:column;gap:9px;}
+
 
 /* HERO */
 .rc-hero{position:relative;overflow:hidden;text-align:center;padding:26px 20px 22px;
@@ -194,13 +232,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
     <button class="rc-chip" data-f="prep" data-v="Driss" onclick="setFilter(this)">👤 Driss</button>
   </div>
 
-  <div id="rc-groups"></div>
-
-  <div id="rc-list-title" class="rc-section-title" style="display:none">📋 À traiter</div>
-  <div id="rc-grid" class="rc-grid"></div>
-  <div id="rc-empty" class="rc-empty" style="display:none">
-    <div class="big">🛠️</div>
-    <p>Aucune fiche pour le moment.<br>Prends une photo pour commencer.</p>
+  <div class="rc-layout">
+    <div class="rc-main">
+      <div id="rc-groups"></div>
+      <div id="rc-list-title" class="rc-section-title" style="display:none">📋 À traiter</div>
+      <div id="rc-grid" class="rc-grid"></div>
+      <div id="rc-empty" class="rc-empty" style="display:none">
+        <div class="big">🛠️</div>
+        <p>Aucune fiche pour le moment.<br>Prends une photo pour commencer.</p>
+      </div>
+    </div>
+    <aside class="rc-history">
+      <div class="rc-section-title" style="margin-top:0">🗂️ Historique</div>
+      <div id="rc-histlist"></div>
+    </aside>
   </div>
 </div>
 
@@ -242,6 +287,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
       </div>
     </div>
   </div>
+</div>
+
+<!-- Détail d'un groupe (historique) -->
+<div class="rc-ov" id="rc-detail-ov">
+  <div class="rc-modal" id="rc-detail-modal"></div>
 </div>
 
 <!-- Visionneuse plein écran -->
@@ -305,6 +355,7 @@ function noteHtml(r){
 function render(){
   // ── Groupes (en haut) ──
   document.getElementById('rc-groups').innerHTML = GROUPS.map(renderGroup).join('');
+  renderHistory();
 
   // ── Fiches non groupées ──
   const grid=document.getElementById('rc-grid');
@@ -395,6 +446,61 @@ function liveMarge(gid){
   box.classList.toggle('neg', marge<0);
   box.querySelector('.val').textContent=fmtN(marge)+' MAD';
 }
+
+/* ── Historique (colonne de droite) ── */
+function renderHistory(){
+  const el=document.getElementById('rc-histlist');
+  if(!el) return;
+  if(!GROUPS.length){
+    el.innerHTML='<div class="rc-hist-empty">Aucune commande / réparation groupée.<br>Coche des fiches puis « Créer un groupe » pour les voir ici.</div>';
+    return;
+  }
+  el.innerHTML = GROUPS.map(g=>{
+    const membres=g.membres.map(id=>ALL.find(r=>r.id===id)).filter(Boolean);
+    const thumbs=membres.slice(0,3).map(r=>
+      `<span class="th">${r.has_photo?`<img src="/api/reparation-commande/photo/${r.id}" alt="" onerror="this.parentNode.textContent=(this.parentNode.dataset.ic||'📦')">`:(r.type==='commande'?'🛒':'🔧')}</span>`
+    ).join('');
+    return `<div class="rc-hist-item" onclick="openDetail(${g.id})">
+      <div class="rc-hist-thumbs">${thumbs||'<span class="th">📦</span>'}</div>
+      <div class="rc-hist-info">
+        <div class="rc-hist-client">${g.client?esc(g.client):'Groupe #'+g.id}</div>
+        <div class="rc-hist-sub">${membres.length} pièce(s) · ${esc(g.created_at)}</div>
+      </div>
+      <div class="rc-hist-amount">${g.montant?fmtN(g.montant)+' MAD':'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function openDetail(gid){
+  const g=GROUPS.find(x=>x.id===gid); if(!g) return;
+  const membres=g.membres.map(id=>ALL.find(r=>r.id===id)).filter(Boolean);
+  const marge=(Number(g.montant)||0)-(Number(g.paye_fournisseur)||0);
+  document.getElementById('rc-detail-modal').innerHTML=`
+    <div class="rc-detail-head">
+      <div>
+        <div class="rc-detail-client">${g.client?esc(g.client):'Groupe #'+g.id}</div>
+        <div class="rc-detail-date">${esc(g.created_at)} · ${membres.length} pièce(s)</div>
+      </div>
+      <button class="rc-btn rc-btn-cancel" style="flex:0 0 auto;padding:9px 15px" onclick="closeDetail()">Fermer</button>
+    </div>
+    <div class="rc-detail-money">
+      <div class="dm"><span>Montant client</span><b>${fmtN(g.montant)} MAD</b></div>
+      <div class="dm"><span>Payé fournisseur</span><b>${fmtN(g.paye_fournisseur)} MAD</b></div>
+      <div class="dm marge ${marge<0?'neg':''}"><span>Marge</span><b>${fmtN(marge)} MAD</b></div>
+    </div>
+    <div class="rc-detail-pieces">
+      ${membres.map(r=>`
+        <div class="rc-mini" style="background:var(--bg3)">
+          <div class="rc-mini-thumb" onclick="zoom(${r.id})">${photoHtml(r)}</div>
+          <div class="rc-mini-body">
+            <div class="rc-badges">${badgeHtml(r)}</div>
+            <div style="font-size:12.5px;color:var(--txt);margin-top:6px;white-space:pre-wrap;line-height:1.4">${r.note?esc(r.note):'<span style="color:var(--muted)">(pas de note)</span>'}</div>
+          </div>
+        </div>`).join('') || '<div style="color:var(--muted);text-align:center;padding:12px">Aucune pièce dans ce groupe</div>'}
+    </div>`;
+  document.getElementById('rc-detail-ov').classList.add('open');
+}
+function closeDetail(){ document.getElementById('rc-detail-ov').classList.remove('open'); }
 
 /* ── Sélection ── */
 function toggleSel(id){ selected.has(id)?selected.delete(id):selected.add(id); render(); }
@@ -528,6 +634,7 @@ async function delCard(id){
 }
 
 document.getElementById('rc-ov').addEventListener('click',e=>{ if(e.target.id==='rc-ov') closeModal(); });
+document.getElementById('rc-detail-ov').addEventListener('click',e=>{ if(e.target.id==='rc-detail-ov') closeDetail(); });
 load();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
