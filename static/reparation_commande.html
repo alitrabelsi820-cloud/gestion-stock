@@ -172,7 +172,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
   <button class="rc-add" onclick="document.getElementById('rc-file').click()">
     <span class="rc-add-ic">📸</span> Nouvelle photo
   </button>
-  <input type="file" id="rc-file" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(event)">
+  <input type="file" id="rc-file" accept="image/*" style="display:none" onchange="onPhoto(event)">
 
   <div class="rc-filters">
     <button class="rc-chip on" data-f="type" data-v="" onclick="setFilter(this)">Tout</button>
