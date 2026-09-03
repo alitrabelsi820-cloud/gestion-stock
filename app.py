@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "91"
+ASSET_VERSION = "92"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -2262,6 +2262,8 @@ function filter(type, btn) {{
         # ── Réparations & commandes (atelier) ────────────────────────────────
         if path == "/api/reparation-commande":
             self.send_json(db.get_reparations()); return
+        if path == "/api/reparation-groupe":
+            self.send_json(db.get_reparation_groupes()); return
         if path.startswith("/api/reparation-commande/photo/"):
             try:
                 rid = int(path.rstrip("/").split("/")[-1])
@@ -3985,6 +3987,15 @@ function filter(type, btn) {{
             push_db_background()
             self.send_json({"success": True, "id": rid}); return
 
+        # ── Réparation / commande : créer un GROUPE (client, montant, fournisseur) ─
+        if path == "/api/reparation-groupe":
+            ids = data.get("ids") or []
+            gid = db.add_reparation_groupe(
+                ids, data.get("client", ""), data.get("montant", 0),
+                data.get("paye_fournisseur", 0), data.get("note", ""))
+            push_db_background()
+            self.send_json({"success": True, "id": gid}); return
+
         # ── Enregistrer un devis ─────────────────────────────────────────────
         if path == "/api/devis":
             client = str(data.get("client","")).strip()
@@ -4227,6 +4238,20 @@ function filter(type, btn) {{
             push_db_background()
             self.send_json({"success": True}); return
 
+        # ── Groupe : modifier client/montant/fournisseur + ajouter/retirer fiches ─
+        if path.startswith("/api/reparation-groupe/"):
+            try:
+                gid = int(path.rstrip("/").split("/")[-1])
+            except ValueError:
+                self.send_json({"error": "ID invalide"}, 400); return
+            db.update_reparation_groupe(gid, data)
+            if data.get("add_ids"):
+                db.groupe_add_members(gid, data.get("add_ids"))
+            if data.get("remove_ids"):
+                db.groupe_remove_members(data.get("remove_ids"))
+            push_db_background()
+            self.send_json({"success": True}); return
+
         # ── Modifier la configuration (prix de l'or) ──────────────────────────
         if path == "/api/config":
             cfg = load_config()
@@ -4452,6 +4477,16 @@ function filter(type, btn) {{
                 if p.exists(): p.unlink()
             except Exception:
                 pass
+            push_db_background()
+            self.send_json({"success": True}); return
+
+        # ── Supprimer un groupe (les fiches sont juste détachées, pas supprimées) ─
+        if path.startswith("/api/reparation-groupe/"):
+            try:
+                gid = int(path.rstrip("/").split("/")[-1])
+            except ValueError:
+                self.send_json({"error": "ID invalide"}, 400); return
+            db.delete_reparation_groupe(gid)
             push_db_background()
             self.send_json({"success": True}); return
 

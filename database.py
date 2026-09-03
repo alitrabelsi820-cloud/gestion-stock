@@ -218,7 +218,16 @@ CREATE TABLE IF NOT EXISTS reparations (
     note        TEXT DEFAULT '',
     statut      TEXT DEFAULT 'en_cours',     -- 'en_cours' | 'termine'
     has_photo   INTEGER DEFAULT 0,
+    groupe_id   INTEGER,                     -- NULL = pas groupé
     created_at  TEXT
+);
+CREATE TABLE IF NOT EXISTS reparation_groupes (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    client           TEXT DEFAULT '',
+    montant          REAL DEFAULT 0,   -- prix demandé au client
+    paye_fournisseur REAL DEFAULT 0,   -- coût payé au fournisseur
+    note             TEXT DEFAULT '',
+    created_at       TEXT
 );
 """
 
@@ -518,6 +527,12 @@ def init_db():
         try:
             conn.execute("ALTER TABLE credits ADD COLUMN gele INTEGER DEFAULT 0")
             print("[DB] Colonne 'gele' ajoutée aux crédits.")
+        except Exception:
+            pass
+        # Réparations : regroupement (client / montant / payé fournisseur)
+        try:
+            conn.execute("ALTER TABLE reparations ADD COLUMN groupe_id INTEGER")
+            print("[DB] Colonne 'groupe_id' ajoutée aux réparations.")
         except Exception:
             pass
         # Migration 6 : table sessions persistantes
@@ -1137,6 +1152,7 @@ def delete_panier(panier_id):
 
 # ─── Réparations & commandes (atelier : Hicham / Driss) ──────────────────────
 def _row_to_reparation(r):
+    keys = r.keys()
     return {
         "id": r["id"],
         "type": r["type"] or "reparation",
@@ -1144,6 +1160,7 @@ def _row_to_reparation(r):
         "note": r["note"] or "",
         "statut": r["statut"] or "en_cours",
         "has_photo": bool(r["has_photo"]),
+        "groupe_id": (r["groupe_id"] if "groupe_id" in keys else None),
         "created_at": r["created_at"] or "",
     }
 
@@ -1186,6 +1203,83 @@ def update_reparation(rep_id, fields):
 def delete_reparation(rep_id):
     with get_conn() as conn:
         conn.execute("DELETE FROM reparations WHERE id=?", (int(rep_id),))
+
+# ─── Groupes de réparations/commandes (client · montant · payé fournisseur) ──
+def _to_num(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return 0.0
+
+def add_reparation_groupe(ids, client="", montant=0, paye_fournisseur=0, note=""):
+    """Crée un groupe et y rattache les fiches `ids`. Retourne l'id du groupe."""
+    now = datetime.now().strftime("%d/%m/%Y %H:%M")
+    with get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO reparation_groupes (client, montant, paye_fournisseur, note, created_at) "
+            "VALUES (?,?,?,?,?)",
+            (str(client or ""), _to_num(montant), _to_num(paye_fournisseur), str(note or ""), now)
+        )
+        gid = cur.lastrowid
+        for rid in (ids or []):
+            try:
+                conn.execute("UPDATE reparations SET groupe_id=? WHERE id=?", (gid, int(rid)))
+            except (TypeError, ValueError):
+                pass
+        return gid
+
+def get_reparation_groupes():
+    """Liste des groupes, chacun avec la liste des ids de fiches membres."""
+    with get_conn() as conn:
+        groups = conn.execute("SELECT * FROM reparation_groupes ORDER BY id DESC").fetchall()
+        members = conn.execute("SELECT id, groupe_id FROM reparations WHERE groupe_id IS NOT NULL").fetchall()
+    by_group = {}
+    for m in members:
+        by_group.setdefault(m["groupe_id"], []).append(m["id"])
+    out = []
+    for g in groups:
+        out.append({
+            "id": g["id"], "client": g["client"] or "",
+            "montant": g["montant"] or 0, "paye_fournisseur": g["paye_fournisseur"] or 0,
+            "note": g["note"] or "", "created_at": g["created_at"] or "",
+            "membres": sorted(by_group.get(g["id"], [])),
+        })
+    return out
+
+def update_reparation_groupe(gid, fields):
+    """Met à jour client / montant / paye_fournisseur / note d'un groupe."""
+    cols = {"client": str, "montant": _to_num, "paye_fournisseur": _to_num, "note": str}
+    sets, args = [], []
+    for k, conv in cols.items():
+        if k in fields:
+            sets.append(f"{k}=?"); args.append(conv(fields[k]))
+    if sets:
+        args.append(int(gid))
+        with get_conn() as conn:
+            conn.execute(f"UPDATE reparation_groupes SET {', '.join(sets)} WHERE id=?", args)
+
+def groupe_add_members(gid, ids):
+    with get_conn() as conn:
+        for rid in (ids or []):
+            try:
+                conn.execute("UPDATE reparations SET groupe_id=? WHERE id=?", (int(gid), int(rid)))
+            except (TypeError, ValueError):
+                pass
+
+def groupe_remove_members(ids):
+    """Détache des fiches de leur groupe (groupe_id = NULL)."""
+    with get_conn() as conn:
+        for rid in (ids or []):
+            try:
+                conn.execute("UPDATE reparations SET groupe_id=NULL WHERE id=?", (int(rid),))
+            except (TypeError, ValueError):
+                pass
+
+def delete_reparation_groupe(gid):
+    """Supprime le groupe et détache ses fiches (les fiches ne sont PAS supprimées)."""
+    with get_conn() as conn:
+        conn.execute("UPDATE reparations SET groupe_id=NULL WHERE groupe_id=?", (int(gid),))
+        conn.execute("DELETE FROM reparation_groupes WHERE id=?", (int(gid),))
 
 def get_audit_logs(limit=200, entity=None, action=None):
     """Retourne les entrées d'audit récentes (plus récentes d'abord)."""

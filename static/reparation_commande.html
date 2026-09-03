@@ -38,7 +38,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
 
 /* GRILLE DE CARTES */
 .rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
-.rc-card{background:var(--bg2);border:1px solid var(--bd);border-radius:18px;overflow:hidden;
+.rc-card{position:relative;background:var(--bg2);border:1px solid var(--bd);border-radius:18px;overflow:hidden;
   box-shadow:0 8px 22px rgba(60,40,10,.07);display:flex;flex-direction:column;}
 .rc-photo{width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#fbf3df,#eeddb2);
   display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
@@ -93,6 +93,65 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
 
 @media(max-width:860px){ .rc-grid{grid-template-columns:1fr;} }
 
+/* ── SÉLECTION (cases à cocher) ── */
+.rc-check{position:absolute;top:9px;left:9px;width:27px;height:27px;border-radius:8px;z-index:3;
+  border:2px solid rgba(201,168,76,.55);background:rgba(255,255,255,.92);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;font-weight:800;
+  color:transparent;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+.rc-card.sel .rc-check{background:linear-gradient(135deg,var(--gold-l),var(--gold-d));border-color:var(--gold-d);color:#1a1200;}
+.rc-card.sel{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.45),0 8px 22px rgba(60,40,10,.1);}
+
+/* ── BARRE D'ACTION DE SÉLECTION ── */
+#rc-actionbar{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(160px);z-index:900;
+  display:flex;gap:9px;align-items:center;background:linear-gradient(135deg,var(--esp1),var(--esp2));
+  color:#f0e0b8;padding:9px 10px 9px 16px;border-radius:16px;box-shadow:0 14px 34px rgba(0,0,0,.4);
+  transition:transform .26s cubic-bezier(.32,.72,0,1),opacity .2s;max-width:calc(100% - 20px);flex-wrap:wrap;justify-content:center;
+  opacity:0;visibility:hidden;pointer-events:none;}
+#rc-actionbar.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible;pointer-events:auto;}
+#rc-actionbar .cnt{font-weight:700;font-size:13px;white-space:nowrap;}
+.rc-ab-btn{background:linear-gradient(135deg,var(--gold-l),var(--gold-d));color:#1a1200;border:none;
+  border-radius:11px;padding:9px 14px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+.rc-ab-sel{background:rgba(255,255,255,.08);color:#f0e0b8;border:1px solid rgba(201,168,76,.4);
+  border-radius:11px;padding:8px 9px;font-size:12px;font-family:inherit;outline:none;max-width:150px;}
+.rc-ab-x{background:transparent;border:none;color:rgba(240,224,184,.7);font-size:20px;cursor:pointer;line-height:1;padding:0 4px;}
+
+/* ── GROUPES ── */
+.rc-section-title{font-family:'Cinzel',serif;font-size:15px;color:var(--gold-d);margin:4px 2px 12px;
+  display:flex;align-items:center;gap:8px;letter-spacing:.3px;}
+.rc-group{background:#fff;border:1px solid rgba(201,168,76,.32);border-radius:18px;overflow:hidden;
+  margin-bottom:14px;box-shadow:0 8px 22px rgba(60,40,10,.08);}
+.rc-group-head{background:linear-gradient(135deg,#fbf3df,#f0e2bd);padding:14px 15px;border-bottom:1px solid var(--bd);}
+.rc-group-topline{display:flex;align-items:center;gap:8px;margin-bottom:13px;}
+.rc-group-topline .ic{font-size:17px;}
+.rc-group-topline .t{font-family:'Cinzel',serif;font-size:14px;color:var(--gold-d);flex:1;letter-spacing:.3px;}
+.rc-group-topline .n{font-size:11px;color:var(--muted);}
+.rc-group-del{background:transparent;border:1px solid rgba(181,52,30,.3);color:var(--red);border-radius:9px;
+  padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.rc-fld{margin-bottom:9px;}
+.rc-fld label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);display:block;margin-bottom:4px;}
+.rc-fld input{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;font-size:14px;
+  font-family:inherit;background:#fff;color:var(--txt);outline:none;transition:border-color .15s;}
+.rc-fld input:focus{border-color:rgba(201,168,76,.6);}
+.rc-money-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.rc-marge{margin-top:4px;display:flex;justify-content:space-between;align-items:center;padding:10px 13px;
+  border-radius:11px;background:rgba(46,125,82,.09);border:1px solid rgba(46,125,82,.18);}
+.rc-marge.neg{background:rgba(181,52,30,.08);border-color:rgba(181,52,30,.2);}
+.rc-marge .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
+.rc-marge .val{font-size:18px;font-weight:900;color:var(--green);}
+.rc-marge.neg .val{color:var(--red);}
+.rc-group-members{padding:12px 13px;display:flex;flex-direction:column;gap:9px;}
+.rc-mini{display:flex;gap:11px;align-items:flex-start;background:var(--bg3);border:1px solid var(--bd);border-radius:13px;padding:9px 10px;}
+.rc-mini-thumb{width:54px;height:54px;border-radius:11px;flex-shrink:0;overflow:hidden;position:relative;
+  background:linear-gradient(135deg,#fbf3df,#eeddb2);display:flex;align-items:center;justify-content:center;}
+.rc-mini-thumb img{width:100%;height:100%;object-fit:cover;}
+.rc-mini-thumb .ph{font-size:21px;opacity:.5;}
+.rc-mini-body{flex:1;min-width:0;}
+.rc-mini .rc-badges{margin-bottom:5px;}
+.rc-mini .rc-note{min-height:42px;font-size:12.5px;padding:7px 9px;}
+.rc-ungroup{background:#fff;border:1px solid var(--bd);color:var(--muted);border-radius:9px;width:30px;height:30px;
+  flex-shrink:0;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.rc-ungroup:active{background:var(--bg3);}
+
 /* Toast */
 #rc-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
   background:var(--esp1);color:#f0e0b8;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;
@@ -125,11 +184,22 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
     <button class="rc-chip" data-f="prep" data-v="Driss" onclick="setFilter(this)">👤 Driss</button>
   </div>
 
+  <div id="rc-groups"></div>
+
+  <div id="rc-list-title" class="rc-section-title" style="display:none">📋 À traiter</div>
   <div id="rc-grid" class="rc-grid"></div>
   <div id="rc-empty" class="rc-empty" style="display:none">
     <div class="big">🛠️</div>
     <p>Aucune fiche pour le moment.<br>Prends une photo pour commencer.</p>
   </div>
+</div>
+
+<!-- Barre d'action (sélection) -->
+<div id="rc-actionbar">
+  <span class="cnt"><span id="rc-ab-cnt">0</span> sélectionné(s)</span>
+  <button class="rc-ab-btn" onclick="creerGroupe()">🔗 Créer un groupe</button>
+  <select class="rc-ab-sel" id="rc-ab-add" onchange="ajouterAuGroupe(this)"></select>
+  <button class="rc-ab-x" onclick="clearSel()" title="Annuler">✕</button>
 </div>
 
 <!-- MODAL création -->
@@ -168,15 +238,25 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--tx
 
 <script>
 let ALL = [];
+let GROUPS = [];
+let selected = new Set();
 let filterType = '', filterPrep = '';
 let pending = { photo:null, type:'reparation', prep:'' };
+const fmtN = v => Number(v||0).toLocaleString('fr-FR',{maximumFractionDigits:0});
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function toast(m){const t=document.getElementById('rc-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
 
 async function load(){
-  try{ ALL = await fetch('/api/reparation-commande').then(r=>r.json()); }
-  catch(e){ ALL = []; }
+  try{
+    const [rep, grp] = await Promise.all([
+      fetch('/api/reparation-commande').then(r=>r.json()),
+      fetch('/api/reparation-groupe').then(r=>r.json())
+    ]);
+    ALL = rep; GROUPS = grp;
+  }catch(e){ ALL = ALL||[]; GROUPS = GROUPS||[]; }
+  // Nettoyer la sélection des fiches qui n'existent plus / sont groupées
+  selected.forEach(id=>{ const r=ALL.find(x=>x.id===id); if(!r || r.groupe_id) selected.delete(id); });
   render();
 }
 
@@ -187,36 +267,163 @@ function setFilter(btn){
   render();
 }
 
+function badgeHtml(r){
+  const label = r.type==='commande' ? '🛒 Commande' : '🔧 Réparation';
+  return `<span class="rc-badge ${r.type}">${label}</span>`+
+    (r.preparateur?`<span class="rc-prep">👤 ${esc(r.preparateur)}</span>`:'');
+}
+function photoHtml(r){
+  return `<span class="ph">${r.type==='commande'?'🛒':'🔧'}</span>`+
+    (r.has_photo?`<img loading="lazy" src="/api/reparation-commande/photo/${r.id}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">`:'');
+}
+function noteHtml(r){
+  return `<textarea class="rc-note" placeholder="Décris ce qui sera fait…" onfocus="this._old=this.value" onblur="saveNote(${r.id},this)">${esc(r.note)}</textarea>`;
+}
+
 function render(){
+  // ── Groupes (en haut) ──
+  document.getElementById('rc-groups').innerHTML = GROUPS.map(renderGroup).join('');
+
+  // ── Fiches non groupées ──
   const grid=document.getElementById('rc-grid');
   const empty=document.getElementById('rc-empty');
-  let rows = ALL.filter(r =>
+  const title=document.getElementById('rc-list-title');
+  let rows = ALL.filter(r => !r.groupe_id &&
     (!filterType || r.type===filterType) &&
     (!filterPrep || r.preparateur===filterPrep));
-  if(!rows.length){ grid.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display='none';
-  grid.innerHTML = rows.map(r=>{
-    const label = r.type==='commande' ? '🛒 Commande' : '🔧 Réparation';
-    return `
-    <div class="rc-card">
-      <div class="rc-photo">
-        <span class="ph">${r.type==='commande'?'🛒':'🔧'}</span>
-        ${r.has_photo?`<img loading="lazy" src="/api/reparation-commande/photo/${r.id}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">`:''}
-      </div>
-      <div class="rc-body">
-        <div class="rc-badges">
-          <span class="rc-badge ${r.type}">${label}</span>
-          ${r.preparateur?`<span class="rc-prep">👤 ${esc(r.preparateur)}</span>`:''}
-          <span class="rc-date">${esc(r.created_at)}</span>
+
+  title.style.display = (rows.length && GROUPS.length) ? 'flex' : 'none';
+  if(!rows.length){
+    grid.innerHTML='';
+    empty.style.display = (ALL.length===0) ? 'block' : 'none';
+  } else {
+    empty.style.display='none';
+    grid.innerHTML = rows.map(r=>`
+      <div class="rc-card ${selected.has(r.id)?'sel':''}">
+        <div class="rc-check" onclick="toggleSel(${r.id})">✓</div>
+        <div class="rc-photo">${photoHtml(r)}</div>
+        <div class="rc-body">
+          <div class="rc-badges">${badgeHtml(r)}<span class="rc-date">${esc(r.created_at)}</span></div>
+          ${noteHtml(r)}
+          <div class="rc-foot">
+            <span class="rc-saved" id="sv-${r.id}">✓ Enregistré</span>
+            <button class="rc-del" onclick="delCard(${r.id})">🗑️ Supprimer</button>
+          </div>
         </div>
-        <textarea class="rc-note" placeholder="Décris ce qui sera fait…" onfocus="this._old=this.value" onblur="saveNote(${r.id},this)">${esc(r.note)}</textarea>
-        <div class="rc-foot">
-          <span class="rc-saved" id="sv-${r.id}">✓ Enregistré</span>
-          <button class="rc-del" onclick="delCard(${r.id})">🗑️ Supprimer</button>
+      </div>`).join('');
+  }
+  updateActionbar();
+}
+
+function renderGroup(g){
+  const membres = g.membres.map(id=>ALL.find(r=>r.id===id)).filter(Boolean);
+  const marge = (Number(g.montant)||0) - (Number(g.paye_fournisseur)||0);
+  return `
+  <div class="rc-group">
+    <div class="rc-group-head">
+      <div class="rc-group-topline">
+        <span class="ic">📦</span>
+        <span class="t">Groupe</span>
+        <span class="n">${membres.length} pièce(s)</span>
+        <button class="rc-group-del" onclick="delGroupe(${g.id})">🗑️ Supprimer</button>
+      </div>
+      <div class="rc-fld">
+        <label>Client</label>
+        <input type="text" value="${esc(g.client)}" placeholder="Nom du client"
+          onchange="saveGroup(${g.id},'client',this.value)">
+      </div>
+      <div class="rc-money-row">
+        <div class="rc-fld">
+          <label>Montant (client)</label>
+          <input type="number" inputmode="decimal" value="${g.montant||''}" placeholder="0"
+            data-g="${g.id}" data-k="montant" oninput="liveMarge(${g.id})"
+            onchange="saveGroup(${g.id},'montant',this.value)">
+        </div>
+        <div class="rc-fld">
+          <label>Payé fournisseur</label>
+          <input type="number" inputmode="decimal" value="${g.paye_fournisseur||''}" placeholder="0"
+            data-g="${g.id}" data-k="paye_fournisseur" oninput="liveMarge(${g.id})"
+            onchange="saveGroup(${g.id},'paye_fournisseur',this.value)">
         </div>
       </div>
-    </div>`;
-  }).join('');
+      <div class="rc-marge ${marge<0?'neg':''}" id="marge-${g.id}">
+        <span class="lbl">Marge (bénéfice)</span>
+        <span class="val">${fmtN(marge)} MAD</span>
+      </div>
+    </div>
+    <div class="rc-group-members">
+      ${membres.map(r=>`
+        <div class="rc-mini">
+          <div class="rc-mini-thumb">${photoHtml(r)}</div>
+          <div class="rc-mini-body">
+            <div class="rc-badges">${badgeHtml(r)}</div>
+            ${noteHtml(r)}
+          </div>
+          <button class="rc-ungroup" title="Retirer du groupe" onclick="ungroup(${r.id})">✕</button>
+        </div>`).join('') || '<div style="color:var(--muted);font-size:13px;text-align:center;padding:6px">Aucune pièce</div>'}
+    </div>
+  </div>`;
+}
+
+function liveMarge(gid){
+  const m=document.querySelector(`input[data-g="${gid}"][data-k="montant"]`);
+  const p=document.querySelector(`input[data-g="${gid}"][data-k="paye_fournisseur"]`);
+  const marge=(parseFloat(m.value)||0)-(parseFloat(p.value)||0);
+  const box=document.getElementById('marge-'+gid);
+  box.classList.toggle('neg', marge<0);
+  box.querySelector('.val').textContent=fmtN(marge)+' MAD';
+}
+
+/* ── Sélection ── */
+function toggleSel(id){ selected.has(id)?selected.delete(id):selected.add(id); render(); }
+function clearSel(){ selected.clear(); render(); }
+function updateActionbar(){
+  document.getElementById('rc-ab-cnt').textContent=selected.size;
+  const sel=document.getElementById('rc-ab-add');
+  if(GROUPS.length){
+    sel.style.display='';
+    sel.innerHTML='<option value="">Ajouter à un groupe…</option>'+
+      GROUPS.map(g=>`<option value="${g.id}">${g.client?esc(g.client):'Groupe #'+g.id}</option>`).join('');
+  } else sel.style.display='none';
+  document.getElementById('rc-actionbar').classList.toggle('show', selected.size>0);
+}
+
+/* ── Groupes : actions ── */
+async function creerGroupe(){
+  if(!selected.size) return;
+  try{
+    await fetch('/api/reparation-groupe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:[...selected]})});
+    selected.clear(); toast('Groupe créé ✓'); await load();
+  }catch(e){ toast('Erreur'); }
+}
+async function ajouterAuGroupe(sel){
+  const gid=sel.value; sel.value='';
+  if(!gid || !selected.size) return;
+  try{
+    await fetch('/api/reparation-groupe/'+gid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({add_ids:[...selected]})});
+    selected.clear(); toast('Ajouté au groupe ✓'); await load();
+  }catch(e){ toast('Erreur'); }
+}
+async function saveGroup(gid, field, value){
+  try{
+    await fetch('/api/reparation-groupe/'+gid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({[field]:value})});
+    const g=GROUPS.find(x=>x.id===gid); if(g) g[field]=value;
+    toast('Enregistré ✓');
+  }catch(e){ toast('Non enregistré'); }
+}
+async function ungroup(id){
+  const g=GROUPS.find(x=>x.membres.includes(id)); if(!g) return;
+  try{
+    await fetch('/api/reparation-groupe/'+g.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({remove_ids:[id]})});
+    toast('Retiré du groupe'); await load();
+  }catch(e){ toast('Erreur'); }
+}
+async function delGroupe(gid){
+  if(!confirm('Supprimer ce groupe ? (les fiches ne seront pas supprimées)')) return;
+  try{
+    await fetch('/api/reparation-groupe/'+gid,{method:'DELETE'});
+    toast('Groupe supprimé'); await load();
+  }catch(e){ toast('Erreur'); }
 }
 
 /* ── Compression photo côté client ── */
@@ -294,7 +501,7 @@ async function delCard(id){
   if(!confirm('Supprimer cette fiche ?')) return;
   try{
     await fetch('/api/reparation-commande/'+id,{method:'DELETE'});
-    ALL=ALL.filter(x=>x.id!==id); render(); toast('Fiche supprimée');
+    selected.delete(id); toast('Fiche supprimée'); await load();
   }catch(e){ toast('Suppression impossible'); }
 }
 
