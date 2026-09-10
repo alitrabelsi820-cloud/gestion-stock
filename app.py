@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "96"
+ASSET_VERSION = "97"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -1021,11 +1021,17 @@ def dashboard_flux(mois=None):
     # Références vendues à crédit → leur argent est suivi via les paiements, pas
     # via le pv de la vente (sinon on compterait de l'argent pas encore encaissé).
     credit_refs = set()
+    credit_by_ref = {}            # réf article → crédit correspondant
     for c in credits:
         for part in str(c.get("refs") or "").split(","):
             part = part.strip()
             if part.isdigit():
                 credit_refs.add(int(part))
+                credit_by_ref[int(part)] = c
+
+    def _credit_reste(c):
+        paye = sum(p.get("montant") or 0 for p in (c.get("paiements") or []))
+        return (c.get("montant_total") or 0) - paye
 
     def _ref_int(v):
         try:
@@ -1035,17 +1041,29 @@ def dashboard_flux(mois=None):
 
     def enc_agg(mois):
         comptant = cred = ca = 0.0
+        # reste à encaisser : crédits ENCORE OUVERTS (non soldés) liés aux ventes du mois
+        reste = 0.0
+        seen = set()
         for v in ventes:
             if _mois_de(v.get("date_vente")) == mois:
                 ca += (v.get("pv") or 0)
-                if _ref_int(v) not in credit_refs:
+                r = _ref_int(v)
+                if r not in credit_refs:
                     comptant += (v.get("pv") or 0)
+                else:
+                    c = credit_by_ref.get(r)
+                    cid = c.get("id") if c else None
+                    if c is not None and cid not in seen:
+                        seen.add(cid)
+                        out = _credit_reste(c)
+                        if c.get("statut") != "solde" and out > 0:
+                            reste += out
         for c in credits:
             for p in (c.get("paiements") or []):
                 if _mois_de(p.get("date")) == mois:
                     cred += (p.get("montant") or 0)
         return {"total": round(comptant + cred), "comptant": round(comptant),
-                "credits": round(cred), "ca": round(ca)}
+                "credits": round(cred), "ca": round(ca), "reste": round(reste)}
 
     enc_mvts = []
     for v in ventes:

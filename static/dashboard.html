@@ -1144,7 +1144,7 @@ async function loadFlux(mois){
     document.getElementById('enc-comptant').textContent=fmtN(e.comptant);
     document.getElementById('enc-credits').textContent=fmtN(e.credits);
     document.getElementById('enc-ca').textContent=fmtN(e.ca);
-    var ecart=Math.max(0,(e.ca||0)-(e.total||0));
+    var ecart=Math.max(0, e.reste!=null ? e.reste : ((e.ca||0)-(e.total||0)));
     document.getElementById('enc-ecart').textContent=fmtN(ecart);
     document.getElementById('enc-ecart-box').style.display=ecart>0?'block':'none';
     document.getElementById('enc-feed').innerHTML=(d.encaissement.mouvements||[]).map(encRow).join('')||emptyFeed();
