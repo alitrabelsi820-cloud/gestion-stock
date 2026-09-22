@@ -236,6 +236,35 @@ td.has{color:#82e0aa;}
   #fac-print-zone{display:block!important;position:fixed;inset:0;background:#fff;z-index:9999;}
   #fac-print-zone .invoice{box-shadow:none;border:none;}
 }
+
+/* ══════════════ DOSSIERS MENSUELS (vue par défaut des ventes) ══════════════ */
+.v-months{display:none;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;padding:8px 28px 44px;}
+@media(max-width:860px){ .v-months{grid-template-columns:1fr 1fr;gap:12px;padding:8px 14px 30px;} }
+.month-folder{background:#fff;border:1px solid var(--bd);border-radius:20px;overflow:hidden;cursor:pointer;
+  box-shadow:0 8px 22px rgba(60,40,10,.07);transition:transform .15s,box-shadow .15s,border-color .15s;-webkit-tap-highlight-color:transparent;}
+.month-folder:hover{transform:translateY(-3px);border-color:rgba(201,168,76,.45);box-shadow:0 16px 34px rgba(60,40,10,.13);}
+.month-folder:active{transform:scale(.985);}
+.mf-head{background:linear-gradient(135deg,#1c1409,#3a2a0d);padding:15px 16px 13px;text-align:center;position:relative;overflow:hidden;}
+.mf-head::after{content:'';position:absolute;top:-30px;right:-20px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.18),transparent 70%);}
+.mf-mon{position:relative;font-family:'Cinzel',serif;font-size:19px;font-weight:700;letter-spacing:.5px;
+  background:linear-gradient(90deg,#f7ead0,#d8b968 55%,#f7ead0);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.mf-year{position:relative;font-size:11px;letter-spacing:4px;color:rgba(232,201,104,.75);margin-top:2px;}
+.mf-body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:9px;}
+.mf-stat{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+.mf-stat .l{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
+.mf-stat .v{font-size:16px;font-weight:800;color:var(--txt);white-space:nowrap;}
+.mf-stat .v.ca{color:var(--gold-l);}
+.mf-stat .v.benef{color:var(--green);}
+.mf-stat.tot{border-top:1px dashed var(--bd);padding-top:9px;margin-top:1px;}
+
+/* En-tête « retour aux mois » */
+#vtype-header{display:none;align-items:center;gap:12px;padding:2px 28px 14px;flex-wrap:wrap;}
+@media(max-width:860px){ #vtype-header{padding:2px 14px 10px;} }
+.month-back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--bd);border-radius:11px;
+  padding:9px 15px;font-size:13px;font-weight:700;color:var(--gold-l);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.month-back:hover{border-color:var(--gold);background:var(--bg3);}
+#vtype-header-name{font-family:'Cinzel',serif;font-size:17px;color:var(--gold-l);}
+#vtype-header-count{font-size:13px;color:var(--muted);}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap">
 <link rel="stylesheet" href="/static/mobile.css">
@@ -391,6 +420,14 @@ td.has{color:#82e0aa;}
   <button class="btn btn-outline" onclick="reset()">Réinitialiser</button>
   <span class="count-lbl"><span id="cnt">0</span> vente(s)</span>
 </div>
+
+<div id="vtype-header">
+  <button class="month-back" onclick="backToMonths()">← Mois</button>
+  <span id="vtype-header-name"></span>
+  <span id="vtype-header-count"></span>
+</div>
+
+<div id="v-months" class="v-months"></div>
 
 <div class="tbl-wrap">
   <table>
@@ -931,11 +968,80 @@ async function load(){
   }
 }
 
+/* ── Vue par défaut : dossiers mensuels (CA · Bénéfice · nb ventes) ── */
+function renderMonths(){
+  const el=document.getElementById('v-months'); if(!el) return;
+  const NM=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const months=[...new Set(ALL.map(v=>(v.date_vente||'').substring(0,7)).filter(Boolean))].sort().reverse();
+  // sessions (ventes) par mois
+  const sess={};
+  ALL.forEach(v=>{const m=(v.date_vente||'').substring(0,7); if(!m)return; (sess[m]=sess[m]||new Set()).add(((v.client||'').trim().toLowerCase())+'|'+(v.date_vente||'').substring(0,10));});
+  el.innerHTML=months.map(m=>{
+    const p=m.split('-'); const y=p[0], mo=parseInt(p[1]);
+    let ca,benef;
+    const md=advancedDataV&&advancedDataV.monthly?advancedDataV.monthly.find(x=>x.mois===m):null;
+    if(md){ ca=(md.ca_total!=null?md.ca_total:(md.ca||0)); benef=(md.benef_total!=null?md.benef_total:(md.benef||0)); }
+    else { const vs=ALL.filter(v=>(v.date_vente||'').startsWith(m)); ca=vs.reduce((s,v)=>s+(v.pv||0),0); benef=vs.reduce((s,v)=>s+(v.benef||0),0); }
+    const nb=(sess[m]||new Set()).size;
+    return `<div class="month-folder" onclick="openMonth('${m}')">
+      <div class="mf-head"><div class="mf-mon">${NM[mo-1]}</div><div class="mf-year">${y}</div></div>
+      <div class="mf-body">
+        <div class="mf-stat"><span class="l">C.A</span><span class="v ca">${fmtN(ca)} MAD</span></div>
+        <div class="mf-stat"><span class="l">Bénéfice</span><span class="v benef">${fmtN(benef)} MAD</span></div>
+        <div class="mf-stat tot"><span class="l">Ventes</span><span class="v">${nb}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openMonth(m){
+  document.getElementById('q').value='';
+  document.getElementById('ft').value='';
+  document.getElementById('ftype').value='';
+  document.getElementById('fm').value=m;
+  filter();
+  try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){}
+}
+function backToMonths(){
+  document.getElementById('q').value='';
+  document.getElementById('ft').value='';
+  document.getElementById('ftype').value='';
+  document.getElementById('fm').value='';
+  filter();
+}
+
 function filter(){
-  const q=document.getElementById('q').value.toLowerCase();
+  const qraw=document.getElementById('q').value;
+  const q=qraw.toLowerCase();
   const ft=document.getElementById('ft').value;
   const fm=document.getElementById('fm').value;
   const ftype=document.getElementById('ftype').value;
+
+  const vmEl=document.getElementById('v-months');
+  const tblEl=document.querySelector('.tbl-wrap');
+  const pagEl=document.getElementById('pag');
+  const thEl=document.getElementById('vtype-header');
+  // ── Vue DOSSIERS MENSUELS (par défaut) ──
+  if(!qraw.trim() && !ft && !fm && !ftype){
+    if(vmEl) vmEl.style.display='grid';
+    if(tblEl) tblEl.style.display='none';
+    if(pagEl) pagEl.style.display='none';
+    if(thEl) thEl.style.display='none';
+    renderMonths();
+    return;
+  }
+  // ── Vue LISTE ──
+  if(vmEl) vmEl.style.display='none';
+  if(tblEl) tblEl.style.display='';
+  if(pagEl) pagEl.style.display='';
+  if(thEl){
+    thEl.style.display='flex';
+    const _nm=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    let lbl='Recherche';
+    if(fm){const p=fm.split('-'); lbl=_nm[parseInt(p[1])-1]+' '+p[0];}
+    else if(ft) lbl=ft;
+    document.getElementById('vtype-header-name').textContent=lbl;
+  }
+
   sortCol=document.getElementById('sb').value;
   sortDir=document.getElementById('sd').value;
 
@@ -956,6 +1062,7 @@ function filter(){
   // Stats filtrées
   const sessions=new Set(filtered.map(v=>`${(v.client||'').trim().toLowerCase()}|${(v.date_vente||'').substring(0,10)}`));
   document.getElementById('cnt').textContent=sessions.size;
+  const _hc=document.getElementById('vtype-header-count'); if(_hc)_hc.textContent='· '+sessions.size+' vente'+(sessions.size>1?'s':'');
 
   // Mettre à jour les cartes du haut si un mois est sélectionné
   if(fm && advancedDataV){
