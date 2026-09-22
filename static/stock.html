@@ -781,9 +781,10 @@ const TYPE_PHOTO = {
   'collier / pendentif':4353, 'sautoire':3851, '__notype__':4152
 };
 function folderImg(g){
-  const fb="/static/types/"+typeCat(g.label)+".jpg";
+  const v="2";  // anti-cache (bump si les images changent)
+  const fb="/static/types/"+typeCat(g.label)+".jpg?v="+v;
   const id=TYPE_PHOTO[g.key];
-  const src=id ? "/static/types/real/"+id+".jpg" : fb;
+  const src=id ? "/static/types/real/"+id+".jpg?v="+v : fb;
   return `<img loading="lazy" src="${src}" alt="" onerror="this.onerror=null;this.src='${fb}'">`;
 }
 /* Vue par défaut : dossiers regroupés par type d'article */
