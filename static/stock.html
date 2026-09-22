@@ -244,6 +244,22 @@ td.has{color:#82e0aa;}
 .folder-back:hover{border-color:var(--gold);background:var(--bg3);}
 #type-header-name{font-family:'Cinzel',serif;font-size:17px;color:var(--gold-d);}
 #type-header-count{font-size:13px;color:var(--muted);}
+
+/* Prix de l'or — petite barre discrète en bas de page */
+#prix-or-mini{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 16px;
+  margin:6px 28px 44px;padding:9px 16px;background:#fff;border:1px solid var(--bd);border-radius:12px;
+  box-shadow:0 4px 12px rgba(60,40,10,.05);}
+@media(max-width:860px){ #prix-or-mini{margin:6px 14px 30px;gap:6px 12px;padding:9px 12px;} }
+.pom-lbl{font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);}
+.pom-item{color:var(--muted);font-size:12.5px;}
+.pom-item b{color:var(--gold-l);font-weight:800;font-size:14px;margin-left:3px;}
+.pom-edit{background:transparent;border:1px solid rgba(201,168,76,.4);border-radius:8px;padding:5px 11px;
+  font-size:12px;font-weight:700;color:var(--gold-d);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.pom-edit:hover{background:rgba(201,168,76,.1);border-color:var(--gold);}
+
+/* Fix : laisser la place à la loupe dans la barre de recherche (theme.css réduit le padding) */
+.toolbar .search-wrap input{padding-left:40px !important;}
+.search-wrap .search-icon{z-index:2;}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -318,22 +334,6 @@ td.has{color:#82e0aa;}
     <div class="card-lbl">Ajouter un Article</div>
     <button onclick="event.stopPropagation();openAddModal()" style="margin-top:10px;width:100%;padding:9px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1200;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.3px">➕ Nouvel article →</button>
     <div id="na-status" style="font-size:11px;color:var(--muted);margin-top:6px;min-height:16px"></div>
-  </div>
-  <!-- CARTE PRIX DE L'OR -->
-  <div class="card" style="background:var(--bg2);border:1px solid rgba(184,146,60,.35);cursor:default">
-    <div class="card-ico">🥇</div>
-    <div class="card-lbl">Prix de l'or (MAD/gr)</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-      <div>
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Achat (PA)</div>
-        <div style="font-size:18px;font-weight:700;color:var(--gold-l)" id="po-achat-disp">—</div>
-      </div>
-      <div>
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Vente (PV)</div>
-        <div style="font-size:18px;font-weight:700;color:var(--green)" id="po-vente-disp">—</div>
-      </div>
-    </div>
-    <button onclick="openPrixOr()" style="margin-top:10px;width:100%;padding:7px;border-radius:8px;border:1px solid rgba(184,146,60,.4);background:rgba(184,146,60,.08);color:var(--gold-l);cursor:pointer;font-size:12px;font-weight:700">✏️ Modifier les prix</button>
   </div>
 </div>
 
@@ -420,6 +420,14 @@ td.has{color:#82e0aa;}
   </div>
 </div>
 <div class="pag" id="pag"></div>
+
+<!-- PRIX DE L'OR — petite barre en bas de page -->
+<div id="prix-or-mini">
+  <span class="pom-lbl">🥇 Prix de l'or (MAD/gr)</span>
+  <span class="pom-item">Achat <b id="po-achat-disp">—</b></span>
+  <span class="pom-item">Vente <b id="po-vente-disp" style="color:var(--green)">—</b></span>
+  <button class="pom-edit" onclick="openPrixOr()">✏️ Modifier</button>
+</div>
 
 <!-- MODAL DETAIL / VOIR -->
 <div class="overlay" id="ov" onclick="closeModal(event)">
@@ -742,8 +750,32 @@ function badge(a) {
 }
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function folderIcon(t){
-  return ({'b-bag':'💍','b-bra':'🔗','b-col':'📿','b-pen':'📿','b-bo':'💎','b-oth':'💎'})[badge(t)] || '💎';
+/* Illustrations génériques (dessins dorés) par type — pas les photos des articles */
+const ICONS = {
+  ring:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.4" stroke-linejoin="round"><circle cx="24" cy="31" r="11"/><path d="M17 17l7-8 7 8-7 5z" fill="#e8c968"/></svg>',
+  necklace:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.4" stroke-linecap="round"><path d="M11 11c0 13 6 21 13 21s13-8 13-21"/><circle cx="24" cy="35" r="3.4" fill="#e8c968" stroke-width="1.6"/></svg>',
+  pendant:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.4" stroke-linecap="round"><path d="M11 10c0 12 6 19 13 19s13-7 13-19"/><path d="M24 29l-4.5 5.5L24 41l4.5-6.5z" fill="#e8c968" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  earrings:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.2" stroke-linecap="round"><circle cx="18" cy="15" r="4"/><path d="M18 19v5"/><path d="M18 24l-4 7h8z" fill="#e8c968" stroke-width="1.5" stroke-linejoin="round"/><circle cx="32" cy="15" r="4"/><path d="M32 19v5"/><path d="M32 24l-4 7h8z" fill="#e8c968" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+  bracelet:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.6"><ellipse cx="24" cy="27" rx="15" ry="10"/><rect x="19.5" y="11" width="9" height="7" rx="2" fill="#e8c968" stroke-width="1.5"/></svg>',
+  belt:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.4"><path d="M6 24h36"/><rect x="20" y="18" width="12" height="12" rx="2" fill="#e8c968" stroke-width="1.6"/><path d="M24 18v12" stroke-width="1.3"/></svg>',
+  chain:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.6"><ellipse cx="16" cy="18" rx="4.5" ry="7" transform="rotate(-38 16 18)"/><ellipse cx="24" cy="24" rx="4.5" ry="7" transform="rotate(-38 24 24)"/><ellipse cx="32" cy="30" rx="4.5" ry="7" transform="rotate(-38 32 30)"/></svg>',
+  beads:'<svg viewBox="0 0 48 48" fill="#e8c968" stroke="#7a5c20" stroke-width="1.3"><circle cx="12" cy="16" r="3.2"/><circle cx="14" cy="24" r="3.2"/><circle cx="19" cy="30" r="3.2"/><circle cx="26" cy="33" r="3.2"/><circle cx="33" cy="30" r="3.2"/><circle cx="37" cy="23" r="3.2"/><circle cx="37" cy="15" r="3.2"/></svg>',
+  gem:'<svg viewBox="0 0 48 48" fill="#e8c968" stroke="#7a5c20" stroke-width="1.8" stroke-linejoin="round"><path d="M15 13h18l6 8-15 17L9 21z"/><path d="M9 21h30M20 13l4 25 4-25" fill="none" stroke-width="1.2"/></svg>'
+};
+function isChaine(t){ return /^\s*cha[iî]ne/i.test(t||''); }
+function typeSVG(type){
+  const t=(type||'').toLowerCase();
+  const has=(...w)=>w.some(x=>t.includes(x));
+  let k='gem';
+  if(has('chaine','chaîne'))                                          k = has('pendentif') ? 'pendant' : 'chain';
+  else if(has('bague','solitaire','chevaliere','anneau','alliance','marguerit')) k='ring';
+  else if(has('b.o','boucle'))                                        k='earrings';
+  else if(has('gourmette','bracelet'))                                k='bracelet';
+  else if(has('ceinture'))                                            k='belt';
+  else if(has('pendentif'))                                           k='pendant';
+  else if(has('collier','sautoir','mdejja','perle'))                  k='necklace';
+  else if(has('chapelet'))                                            k='beads';
+  return ICONS[k] || ICONS.gem;
 }
 /* Vue par défaut : dossiers regroupés par type d'article */
 function renderFolders(){
@@ -751,16 +783,18 @@ function renderFolders(){
   const map=new Map();
   ALL.forEach(a=>{
     const key=a.article||'__notype__';
-    if(!map.has(key)) map.set(key,{key, label:(a.article||'Sans type'), count:0, sample:a.id});
+    if(!map.has(key)) map.set(key,{key, label:(a.article||'Sans type'), count:0});
     map.get(key).count += (a.quantite||1);
   });
-  const groups=[...map.values()].sort((x,y)=>y.count-x.count);
+  // Ordre : par nombre décroissant, mais toutes les CHAÎNES rejetées à la fin (bas à droite)
+  const groups=[...map.values()].sort((x,y)=>{
+    const cx=isChaine(x.label)?1:0, cy=isChaine(y.label)?1:0;
+    if(cx!==cy) return cx-cy;
+    return y.count-x.count;
+  });
   el.innerHTML = groups.map(g=>`
     <div class="folder-card" onclick='openFolder(${JSON.stringify(g.key)})'>
-      <div class="fi-img">
-        <span class="fi-ph">${folderIcon(g.label)}</span>
-        <img loading="lazy" src="/api/photo/${g.sample}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">
-      </div>
+      <div class="fi-img">${typeSVG(g.label)}</div>
       <div class="fi-name">${esc(g.label)}</div>
       <div class="fi-count">${g.count} article${g.count>1?'s':''}</div>
     </div>`).join('');
