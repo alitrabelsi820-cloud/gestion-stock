@@ -750,32 +750,21 @@ function badge(a) {
 }
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-/* Illustrations génériques (dessins dorés) par type — pas les photos des articles */
-const ICONS = {
-  ring:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.4" stroke-linejoin="round"><circle cx="24" cy="31" r="11"/><path d="M17 17l7-8 7 8-7 5z" fill="#e8c968"/></svg>',
-  necklace:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.4" stroke-linecap="round"><path d="M11 11c0 13 6 21 13 21s13-8 13-21"/><circle cx="24" cy="35" r="3.4" fill="#e8c968" stroke-width="1.6"/></svg>',
-  pendant:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.4" stroke-linecap="round"><path d="M11 10c0 12 6 19 13 19s13-7 13-19"/><path d="M24 29l-4.5 5.5L24 41l4.5-6.5z" fill="#e8c968" stroke-width="1.6" stroke-linejoin="round"/></svg>',
-  earrings:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.2" stroke-linecap="round"><circle cx="18" cy="15" r="4"/><path d="M18 19v5"/><path d="M18 24l-4 7h8z" fill="#e8c968" stroke-width="1.5" stroke-linejoin="round"/><circle cx="32" cy="15" r="4"/><path d="M32 19v5"/><path d="M32 24l-4 7h8z" fill="#e8c968" stroke-width="1.5" stroke-linejoin="round"/></svg>',
-  bracelet:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.6"><ellipse cx="24" cy="27" rx="15" ry="10"/><rect x="19.5" y="11" width="9" height="7" rx="2" fill="#e8c968" stroke-width="1.5"/></svg>',
-  belt:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.4"><path d="M6 24h36"/><rect x="20" y="18" width="12" height="12" rx="2" fill="#e8c968" stroke-width="1.6"/><path d="M24 18v12" stroke-width="1.3"/></svg>',
-  chain:'<svg viewBox="0 0 48 48" fill="none" stroke="#7a5c20" stroke-width="2.6"><ellipse cx="16" cy="18" rx="4.5" ry="7" transform="rotate(-38 16 18)"/><ellipse cx="24" cy="24" rx="4.5" ry="7" transform="rotate(-38 24 24)"/><ellipse cx="32" cy="30" rx="4.5" ry="7" transform="rotate(-38 32 30)"/></svg>',
-  beads:'<svg viewBox="0 0 48 48" fill="#e8c968" stroke="#7a5c20" stroke-width="1.3"><circle cx="12" cy="16" r="3.2"/><circle cx="14" cy="24" r="3.2"/><circle cx="19" cy="30" r="3.2"/><circle cx="26" cy="33" r="3.2"/><circle cx="33" cy="30" r="3.2"/><circle cx="37" cy="23" r="3.2"/><circle cx="37" cy="15" r="3.2"/></svg>',
-  gem:'<svg viewBox="0 0 48 48" fill="#e8c968" stroke="#7a5c20" stroke-width="1.8" stroke-linejoin="round"><path d="M15 13h18l6 8-15 17L9 21z"/><path d="M9 21h30M20 13l4 25 4-25" fill="none" stroke-width="1.2"/></svg>'
-};
 function isChaine(t){ return /^\s*cha[iî]ne/i.test(t||''); }
-function typeSVG(type){
-  const t=(type||'').toLowerCase();
+/* Type d'article → catégorie de photo (vraies photos Pexels dans /static/types) */
+function typeCat(type){
+  const t=(type||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   const has=(...w)=>w.some(x=>t.includes(x));
-  let k='gem';
-  if(has('chaine','chaîne'))                                          k = has('pendentif') ? 'pendant' : 'chain';
-  else if(has('bague','solitaire','chevaliere','anneau','alliance','marguerit')) k='ring';
-  else if(has('b.o','boucle'))                                        k='earrings';
-  else if(has('gourmette','bracelet'))                                k='bracelet';
-  else if(has('ceinture'))                                            k='belt';
-  else if(has('pendentif'))                                           k='pendant';
-  else if(has('collier','sautoir','mdejja','perle'))                  k='necklace';
-  else if(has('chapelet'))                                            k='beads';
-  return ICONS[k] || ICONS.gem;
+  if(has('chaine','chaîne'))                                          return has('pendentif')?'pendant':'chain';
+  if(has('bague','solitaire','chevaliere','anneau','alliance','marguerit')) return 'ring';
+  if(has('b.o','boucle'))                                             return 'earrings';
+  if(has('gourmette','bracelet'))                                     return 'bracelet';
+  if(has('ceinture'))                                                 return 'chain';
+  if(has('pendentif'))                                                return 'pendant';
+  if(has('perle'))                                                    return 'pearl';
+  if(has('collier','sautoir','mdejja'))                               return 'necklace';
+  if(has('chapelet'))                                                 return 'beads';
+  return 'diamond';
 }
 /* Vue par défaut : dossiers regroupés par type d'article */
 function renderFolders(){
@@ -794,7 +783,7 @@ function renderFolders(){
   });
   el.innerHTML = groups.map(g=>`
     <div class="folder-card" onclick='openFolder(${JSON.stringify(g.key)})'>
-      <div class="fi-img">${typeSVG(g.label)}</div>
+      <div class="fi-img"><img loading="lazy" src="/static/types/${typeCat(g.label)}.jpg" alt=""></div>
       <div class="fi-name">${esc(g.label)}</div>
       <div class="fi-count">${g.count} article${g.count>1?'s':''}</div>
     </div>`).join('');
