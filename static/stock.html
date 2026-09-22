@@ -777,9 +777,8 @@ const TYPE_PHOTO = {
 function folderImg(g){
   const fb="/static/types/"+typeCat(g.label)+".jpg";
   const id=TYPE_PHOTO[g.key];
-  return id
-    ? `<img loading="lazy" src="/api/photo/${id}" alt="" onerror="this.onerror=null;this.src='${fb}'">`
-    : `<img loading="lazy" src="${fb}" alt="">`;
+  const src=id ? "/static/types/real/"+id+".jpg" : fb;
+  return `<img loading="lazy" src="${src}" alt="" onerror="this.onerror=null;this.src='${fb}'">`;
 }
 /* Vue par défaut : dossiers regroupés par type d'article */
 function renderFolders(){
