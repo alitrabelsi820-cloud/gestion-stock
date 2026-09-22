@@ -766,6 +766,21 @@ function typeCat(type){
   if(has('chapelet'))                                                 return 'beads';
   return 'diamond';
 }
+/* Photo réelle (bien droite) choisie par type → réf article. Secours = image générique. */
+const TYPE_PHOTO = {
+  'B.O':7, 'Bague':1781, 'Bracelet':2940, 'Ceinture':4110, 'Chapelet':3418,
+  'Collier':2424, 'Collier de perles':3131, 'Coran':3803, 'Dague':2656, 'Gourmette':12,
+  'Margueritte':3762, 'Mdejja':2794, 'Pendentif':24, 'Pièce de golf':3208, 'Piéce Dauphin':4299,
+  'Solitaire':1443, 'chaine +pendentif':1706, 'cheval Baccarat':3206, 'chevalière':4312,
+  'collier / pendentif':4353, 'sautoire':3851, '__notype__':4152
+};
+function folderImg(g){
+  const fb="/static/types/"+typeCat(g.label)+".jpg";
+  const id=TYPE_PHOTO[g.key];
+  return id
+    ? `<img loading="lazy" src="/api/photo/${id}" alt="" onerror="this.onerror=null;this.src='${fb}'">`
+    : `<img loading="lazy" src="${fb}" alt="">`;
+}
 /* Vue par défaut : dossiers regroupés par type d'article */
 function renderFolders(){
   const el=document.getElementById('folders');
@@ -783,7 +798,7 @@ function renderFolders(){
   });
   el.innerHTML = groups.map(g=>`
     <div class="folder-card" onclick='openFolder(${JSON.stringify(g.key)})'>
-      <div class="fi-img"><img loading="lazy" src="/static/types/${typeCat(g.label)}.jpg" alt=""></div>
+      <div class="fi-img">${folderImg(g)}</div>
       <div class="fi-name">${esc(g.label)}</div>
       <div class="fi-count">${g.count} article${g.count>1?'s':''}</div>
     </div>`).join('');
