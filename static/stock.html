@@ -755,7 +755,13 @@ function isChaine(t){ return /^\s*cha[iî]ne/i.test(t||''); }
 function typeCat(type){
   const t=(type||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   const has=(...w)=>w.some(x=>t.includes(x));
-  if(has('chaine','chaîne'))                                          return has('pendentif')?'pendant':'chain';
+  if(has('chaine')){
+    if(has('pendentif')) return 'pendant';
+    if(has('blanche'))   return 'chain_blanche';
+    if(has('jaune'))     return 'chain_jaune';
+    if(has('rose'))      return 'chain_rose';
+    return 'chain';                 // Cartier + générique
+  }
   if(has('bague','solitaire','chevaliere','anneau','alliance','marguerit')) return 'ring';
   if(has('b.o','boucle'))                                             return 'earrings';
   if(has('gourmette','bracelet'))                                     return 'bracelet';
