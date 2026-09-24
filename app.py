@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "106"
+ASSET_VERSION = "107"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -766,6 +766,57 @@ def migrate_reservations_v1():
     save_credits(credits)
     save_config({"reservations_v1": 1})
     print(f"[MIGRATION] {len(details)} ventes converties en réservations : {', '.join(details)}")
+
+def migrate_aicha_res_4124_3617_v1():
+    """Le crédit #1 (Aicha Ben mbarek, réfs 4124 & 3617) était enregistré comme
+    une vente à crédit, mais les deux articles n'ont jamais été livrés : c'est en
+    réalité une RÉSERVATION. On remet les deux articles en stock (reconstruits
+    depuis leurs ventes), on retire les ventes du CA, et on passe le crédit en
+    type='reservation'. L'avance déjà reçue (20 000, le 10/11/2025) est conservée.
+    Idempotent (drapeau de config)."""
+    cfg = load_config()
+    if cfg.get("aicha_res_4124_3617_v1"):
+        return
+    import unicodedata
+    def norm(s):
+        s = unicodedata.normalize("NFD", str(s or "").lower())
+        return "".join(ch for ch in s if unicodedata.category(ch) != "Mn")
+    credits = load_credits()
+    c = next((x for x in credits if x["id"] == 1), None)
+    # Garde-fous : bon client + réfs attendues + pas déjà converti
+    refs_norm = str(c.get("refs") or "").replace(" ", "") if c else ""
+    if (not c or c.get("type") == "reservation"
+            or "aicha" not in norm(c.get("client"))
+            or refs_norm not in ("4124-3617", "3617-4124")):
+        save_config({"aicha_res_4124_3617_v1": 1})
+        return
+    ventes = load_ventes()
+    articles = load_articles()
+    art_ids = {a["id"] for a in articles}
+    a_retirer = set()
+    for ref in (4124, 3617):
+        vs = [v for v in ventes if v.get("ref") == ref and "aicha" in norm(v.get("client"))]
+        for v in vs:
+            a_retirer.add(v.get("id_vente"))
+        if ref not in art_ids and vs:
+            v = vs[-1]
+            articles.append({
+                "id": ref, "date": v.get("date_achat"), "article": v.get("article"),
+                "or_grs": v.get("or_grs"), "pa": v.get("pa"),
+                "d": v.get("d"), "em": v.get("em"), "r": v.get("r"), "s": v.get("s"),
+                "p_fines": v.get("p_fines"), "rosaces": v.get("rosaces"),
+                "em_clb": v.get("em_clb"), "perles": v.get("perles"),
+                "fabricant": None, "ismail_pierres": False, "quantite": 1,
+                "note": "Remis en stock (réservation)", "ref_code": None, "vente_poids": None,
+            })
+            art_ids.add(ref)
+    c["type"] = "reservation"
+    ventes = [v for v in ventes if v.get("id_vente") not in a_retirer]
+    save_articles(articles)
+    save_ventes(ventes)
+    save_credits(credits)
+    save_config({"aicha_res_4124_3617_v1": 1})
+    print("[MIGRATION] Crédit #1 (Aicha 4124/3617) converti en réservation.")
 
 def migrate_credits_geles_v1():
     """Marque comme « gelés » (crédits à risque, additionnés à part) les crédits
@@ -2315,10 +2366,8 @@ function filter(type, btn) {{
                     continue
                 avance = round(sum(p.get("montant") or 0 for p in (c.get("paiements") or [])))
                 items = []
-                for r in str(c.get("refs") or "").split(","):
-                    r = r.strip()
-                    if not r.isdigit():
-                        continue
+                # réfs séparées par « , », « - » ou espaces → on extrait tous les nombres
+                for r in re.findall(r"\d+", str(c.get("refs") or "")):
                     rid = int(r)
                     a = arts.get(rid)
                     items.append({"ref": rid,
@@ -4724,6 +4773,8 @@ if __name__ == "__main__":
     migrate_chain_codes()
     # 0e. Convertir 5 ventes à crédit passées en réservations (article gardé)
     migrate_reservations_v1()
+    # 0e-bis. Crédit #1 (Aicha 4124/3617) : jamais livré → réservation
+    migrate_aicha_res_4124_3617_v1()
     # 0f. Marquer les crédits « gelés » (à risque) de certains clients
     migrate_credits_geles_v1()
     # 1. Fusionner les factures dupliquées (même client + même jour → une seule)

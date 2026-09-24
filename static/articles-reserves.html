@@ -56,6 +56,26 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
 .empty{text-align:center;padding:60px 20px;color:var(--muted);}
 .empty-ico{font-size:52px;opacity:.2;margin-bottom:14px;}
 .info-note{background:rgba(52,152,219,.07);border:1px solid rgba(52,152,219,.2);border-radius:10px;padding:11px 14px;font-size:12px;color:#2471a3;margin-bottom:18px;}
+/* Historique des paiements (résumé sur la carte) */
+.res-pays{margin:10px 0 2px;padding-top:10px;border-top:1px dashed var(--bd);}
+.res-pays-title{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:800;margin-bottom:8px;}
+.pay-line{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px;}
+.pay-line .pl-amt{font-weight:900;color:#1a7a40;font-size:14px;}
+.pay-line .pl-mode{font-size:11px;color:var(--muted);margin-left:8px;}
+.pay-line .pl-date{font-size:12px;color:var(--muted);font-weight:600;}
+.pay-none{font-size:12px;color:var(--muted);padding:4px 2px 2px;}
+/* Modal paiement */
+.ov{position:fixed;inset:0;background:rgba(20,15,8,.55);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:1000;overflow-y:auto;}
+.ov.open{display:flex;}
+.modal{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:24px;width:100%;max-width:480px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.modal h2{font-size:17px;color:var(--gold-l);margin-bottom:16px;}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
+.pay-form{background:var(--bg3);border:1px solid rgba(46,204,113,.25);border-radius:12px;padding:14px;margin-top:14px;}
+.pay-form .pf-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:800;margin-bottom:10px;}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pf-row label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;}
+.pf-row input,.pf-row select{width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:8px;font-size:14px;background:#fff;color:var(--txt);}
+.pf-full{grid-column:1/-1;}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -79,10 +99,51 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
   <div id="list"></div>
 </div>
 
+<!-- MODAL : Ajouter un paiement + historique -->
+<div class="ov" id="ov-pay">
+  <div class="modal">
+    <button class="modal-close" onclick="closePay()">✕</button>
+    <h2 id="pay-title">💵 Paiement</h2>
+    <div class="res-pays-title">Historique des paiements</div>
+    <div id="pay-hist"></div>
+    <div class="pay-form">
+      <div class="pf-lbl">Enregistrer un nouveau paiement</div>
+      <div class="pf-grid">
+        <div class="pf-row">
+          <label>Montant (MAD) *</label>
+          <input type="number" id="p-montant" placeholder="0">
+        </div>
+        <div class="pf-row">
+          <label>Date</label>
+          <input type="date" id="p-date">
+        </div>
+        <div class="pf-row pf-full">
+          <label>Mode de paiement</label>
+          <select id="p-mode">
+            <option value="">—</option>
+            <option>cash</option>
+            <option>chèque</option>
+            <option>TPE</option>
+            <option>virement</option>
+            <option>TPE et cash</option>
+            <option>cash et chèque</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px;text-align:right;">
+        <button class="btn btn-green" id="p-submit" onclick="submitPaiement()">✓ Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const fmtN = v => v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});
 const fmtD = d => { if(!d) return '—'; const p=String(d).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d; };
+const today = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+let RES = [];
+let currentId = null;
 
 async function charger(){
   let data;
@@ -92,6 +153,7 @@ async function charger(){
     data = await r.json();
   }catch(e){ document.getElementById('list').innerHTML='<div class="empty">Erreur de chargement.</div>'; return; }
   const list = data.reservations||[];
+  RES = list;
   // Résumé
   const totAvance = list.reduce((s,r)=>s+(r.avance||0),0);
   const totReste  = list.reduce((s,r)=>s+(r.reste||0),0);
@@ -131,27 +193,62 @@ function renderRes(r){
       <div class="m-avance">Avance reçue<b>${fmtN(r.avance)} MAD</b></div>
       <div class="m-reste">Reste<b>${fmtN(r.reste)} MAD</b></div>
     </div>
+    ${payHistHtml(r.paiements)}
     ${r.note?`<div style="font-size:12px;color:var(--muted);margin-top:8px">📝 ${esc(r.note)}</div>`:''}
     <div class="res-actions">
-      <button class="btn btn-gold" onclick="payer(${r.id}, this)">💵 Ajouter un paiement</button>
+      <button class="btn btn-gold" onclick="openPay(${r.id})">💵 Ajouter un paiement</button>
       <button class="btn btn-green" onclick="convertir(${r.id}, this)">✅ Convertir en vente</button>
       <button class="btn btn-out" onclick="annuler(${r.id}, this)">🗑️ Annuler la réservation</button>
     </div>
   </div>`;
 }
 
-async function payer(id, btn){
-  const s = prompt('Montant du paiement reçu (MAD) :');
-  if(s===null) return;
-  const montant = parseFloat(String(s).replace(',','.').replace(/[^\d.]/g,''));
+function payHistHtml(paiements){
+  const ps = paiements||[];
+  if(!ps.length) return '';
+  const lines = ps.map(p=>
+    `<div class="pay-line">
+       <div><span class="pl-amt">${fmtN(p.montant)} MAD</span>${p.mode?`<span class="pl-mode">${esc(p.mode)}</span>`:''}</div>
+       <span class="pl-date">${fmtD(p.date)}</span>
+     </div>`).join('');
+  return `<div class="res-pays"><div class="res-pays-title">🧾 Paiements reçus</div>${lines}</div>`;
+}
+
+function openPay(id){
+  currentId = id;
+  const r = RES.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('pay-title').textContent = '💵 Paiements — '+(r.client||'Client');
+  const hist = document.getElementById('pay-hist');
+  const ps = r.paiements||[];
+  hist.innerHTML = ps.length
+    ? ps.map(p=>`<div class="pay-line"><div><span class="pl-amt">${fmtN(p.montant)} MAD</span>${p.mode?`<span class="pl-mode">${esc(p.mode)}</span>`:''}</div><span class="pl-date">${fmtD(p.date)}</span></div>`).join('')
+    : '<div class="pay-none">Aucun paiement enregistré pour l\'instant.</div>';
+  document.getElementById('p-montant').value = '';
+  document.getElementById('p-date').value = today();
+  document.getElementById('p-mode').value = '';
+  document.getElementById('ov-pay').classList.add('open');
+}
+function closePay(){ document.getElementById('ov-pay').classList.remove('open'); currentId=null; }
+
+async function submitPaiement(){
+  if(!currentId) return;
+  const montant = parseFloat(String(document.getElementById('p-montant').value).replace(',','.'))||0;
   if(!montant || montant<=0){ alert('Montant invalide'); return; }
-  const o=btn.textContent; btn.disabled=true; btn.textContent='⏳…';
+  const payload = {
+    montant: montant,
+    date: document.getElementById('p-date').value || today(),
+    mode: document.getElementById('p-mode').value,
+  };
+  const btn = document.getElementById('p-submit');
+  btn.disabled=true; btn.textContent='⏳…';
   try{
-    const r = await fetch('/api/credits/'+id+'/paiement', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({montant:montant})});
+    const r = await fetch('/api/credits/'+currentId+'/paiement', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const d = await r.json().catch(()=>({}));
-    if(r.ok){ charger(); }
-    else { btn.disabled=false; btn.textContent=o; alert(d.error||'Échec du paiement.'); }
-  }catch(e){ btn.disabled=false; btn.textContent=o; }
+    btn.disabled=false; btn.textContent='✓ Enregistrer';
+    if(r.ok){ closePay(); charger(); }
+    else { alert(d.error||'Échec du paiement.'); }
+  }catch(e){ btn.disabled=false; btn.textContent='✓ Enregistrer'; alert('Erreur de connexion.'); }
 }
 
 async function convertir(id, btn){
