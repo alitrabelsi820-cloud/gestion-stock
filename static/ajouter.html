@@ -238,7 +238,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
         </select>
       </div>
       <div id="f-chain-info" style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6"></div>
-      <div style="font-size:11.5px;color:var(--gold-l);margin-top:8px;line-height:1.6">💡 Pas besoin de référence. Indique le <b>poids en grammes</b> et le <b>P.R</b> de la (des) chaîne(s) à ajouter, et le <b>nombre</b>. Le tout s'ajoute au lot existant.</div>
+      <div style="font-size:11.5px;color:var(--gold-l);margin-top:8px;line-height:1.6">💡 Pas besoin de référence. Indique le <b>poids en grammes</b> à ajouter, le <b>P.R</b> et le <b>nombre</b> de chaînes.<br>👉 Mets <b>Quantité = 0</b> pour <b>juste ajuster le poids</b> (ex : agrandir des chaînes existantes) sans en ajouter de nouvelle.</div>
     </div>
 
     <div class="grid2">
@@ -443,7 +443,7 @@ async function addChainToLotF(){
   const lot=findChainLot(document.getElementById('f-chain-color').value);
   if(!lot){ toast('Lot de chaîne introuvable','error'); return; }
   const poids=gf('f-or'), pa=gf('f-pa');
-  const nb=Math.max(1, parseInt(g('f-quantite')||'1')||1);
+  const nb=Math.max(0, parseInt(g('f-quantite'))||0);   // 0 = ajuster le poids sans ajouter de chaîne
   if(poids==null||poids<=0){ toast('Poids OR (grammes) obligatoire','error'); return; }
   const btn=document.getElementById('submit-btn'); btn.disabled=true; btn.textContent='⏳ Ajout…';
   const payload=Object.assign({}, lot, {
