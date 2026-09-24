@@ -186,7 +186,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     <!-- Section 1: Identification -->
     <div class="section-title">Identification *</div>
     <div class="grid2">
-      <div class="field">
+      <div class="field" id="f-ref-field">
         <label>Référence *</label>
         <div class="ref-check">
           <input type="number" id="f-id" placeholder="ex: 4500" class="required-field" oninput="checkRef()" min="1">
@@ -196,7 +196,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
       </div>
       <div class="field">
         <label>Type d'article *</label>
-        <select id="f-article" class="required-field">
+        <select id="f-article" class="required-field" onchange="onFType()">
           <option value="">— Sélectionner —</option>
           <option>Anneaux - homme</option>
           <option>B.O</option>
@@ -224,6 +224,23 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
         </select>
       </div>
     </div>
+
+    <!-- Mode CHAÎNE : lot au poids (pas de référence) -->
+    <div id="f-chain-row" style="display:none;margin:0 0 24px;background:rgba(184,146,60,.08);border:1px solid rgba(184,146,60,.35);border-radius:10px;padding:16px 18px">
+      <div style="font-size:12px;font-weight:700;color:var(--gold-l);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px">⛓️ Ajouter au lot de chaînes (vendu au poids)</div>
+      <div class="field">
+        <label>Couleur de la chaîne *</label>
+        <select id="f-chain-color" onchange="onFChainColor()">
+          <option value="chaine_jaune">🟡 Chaîne jaune</option>
+          <option value="chaine_blanche">⚪ Chaîne blanche</option>
+          <option value="chaine_rose">🌸 Chaîne rose</option>
+          <option value="chaine_cartier">🔗 Chaîne Cartier</option>
+        </select>
+      </div>
+      <div id="f-chain-info" style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6"></div>
+      <div style="font-size:11.5px;color:var(--gold-l);margin-top:8px;line-height:1.6">💡 Pas besoin de référence. Indique le <b>poids en grammes</b> et le <b>P.R</b> de la (des) chaîne(s) à ajouter, et le <b>nombre</b>. Le tout s'ajoute au lot existant.</div>
+    </div>
+
     <div class="grid2">
       <div class="field">
         <label>Date d'entrée *</label>
@@ -263,6 +280,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
       </div>
     </div>
 
+    <div id="f-adv">
     <!-- Section Photo -->
     <div class="section-title">📷 Photo de l'article — Optionnel</div>
     <div class="photo-upload-area" id="photo-area" onclick="document.getElementById('photo-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
@@ -341,6 +359,7 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     <div class="field">
       <textarea id="f-note" placeholder="Ex : 0,35 cts + 0,40 cts (3 pierres) — détails des pierres, remarques…" rows="3" style="width:100%;padding:10px 13px;background:#f2ede6;border:1px solid #e8e0d4;border-radius:8px;color:#1a1612;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea>
     </div>
+    </div><!-- /f-adv -->
 
     <div class="actions">
       <button class="btn btn-gold" id="submit-btn" onclick="submit()">✅ Ajouter au stock</button>
@@ -387,11 +406,65 @@ function handleDrop(e) {
   if (file && file.type.startsWith('image/')) handlePhoto(file);
 }
 
+let allArticles = [];
 async function loadIds() {
   try {
     const arts = await fetch('/api/articles').then(r=>r.json());
+    allArticles = arts;
     existingIds = new Set(arts.map(a=>a.id));
   } catch(e){}
+}
+
+/* ── Mode CHAÎNE (lot au poids) ── */
+const CHAIN_LOTS = {
+  chaine_jaune:{id:900001}, chaine_blanche:{id:900002},
+  chaine_rose:{id:900003}, chaine_cartier:{id:900004},
+};
+function findChainLot(code){
+  const meta=CHAIN_LOTS[code];
+  return allArticles.find(a=> a.ref_code===code || (meta && a.id===meta.id)) || null;
+}
+function onFType(){
+  const isChain = document.getElementById('f-article').value==='Chaîne';
+  document.getElementById('f-chain-row').style.display = isChain?'':'none';
+  const rf=document.getElementById('f-ref-field'); if(rf) rf.style.display=isChain?'none':'';
+  const adv=document.getElementById('f-adv'); if(adv) adv.style.display=isChain?'none':'';
+  if(isChain) onFChainColor();
+}
+function onFChainColor(){
+  const lot=findChainLot(document.getElementById('f-chain-color').value);
+  const info=document.getElementById('f-chain-info');
+  if(!info) return;
+  info.innerHTML = lot
+    ? '📦 Lot actuel : <b>'+(lot.quantite||0)+' chaîne(s)</b> · <b>'+(lot.or_grs!=null?Number(lot.or_grs).toLocaleString('fr-FR')+' g':'—')+'</b> au total.'
+    : '<span style="color:var(--red)">⚠️ Lot introuvable pour cette couleur.</span>';
+}
+async function addChainToLotF(){
+  const lot=findChainLot(document.getElementById('f-chain-color').value);
+  if(!lot){ toast('Lot de chaîne introuvable','error'); return; }
+  const poids=gf('f-or'), pa=gf('f-pa');
+  const nb=Math.max(1, parseInt(g('f-quantite')||'1')||1);
+  if(poids==null||poids<=0){ toast('Poids OR (grammes) obligatoire','error'); return; }
+  const btn=document.getElementById('submit-btn'); btn.disabled=true; btn.textContent='⏳ Ajout…';
+  const payload=Object.assign({}, lot, {
+    or_grs: Math.round(((lot.or_grs||0)+poids)*100)/100,
+    quantite: (parseInt(lot.quantite)||0)+nb,
+    pa: Math.round(((lot.pa||0)+(pa||0))*100)/100,
+    vente_poids: 1,
+  });
+  delete payload.ref_code;   // conservé côté serveur
+  try{
+    const res=await fetch('/api/articles/'+lot.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json().catch(()=>({}));
+    if(res.ok && data.success){
+      toast('✅ '+nb+' chaîne(s) ajoutée(s) au lot ('+poids+' g)','success');
+      // rafraîchir le lot en mémoire + l'info
+      allArticles = await fetch('/api/articles').then(r=>r.json()).catch(()=>allArticles);
+      onFChainColor();
+      document.getElementById('f-or').value=''; document.getElementById('f-pa').value=''; document.getElementById('f-quantite').value='1';
+    } else { toast(data.error||'Erreur','error'); }
+  }catch(e){ toast('Erreur de connexion','error'); }
+  btn.disabled=false; btn.textContent='✅ Ajouter au stock';
 }
 
 function checkRef() {
@@ -409,6 +482,7 @@ function g(id){const v=document.getElementById(id).value;return v===''?null:v;}
 function gf(id){const v=document.getElementById(id).value;return v===''?null:parseFloat(v);}
 
 async function submit() {
+  if(document.getElementById('f-article').value==='Chaîne'){ return addChainToLotF(); }
   const id = parseInt(g('f-id'));
   const article = g('f-article');
   const or_grs = gf('f-or');
@@ -482,6 +556,7 @@ function resetForm(){
   refOk=false;
   // Date du jour
   document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  onFType();   // réinitialise l'affichage du mode « chaîne »
 }
 
 function toast(msg,type='success'){
