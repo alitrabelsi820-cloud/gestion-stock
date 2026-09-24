@@ -458,7 +458,9 @@ async function load() {
       fetch('/api/credits').then(r=>r.json()),
       fetch('/api/credits/stats').then(r=>r.json())
     ]);
-    ALL = data;
+    // Les réservations (article gardé en stock, pas encore vendu) ne sont PAS
+    // des crédits clients → elles ont leur propre page « Articles réservés ».
+    ALL = (data||[]).filter(c => (c.type||'client') !== 'reservation');
     document.getElementById('s-du').textContent     = fmtN(stats.total_du);
     document.getElementById('s-nb').textContent     = stats.nb_ouverts;
     document.getElementById('s-soldes').textContent = stats.nb_soldes;
@@ -750,7 +752,7 @@ async function deletePaiement(idx) {
       body: JSON.stringify(updated)});
     // Since PUT only updates specific fields, let's reload from server
     const fresh = await fetch('/api/credits').then(x=>x.json());
-    ALL = fresh;
+    ALL = (fresh||[]).filter(c => (c.type||'client') !== 'reservation');
     openDetail(currentId);
     filter();
     toast('Paiement supprimé','ok');
