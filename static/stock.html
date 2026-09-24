@@ -235,6 +235,7 @@ td.has{color:#82e0aa;}
 .fi-name{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--gold-d);line-height:1.2;letter-spacing:.2px;
   overflow-wrap:anywhere;}
 .fi-count{font-size:12px;color:var(--muted);margin-top:5px;font-weight:600;}
+.fi-weight{font-size:12px;color:var(--gold-d);margin-top:3px;font-weight:700;}
 
 /* En-tête « retour aux dossiers » (vue liste d'un type) */
 #type-header{display:none;align-items:center;gap:12px;padding:2px 28px 14px;flex-wrap:wrap;}
@@ -770,6 +771,8 @@ function badge(a) {
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function isChaine(t){ return /^\s*cha[iî]ne/i.test(t||''); }
+/* Lot de chaîne : or_grs = poids TOTAL (ne pas multiplier par la quantité) */
+function isLotArticle(a){ return (a.ref_code||'').indexOf('chaine_')===0 || (a.id>=900001 && a.id<=900004); }
 /* Type d'article → catégorie de photo (vraies photos Pexels dans /static/types) */
 function typeCat(type){
   const t=(type||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
@@ -812,8 +815,10 @@ function renderFolders(){
   const map=new Map();
   ALL.forEach(a=>{
     const key=a.article||'__notype__';
-    if(!map.has(key)) map.set(key,{key, label:(a.article||'Sans type'), count:0});
-    map.get(key).count += (a.quantite||1);
+    if(!map.has(key)) map.set(key,{key, label:(a.article||'Sans type'), count:0, weight:0});
+    const g=map.get(key);
+    g.count += (a.quantite||1);
+    g.weight += (a.or_grs||0) * (isLotArticle(a) ? 1 : (a.quantite||1));
   });
   // Ordre : par nombre décroissant, mais toutes les CHAÎNES rejetées à la fin (bas à droite)
   const groups=[...map.values()].sort((x,y)=>{
@@ -826,6 +831,7 @@ function renderFolders(){
       <div class="fi-img">${folderImg(g)}</div>
       <div class="fi-name">${esc(g.label)}</div>
       <div class="fi-count">${g.count} article${g.count>1?'s':''}</div>
+      <div class="fi-weight">⚖️ ${fmt(g.weight)} g d'or</div>
     </div>`).join('');
 }
 function openFolder(key){
