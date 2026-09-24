@@ -76,6 +76,8 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
 .pf-row label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;}
 .pf-row input,.pf-row select{width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:8px;font-size:14px;background:#fff;color:var(--txt);}
 .pf-full{grid-column:1/-1;}
+.res-edit{background:#fff;border:1px solid var(--bd);color:var(--gold-l);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+.res-edit:hover{background:var(--bg3);}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -97,6 +99,34 @@ nav{background:#fff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28px;
 
   <div class="summary" id="summary"></div>
   <div id="list"></div>
+</div>
+
+<!-- MODAL : Modifier l'article (fiche stock) -->
+<div class="ov" id="ov-art">
+  <div class="modal">
+    <button class="modal-close" onclick="closeArt()">✕</button>
+    <h2 id="art-title">✏️ Modifier l'article</h2>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;background:rgba(52,152,219,.07);border:1px solid rgba(52,152,219,.2);border-radius:8px;padding:9px 12px;">
+      💡 Ce sont les mêmes infos que dans le <b>Stock</b> : la modification s'applique aussi à la fiche du stock, et c'est ce nom qui partira dans la vente lors de la conversion.
+    </div>
+    <div class="pf-grid">
+      <div class="pf-row pf-full">
+        <label>Nom de l'article *</label>
+        <input type="text" id="a-nom" placeholder="Ex : Pendentif + Fermoir + Barettes">
+      </div>
+      <div class="pf-row">
+        <label>Poids or (g)</label>
+        <input type="number" step="0.01" id="a-poids" placeholder="0">
+      </div>
+      <div class="pf-row">
+        <label>Prix d'achat (MAD)</label>
+        <input type="number" id="a-pa" placeholder="0">
+      </div>
+    </div>
+    <div style="margin-top:14px;text-align:right;">
+      <button class="btn btn-gold" id="a-submit" onclick="submitArt()">💾 Enregistrer</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL : Ajouter un paiement + historique -->
@@ -177,7 +207,12 @@ function renderRes(r){
          <div class="res-item-ref">#${it.ref}</div>
          <div class="res-item-nom">${esc(it.article)||'—'}${it.or_grs?' · '+fmtN(it.or_grs)+' g':''}</div>
        </div>
-       ${it.in_stock?'<span style="font-size:11px;color:#1a7a40;font-weight:700">✅ en stock</span>':'<span style="font-size:11px;color:#c0392b;font-weight:700">⚠️ hors stock</span>'}
+       ${it.in_stock
+          ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+               <span style="font-size:11px;color:#1a7a40;font-weight:700">✅ en stock</span>
+               <button class="res-edit" onclick="openArt(${it.ref})" title="Modifier l'article">✏️ Modifier</button>
+             </div>`
+          : '<span style="font-size:11px;color:#c0392b;font-weight:700">⚠️ hors stock</span>'}
      </div>`).join('');
   return `<div class="res-card">
     <div class="res-top">
@@ -249,6 +284,49 @@ async function submitPaiement(){
     if(r.ok){ closePay(); charger(); }
     else { alert(d.error||'Échec du paiement.'); }
   }catch(e){ btn.disabled=false; btn.textContent='✓ Enregistrer'; alert('Erreur de connexion.'); }
+}
+
+/* ── Modifier l'article (fiche stock, partagée) ── */
+let artFull = null;   // fiche complète en cours d'édition
+async function openArt(ref){
+  const modal = document.getElementById('ov-art');
+  document.getElementById('art-title').textContent = '✏️ Modifier l\'article #'+ref;
+  document.getElementById('a-nom').value = '';
+  document.getElementById('a-poids').value = '';
+  document.getElementById('a-pa').value = '';
+  artFull = null;
+  modal.classList.add('open');
+  try{
+    const r = await fetch('/api/articles/'+ref);
+    if(!r.ok){ alert('Article introuvable dans le stock.'); closeArt(); return; }
+    artFull = await r.json();
+    document.getElementById('a-nom').value = artFull.article || '';
+    document.getElementById('a-poids').value = (artFull.or_grs==null?'':artFull.or_grs);
+    document.getElementById('a-pa').value = (artFull.pa==null?'':artFull.pa);
+  }catch(e){ alert('Erreur de chargement.'); closeArt(); }
+}
+function closeArt(){ document.getElementById('ov-art').classList.remove('open'); artFull=null; }
+
+async function submitArt(){
+  if(!artFull){ return; }
+  const nom = document.getElementById('a-nom').value.trim();
+  if(!nom){ alert('Le nom de l\'article est requis.'); return; }
+  // Fusion : on repart de la fiche complète pour ne rien effacer
+  const payload = Object.assign({}, artFull, {
+    article: nom,
+    or_grs: document.getElementById('a-poids').value===''?null:parseFloat(String(document.getElementById('a-poids').value).replace(',','.')),
+    pa: document.getElementById('a-pa').value===''?null:parseFloat(String(document.getElementById('a-pa').value).replace(',','.')),
+  });
+  delete payload.ref_code;   // laissé au serveur (préserve les lots de chaînes)
+  const btn = document.getElementById('a-submit');
+  btn.disabled=true; btn.textContent='⏳…';
+  try{
+    const r = await fetch('/api/articles/'+artFull.id, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const d = await r.json().catch(()=>({}));
+    btn.disabled=false; btn.textContent='💾 Enregistrer';
+    if(r.ok){ closeArt(); charger(); }
+    else { alert(d.error||'Échec de la modification.'); }
+  }catch(e){ btn.disabled=false; btn.textContent='💾 Enregistrer'; alert('Erreur de connexion.'); }
 }
 
 async function convertir(id, btn){
