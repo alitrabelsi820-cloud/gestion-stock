@@ -491,6 +491,10 @@ td.has{color:#82e0aa;}
         </div>
       </div>
       <div class="form-group">
+        <label>Article</label>
+        <input type="text" id="ev-article" placeholder="Nom de l'article (ex. Pendentif + Fermoir + Barettes)">
+      </div>
+      <div class="form-group">
         <label>Client</label>
         <input type="text" id="ev-client" placeholder="Nom du client">
       </div>
@@ -1207,6 +1211,7 @@ function openEditVente(idx){
   document.getElementById('ev-date').value=v.date_vente||'';
   document.getElementById('ev-pv').value=v.pv!=null?v.pv:'';
   document.getElementById('ev-pa').value=v.pa!=null?v.pa:'';
+  document.getElementById('ev-article').value=v.article||'';
   document.getElementById('ev-client').value=v.client||'';
   document.getElementById('ev-comment').value=v.commentaire||'';
   calcEVBenef();
@@ -1222,6 +1227,7 @@ async function submitEditVente(e){
     date_vente: document.getElementById('ev-date').value,
     pv: document.getElementById('ev-pv').value,
     pa: document.getElementById('ev-pa').value,
+    article: document.getElementById('ev-article').value,
     client: document.getElementById('ev-client').value,
     commentaire: document.getElementById('ev-comment').value,
   };

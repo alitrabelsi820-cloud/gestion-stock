@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "105"
+ASSET_VERSION = "106"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -3518,10 +3518,13 @@ function filter(type, btn) {{
             ventes = load_ventes()
             for i, r in enumerate(present):
                 a = art_by_id[r]; pv = pvs[i]; pa = a.get("pa") or 0
+                # Nom d'article : reprendre le nom (éventuellement modifié) du crédit
+                # si la réservation ne concerne qu'un seul article, sinon celui du stock.
+                art_name = (credit.get("article") if len(present) == 1 else None) or a.get("article")
                 ventes.append({
                     "id_vente": int(now.timestamp() * 1000) + i,
                     "date_achat": a.get("date"), "date_vente": today,
-                    "ref": a["id"], "article": a.get("article"),
+                    "ref": a["id"], "article": art_name,
                     "or_grs": a.get("or_grs"), "pa": pa,
                     "d": a.get("d"), "em": a.get("em"), "r": a.get("r"), "s": a.get("s"),
                     "p_fines": a.get("p_fines"), "rosaces": a.get("rosaces"),
@@ -4331,6 +4334,8 @@ function filter(type, btn) {{
                 v["benef"] = round((v.get("pv") or 0) - (v.get("pa") or 0), 2)
                 if "client" in data:
                     v["client"] = str(data["client"]).strip()
+                if "article" in data and str(data["article"]).strip():
+                    v["article"] = str(data["article"]).strip()
                 if "commentaire" in data:
                     v["commentaire"] = str(data["commentaire"]).strip()
                 if "date_vente" in data and data["date_vente"]:
