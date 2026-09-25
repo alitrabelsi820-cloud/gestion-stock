@@ -439,7 +439,9 @@ async function load(){
   // Crédits
   try{
     const credits = await fetch('/api/credits').then(r=>r.json());
-    const ouverts = credits.filter(c => c.statut === 'rien' || c.statut === 'avance');
+    // Comme la page Crédits : on exclut les réservations SAUF si « gelées » (exception).
+    const ouverts = credits.filter(c => (c.statut === 'rien' || c.statut === 'avance')
+                                        && ((c.type||'client') !== 'reservation' || c.gele));
     // CC = crédits normaux (non gelés) · CC❗ = crédits gelés (à risque)
     const cc     = ouverts.filter(c=>!c.gele).reduce((s,c)=>s+(c.reste||0),0);
     const ccBang = ouverts.filter(c=> c.gele).reduce((s,c)=>s+(c.reste||0),0);
