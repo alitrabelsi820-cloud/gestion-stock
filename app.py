@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "113"
+ASSET_VERSION = "114"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -817,6 +817,31 @@ def migrate_aicha_res_4124_3617_v1():
     save_credits(credits)
     save_config({"aicha_res_4124_3617_v1": 1})
     print("[MIGRATION] Crédit #1 (Aicha 4124/3617) converti en réservation.")
+
+def migrate_aicha_anissa_gele_v1():
+    """Aicha & Anissa Ben mbarek : leurs réservations sont une EXCEPTION qui doit
+    rester visible dans la page Crédits clients (marquées « gelées » = exception).
+    Idempotent (drapeau) — respecte un dégel manuel ultérieur."""
+    cfg = load_config()
+    if cfg.get("aicha_anissa_gele_v1"):
+        return
+    import unicodedata
+    def norm(s):
+        s = unicodedata.normalize("NFD", str(s or "").lower())
+        return "".join(ch for ch in s if unicodedata.category(ch) != "Mn")
+    credits = load_credits()
+    touched = False
+    for c in credits:
+        cn = norm(c.get("client"))
+        if (c.get("type") == "reservation"
+                and ("aicha ben mbarek" in cn or "anissa ben mbarek" in cn)
+                and not c.get("gele")):
+            c["gele"] = 1
+            touched = True
+    if touched:
+        save_credits(credits)
+        print("[MIGRATION] Aicha/Anissa : réservations marquées exception (gele=1) → visibles dans Crédits.")
+    save_config({"aicha_anissa_gele_v1": 1})
 
 def migrate_credits_geles_v1():
     """Marque comme « gelés » (crédits à risque, additionnés à part) les crédits
@@ -2379,6 +2404,7 @@ function filter(type, btn) {{
                     "date": c.get("date_achat"), "montant_total": c.get("montant_total"),
                     "avance": avance, "reste": c.get("reste"), "statut": c.get("statut"),
                     "paiements": c.get("paiements") or [], "note": c.get("note") or "",
+                    "gele": 1 if c.get("gele") else 0,
                     "items": items,
                 })
             res.sort(key=lambda x: x["id"], reverse=True)
@@ -2390,8 +2416,9 @@ function filter(type, btn) {{
 
         if path == "/api/credits/stats":
             credits = load_credits()
-            # Les réservations ne sont pas des dettes clients → exclues du total dû
-            credits = [c for c in credits if c.get("type") != "reservation"]
+            # Les réservations ne sont pas des dettes clients → exclues du total dû,
+            # SAUF les réservations-exception « gelées » (gardées dans les Crédits).
+            credits = [c for c in credits if c.get("type") != "reservation" or c.get("gele")]
             ouverts = [c for c in credits if c["statut"] in ("rien", "avance")]
             self.send_json({
                 "total_du": round(sum(c.get("reste", 0) for c in ouverts), 0),
@@ -4777,6 +4804,8 @@ if __name__ == "__main__":
     migrate_aicha_res_4124_3617_v1()
     # 0f. Marquer les crédits « gelés » (à risque) de certains clients
     migrate_credits_geles_v1()
+    # 0f-bis. Aicha/Anissa : réservations-exception visibles dans Crédits
+    migrate_aicha_anissa_gele_v1()
     # 1. Fusionner les factures dupliquées (même client + même jour → une seule)
     merge_duplicate_factures()
     # 2. Générer les factures manquantes pour les ventes qui n'en ont pas

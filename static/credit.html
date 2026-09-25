@@ -458,9 +458,9 @@ async function load() {
       fetch('/api/credits').then(r=>r.json()),
       fetch('/api/credits/stats').then(r=>r.json())
     ]);
-    // Les réservations (article gardé en stock, pas encore vendu) ne sont PAS
-    // des crédits clients → elles ont leur propre page « Articles réservés ».
-    ALL = (data||[]).filter(c => (c.type||'client') !== 'reservation');
+    // Les réservations (article gardé en stock) ont leur page « Articles réservés ».
+    // EXCEPTION : une réservation « gelée » (gele=1) reste visible ici (ex : Aicha/Anissa).
+    ALL = (data||[]).filter(c => (c.type||'client') !== 'reservation' || c.gele);
     document.getElementById('s-du').textContent     = fmtN(stats.total_du);
     document.getElementById('s-nb').textContent     = stats.nb_ouverts;
     document.getElementById('s-soldes').textContent = stats.nb_soldes;
@@ -540,7 +540,7 @@ function render(list) {
       const stClass = {rien:'st-rien', avance:'st-avance', solde:'st-solde'}[c.statut] || 'st-rien';
       const stLabel = {rien:'Rien', avance:'Avance', solde:'Soldé'}[c.statut] || c.statut;
       html += `<tr>
-        <td><strong>${c.client}</strong>${c.contact?`<br><span style="color:var(--muted);font-size:11px">📞 ${c.contact}</span>`:''}
+        <td><strong>${c.client}</strong>${c.type==='reservation'?` <span title="Réservation gardée dans les Crédits (exception)" style="display:inline-block;background:rgba(230,126,34,.18);color:#c05000;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px">🔒 réservation</span>`:''}${c.contact?`<br><span style="color:var(--muted);font-size:11px">📞 ${c.contact}</span>`:''}
         </td>
         <td>${fmtD(c.date_achat)}</td>
         <td>${c.refs?`<span style="color:var(--gold);font-size:12px">Réf ${c.refs}</span><br>`:''}
@@ -553,6 +553,7 @@ function render(list) {
           <button class="btn btn-sm btn-green" onclick="openDetail(${c.id})">💳 Paiement</button>
           <button class="btn btn-sm btn-outline" onclick="openEdit(${c.id})">✏️</button>
           <button class="btn btn-sm btn-danger" onclick="deleteCredit(${c.id})">🗑</button>
+          <button class="btn btn-sm btn-outline" onclick="toggleGele(${c.id}, ${c.gele?0:1})" title="${c.gele?(c.type==='reservation'?'Dégeler → renvoyer vers Articles réservés uniquement':'Dégeler'):'Geler (exception : garder ici / à risque)'}">${c.gele?'🔒':'❄️'}</button>
           ${(c.statut==='solde' || (c.paiements && c.paiements.length)) ? `<button class="btn btn-sm btn-outline" onclick="annulerSolde(${c.id})" title="Annuler les paiements et remettre en crédit" style="margin-left:auto">↺ Annuler solde</button>` : ''}
         </div></td>
       </tr>`;
@@ -600,12 +601,25 @@ function render(list) {
             <button class="btn btn-sm btn-green" onclick="openDetail(${c.id})">💳 Paiement</button>
             <button class="btn btn-sm btn-outline" onclick="openEdit(${c.id})">✏️</button>
             <button class="btn btn-sm btn-danger" onclick="deleteCredit(${c.id})">🗑</button>
+            <button class="btn btn-sm btn-outline" onclick="toggleGele(${c.id}, ${c.gele?0:1})" title="${c.gele?(c.type==='reservation'?'Dégeler → renvoyer vers Articles réservés uniquement':'Dégeler'):'Geler (exception : garder ici)'}">${c.gele?'🔒':'❄️'}</button>
           </div></td>
         </tr>`;
       });
     }
   });
   tbody.innerHTML = html;
+}
+
+/* ── Geler / dégeler (exception : garder une réservation ici) ── */
+async function toggleGele(id, gele){
+  try{
+    const r = await fetch('/api/credits/'+id+'/gele', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gele})});
+    const d = await r.json().catch(()=>({}));
+    if(d.success){
+      toast(gele? '🔒 Gelé — gardé dans les Crédits (exception)' : '❄️ Dégelé — retourne uniquement dans « Articles réservés »','ok');
+      await load();
+    } else toast(d.error||'Erreur','err');
+  }catch(e){ toast('Erreur de connexion','err'); }
 }
 
 /* ── Nouveau crédit ── */
@@ -752,7 +766,7 @@ async function deletePaiement(idx) {
       body: JSON.stringify(updated)});
     // Since PUT only updates specific fields, let's reload from server
     const fresh = await fetch('/api/credits').then(x=>x.json());
-    ALL = (fresh||[]).filter(c => (c.type||'client') !== 'reservation');
+    ALL = (fresh||[]).filter(c => (c.type||'client') !== 'reservation' || c.gele);
     openDetail(currentId);
     filter();
     toast('Paiement supprimé','ok');

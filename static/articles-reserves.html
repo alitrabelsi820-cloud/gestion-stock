@@ -307,8 +307,10 @@ function renderRes(r){
     </div>
     ${payHistHtml(r.paiements)}
     ${r.note?`<div style="font-size:12px;color:var(--muted);margin-top:8px">📝 ${esc(r.note)}</div>`:''}
+    ${r.gele?`<div style="margin-top:8px;font-size:12px;color:#c05000;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.35);border-radius:9px;padding:8px 11px">🔒 <b>Exception</b> : cette réservation est aussi affichée dans la page <b>Crédits clients</b>.</div>`:''}
     <div class="res-actions">
       <button class="btn btn-gold" onclick="openPay(${r.id})">💵 Ajouter un paiement</button>
+      <button class="btn btn-out" style="border-color:rgba(230,126,34,.5);color:#c05000" onclick="toggleGele(${r.id}, ${r.gele?0:1}, this)">${r.gele?'🔒 Retirer des Crédits':'❄️ Garder aussi dans Crédits'}</button>
       <button class="btn btn-green" onclick="convertir(${r.id}, this)">✅ Convertir en vente</button>
       <button class="btn btn-out" onclick="annuler(${r.id}, this)">🗑️ Annuler la réservation</button>
     </div>
@@ -458,6 +460,16 @@ async function submitArt(e){
       closeArt(); charger();
     } else { btn.disabled=false; btn.textContent='💾 Enregistrer'; alert(d.error||'Échec de la modification.'); }
   }catch(err){ btn.disabled=false; btn.textContent='💾 Enregistrer'; alert('Erreur de connexion.'); }
+}
+
+async function toggleGele(id, gele, btn){
+  const o=btn.textContent; btn.disabled=true; btn.textContent='⏳…';
+  try{
+    const r = await fetch('/api/credits/'+id+'/gele', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gele:gele})});
+    const d = await r.json().catch(()=>({}));
+    if(r.ok && d.success){ charger(); }
+    else { btn.disabled=false; btn.textContent=o; alert(d.error||'Échec.'); }
+  }catch(e){ btn.disabled=false; btn.textContent=o; alert('Erreur de connexion.'); }
 }
 
 async function convertir(id, btn){
