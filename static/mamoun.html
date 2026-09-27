@@ -76,6 +76,12 @@ nav{
   border-radius:18px;overflow:hidden;margin-bottom:16px;
   box-shadow:0 2px 12px rgba(0,0,0,.06);
 }
+/* Séparateur de groupe (trait doré en dégradé, pleine largeur) */
+.section-divider{
+  height:2px;border:none;width:100%;border-radius:2px;
+  background:linear-gradient(90deg,transparent,rgba(184,146,60,.55),transparent);
+  margin:6px 0 22px;
+}
 .panel-header{
   padding:16px 20px;border-bottom:1px solid var(--bd);
   display:flex;align-items:center;gap:12px;
@@ -328,6 +334,8 @@ nav{
     </div>
   </div>
 
+  <hr class="section-divider">
+
   <!-- ── CHIFFRE D'AFFAIRE ── -->
   <div class="panel collapsed" id="panel-ca">
     <div class="panel-header" onclick="toggle('panel-ca')">
@@ -384,6 +392,8 @@ nav{
       </div>
     </div>
   </div>
+
+  <hr class="section-divider">
 
   <!-- ── CRÉDITS CLIENTS ── -->
   <div class="panel collapsed" id="panel-credits">
