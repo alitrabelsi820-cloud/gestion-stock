@@ -355,6 +355,36 @@ nav{
     </div>
   </div>
 
+  <!-- ── ARTICLES RÉSERVÉS ── -->
+  <div class="panel collapsed" id="panel-reserves">
+    <div class="panel-header" onclick="toggle('panel-reserves')">
+      <span class="panel-ico">🔒</span>
+      <div class="panel-title">
+        <h2>Articles Réservés</h2>
+        <div class="sub">Avances sur articles gardés en stock</div>
+      </div>
+      <span class="panel-preview" id="pv-reserves">—</span>
+      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+    <div class="panel-body">
+      <div class="credit-total" style="flex-direction:column;align-items:stretch;gap:8px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <span class="lbl">Montant total réservé</span>
+          <span class="cc-val" id="r-total">—</span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(184,146,60,.3);padding-top:8px">
+          <span class="lbl" style="color:#1a7a40">Avances reçues</span>
+          <span class="cc-val" id="r-avance" style="color:#1a7a40">—</span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(184,146,60,.3);padding-top:8px">
+          <span class="lbl" style="color:#c0392b">Reste à venir</span>
+          <span class="cc-val" id="r-reste" style="color:#c0392b">—</span>
+        </div>
+      </div>
+      <div id="r-list"><div class="empty">Chargement…</div></div>
+    </div>
+  </div>
+
   <!-- ── CHIFFRE D'AFFAIRE ── -->
   <div class="panel collapsed" id="panel-ca">
     <div class="panel-header" onclick="toggle('panel-ca')">
@@ -486,6 +516,51 @@ async function load(){
             <div class="client-amount">${fmtN(c.reste)} MAD</div>
             <button class="gele-btn${c.gele?' on':''}" title="${c.gele?'Dégeler':'Geler'}" onclick='toggleGele(${JSON.stringify(c.ids)}, ${c.gele?0:1}, this)'>${c.gele?'🔒':'❄️'}</button>
           </div>`;
+      }).join('');
+    }
+  }catch(e){}
+
+  // Articles réservés
+  try{
+    const rd = await fetch('/api/reservations').then(r=>r.json());
+    const resv = rd.reservations || [];
+    const tMontant = resv.reduce((s,r)=>s+(r.montant_total||0),0);
+    const tAvance  = resv.reduce((s,r)=>s+(r.avance||0),0);
+    const tReste   = resv.reduce((s,r)=>s+(r.reste||0),0);
+    document.getElementById('pv-reserves').textContent = fmtN(tMontant) + ' MAD';
+    document.getElementById('r-total').textContent  = fmtN(tMontant) + ' MAD';
+    document.getElementById('r-avance').textContent = fmtN(tAvance) + ' MAD';
+    document.getElementById('r-reste').textContent  = fmtN(tReste) + ' MAD';
+    const rlist = document.getElementById('r-list');
+    if(!resv.length){
+      rlist.innerHTML = '<div class="empty">Aucun article réservé</div>';
+    } else {
+      const rmap = new Map();
+      resv.forEach(r=>{
+        const key = (r.client||'?').trim().toLowerCase();
+        if(rmap.has(key)){
+          const e = rmap.get(key);
+          e.montant += (r.montant_total||0); e.avance += (r.avance||0); e.reste += (r.reste||0);
+          e.minId = Math.min(e.minId, r.id||0); e.nb += 1;
+        } else {
+          rmap.set(key, {client:r.client||'—', montant:(r.montant_total||0), avance:(r.avance||0), reste:(r.reste||0), minId:(r.id||0), nb:1});
+        }
+      });
+      const grp = [...rmap.values()].sort((a,b)=>a.minId-b.minId);
+      rlist.innerHTML = grp.map(c=>{
+        const initials = (c.client||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        const badge = c.nb>1 ? ` <span style="font-size:10px;color:var(--muted);font-weight:600">(${c.nb})</span>` : '';
+        return `<div class="client-row">
+          <div class="client-avatar">${initials}</div>
+          <div class="client-info" style="flex:1">
+            <div class="client-name">${c.client||'—'}${badge}</div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;font-size:11px">
+              <span style="color:var(--muted)">Total <b style="color:var(--gold-d)">${fmtN(c.montant)}</b></span>
+              <span style="color:var(--muted)">Avance <b style="color:#1a7a40">${fmtN(c.avance)}</b></span>
+              <span style="color:var(--muted)">Reste <b style="color:#c0392b">${fmtN(c.reste)}</b></span>
+            </div>
+          </div>
+        </div>`;
       }).join('');
     }
   }catch(e){}
