@@ -527,7 +527,7 @@ async function load(){
     const tMontant = resv.reduce((s,r)=>s+(r.montant_total||0),0);
     const tAvance  = resv.reduce((s,r)=>s+(r.avance||0),0);
     const tReste   = resv.reduce((s,r)=>s+(r.reste||0),0);
-    document.getElementById('pv-reserves').textContent = fmtN(tMontant) + ' MAD';
+    document.getElementById('pv-reserves').textContent = fmtN(tReste) + ' MAD';
     document.getElementById('r-total').textContent  = fmtN(tMontant) + ' MAD';
     document.getElementById('r-avance').textContent = fmtN(tAvance) + ' MAD';
     document.getElementById('r-reste').textContent  = fmtN(tReste) + ' MAD';
