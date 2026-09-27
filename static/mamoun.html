@@ -328,63 +328,6 @@ nav{
     </div>
   </div>
 
-  <!-- ── CRÉDITS CLIENTS ── -->
-  <div class="panel collapsed" id="panel-credits">
-    <div class="panel-header" onclick="toggle('panel-credits')">
-      <span class="panel-ico">💳</span>
-      <div class="panel-title">
-        <h2>Crédits Clients</h2>
-        <div class="sub">Montants en attente</div>
-      </div>
-      <span class="panel-preview neg" id="pv-credits">—</span>
-      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    </div>
-    <div class="panel-body">
-      <div class="credit-total" style="flex-direction:column;align-items:stretch;gap:8px">
-        <div style="display:flex;align-items:baseline;justify-content:space-between">
-          <span class="lbl">CC · Crédits clients</span>
-          <span class="cc-val" id="c-cc">—</span>
-        </div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(230,126,34,.3);padding-top:8px">
-          <span class="ccbang-lbl">CC ❗</span>
-          <span class="ccbang-val" id="c-ccbang">—</span>
-        </div>
-      </div>
-      <div id="c-list"><div class="empty">Chargement…</div></div>
-      <button class="btn-print" onclick="imprimerCredits()">🖨️ Imprimer la liste des crédits</button>
-    </div>
-  </div>
-
-  <!-- ── ARTICLES RÉSERVÉS ── -->
-  <div class="panel collapsed" id="panel-reserves">
-    <div class="panel-header" onclick="toggle('panel-reserves')">
-      <span class="panel-ico">🔒</span>
-      <div class="panel-title">
-        <h2>Articles Réservés</h2>
-        <div class="sub">Avances sur articles gardés en stock</div>
-      </div>
-      <span class="panel-preview" id="pv-reserves">—</span>
-      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    </div>
-    <div class="panel-body">
-      <div class="credit-total" style="flex-direction:column;align-items:stretch;gap:8px">
-        <div style="display:flex;align-items:baseline;justify-content:space-between">
-          <span class="lbl">Montant total réservé</span>
-          <span class="cc-val" id="r-total">—</span>
-        </div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(184,146,60,.3);padding-top:8px">
-          <span class="lbl" style="color:#1a7a40">Avances reçues</span>
-          <span class="cc-val" id="r-avance" style="color:#1a7a40">—</span>
-        </div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(184,146,60,.3);padding-top:8px">
-          <span class="lbl" style="color:#c0392b">Reste à venir</span>
-          <span class="cc-val" id="r-reste" style="color:#c0392b">—</span>
-        </div>
-      </div>
-      <div id="r-list"><div class="empty">Chargement…</div></div>
-    </div>
-  </div>
-
   <!-- ── CHIFFRE D'AFFAIRE ── -->
   <div class="panel collapsed" id="panel-ca">
     <div class="panel-header" onclick="toggle('panel-ca')">
@@ -439,6 +382,63 @@ nav{
         <span class="s-label"><span class="s-dot" style="background:#8aaee8"></span>Paiements de crédits</span>
         <span class="s-val" id="enc-credits">—</span>
       </div>
+    </div>
+  </div>
+
+  <!-- ── CRÉDITS CLIENTS ── -->
+  <div class="panel collapsed" id="panel-credits">
+    <div class="panel-header" onclick="toggle('panel-credits')">
+      <span class="panel-ico">💳</span>
+      <div class="panel-title">
+        <h2>Crédits Clients</h2>
+        <div class="sub">Montants en attente</div>
+      </div>
+      <span class="panel-preview neg" id="pv-credits">—</span>
+      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+    <div class="panel-body">
+      <div class="credit-total" style="flex-direction:column;align-items:stretch;gap:8px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <span class="lbl">CC · Crédits clients</span>
+          <span class="cc-val" id="c-cc">—</span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(230,126,34,.3);padding-top:8px">
+          <span class="ccbang-lbl">CC ❗</span>
+          <span class="ccbang-val" id="c-ccbang">—</span>
+        </div>
+      </div>
+      <div id="c-list"><div class="empty">Chargement…</div></div>
+      <button class="btn-print" onclick="imprimerCredits()">🖨️ Imprimer la liste des crédits</button>
+    </div>
+  </div>
+
+  <!-- ── ARTICLES RÉSERVÉS ── -->
+  <div class="panel collapsed" id="panel-reserves">
+    <div class="panel-header" onclick="toggle('panel-reserves')">
+      <span class="panel-ico">🔒</span>
+      <div class="panel-title">
+        <h2>Articles Réservés</h2>
+        <div class="sub">Avances sur articles gardés en stock</div>
+      </div>
+      <span class="panel-preview" id="pv-reserves">—</span>
+      <span class="panel-chevron"><svg viewBox="0 0 14 14" fill="none"><path d="M2 5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+    <div class="panel-body">
+      <div class="credit-total" style="flex-direction:column;align-items:stretch;gap:8px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <span class="lbl">Montant total réservé</span>
+          <span class="cc-val" id="r-total">—</span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(184,146,60,.3);padding-top:8px">
+          <span class="lbl" style="color:#1a7a40">Avances reçues</span>
+          <span class="cc-val" id="r-avance" style="color:#1a7a40">—</span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed rgba(184,146,60,.3);padding-top:8px">
+          <span class="lbl" style="color:#c0392b">Reste à venir</span>
+          <span class="cc-val" id="r-reste" style="color:#c0392b">—</span>
+        </div>
+      </div>
+      <div id="r-list"><div class="empty">Chargement…</div></div>
     </div>
   </div>
 
