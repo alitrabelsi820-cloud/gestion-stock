@@ -44,7 +44,7 @@ PORT = int(os.environ.get("PORT", 5500))
 
 # Version des assets (CSS/JS) — incrémenter à chaque refonte visuelle.
 # Ajoute ?v=ASSET_VERSION aux liens → force le rechargement, ignore le cache.
-ASSET_VERSION = "119"
+ASSET_VERSION = "121"
 
 # ─── Photos : Cloudflare R2 (ou dossier local en fallback) ───────────────────
 # En production : définir R2_PUBLIC_URL dans les variables d'environnement Railway
@@ -71,16 +71,49 @@ def _pwd_match(given, expected):
 # ─── Protection brute-force ───────────────────────────────────────────────────
 # {ip: {"count": int, "blocked_until": float}}
 _LOGIN_ATTEMPTS: dict = {}
-MAX_ATTEMPTS    = 5      # tentatives avant blocage
+MAX_ATTEMPTS    = 5      # tentatives avant blocage (par IP)
 BLOCK_SECONDS   = 900    # 15 minutes de blocage
 
+# Filet de sécurité GLOBAL (toutes IP confondues) : même si un attaquant tente
+# de changer d'IP à chaque essai, au-delà de ce seuil on bloque TOUTE connexion
+# pendant un moment. Seuil assez haut pour ne jamais gêner un usage normal.
+_GLOBAL_FAILS: list = []        # horodatages des échecs récents
+GLOBAL_MAX_FAILS   = 20         # échecs cumulés avant blocage global
+GLOBAL_WINDOW      = 900        # fenêtre d'observation : 15 min
+GLOBAL_BLOCK       = 900        # durée du blocage global : 15 min
+
+# Nombre de proxys de confiance devant l'appli (Railway = 1). La vraie IP du
+# client est celle ajoutée par NOTRE proxy, pas celle que le client prétend.
+TRUSTED_PROXY_HOPS = int(os.environ.get("TRUSTED_PROXY_HOPS", "1"))
+
 def _get_client_ip(headers):
-    return (headers.get("X-Forwarded-For") or headers.get("X-Real-IP") or "unknown").split(",")[0].strip()
+    """IP réelle du client.
+    On NE fait PAS confiance à la partie gauche de X-Forwarded-For : le client
+    peut l'inventer (c'est ce qui permettait de contourner le blocage). On prend
+    la valeur ajoutée par notre proxy de confiance (Railway), en partant de la
+    DROITE de la chaîne — le client ne peut pas la falsifier."""
+    xff = headers.get("X-Forwarded-For", "")
+    parts = [p.strip() for p in xff.split(",") if p.strip()]
+    if parts:
+        idx = len(parts) - TRUSTED_PROXY_HOPS
+        if idx < 0:
+            idx = 0
+        return parts[idx]
+    return (headers.get("X-Real-IP") or "unknown").strip()
 
 def _check_brute_force(ip) -> tuple[bool, int]:
-    """Retourne (bloqué, secondes_restantes)."""
+    """Retourne (bloqué, secondes_restantes). Vérifie le blocage par IP ET le
+    blocage global (anti-rotation d'IP)."""
     import time
     now = time.time()
+    # 1) Blocage global (toutes IP confondues)
+    cutoff = now - GLOBAL_WINDOW
+    while _GLOBAL_FAILS and _GLOBAL_FAILS[0] < cutoff:
+        _GLOBAL_FAILS.pop(0)
+    if len(_GLOBAL_FAILS) >= GLOBAL_MAX_FAILS:
+        # on bloque jusqu'à la fin de la fenêtre du plus ancien échec retenu
+        return True, int(_GLOBAL_FAILS[0] + GLOBAL_BLOCK - now) or 1
+    # 2) Blocage par IP
     rec = _LOGIN_ATTEMPTS.get(ip)
     if rec and rec["count"] >= MAX_ATTEMPTS:
         remaining = int(rec["blocked_until"] - now)
@@ -93,13 +126,15 @@ def _check_brute_force(ip) -> tuple[bool, int]:
 def _record_failed_login(ip):
     import time
     now = time.time()
+    _GLOBAL_FAILS.append(now)
     rec = _LOGIN_ATTEMPTS.setdefault(ip, {"count": 0, "blocked_until": 0})
     rec["count"] += 1
     rec["blocked_until"] = now + BLOCK_SECONDS
-    print(f"⚠️  Tentative échouée #{rec['count']} depuis {ip}")
+    print(f"⚠️  Tentative échouée #{rec['count']} depuis {ip} (global: {len(_GLOBAL_FAILS)})")
 
 def _reset_login_attempts(ip):
     _LOGIN_ATTEMPTS.pop(ip, None)
+    _GLOBAL_FAILS.clear()   # une connexion réussie remet le compteur global à zéro
 
 def get_session_token(headers):
     cookie = headers.get("Cookie", "")
@@ -1722,6 +1757,22 @@ function filter(type, btn) {{
         self.end_headers()
         self.wfile.write(body)
 
+    def _security_headers(self):
+        """En-têtes de sécurité envoyés sur toutes les réponses.
+        - X-Frame-Options : empêche l'affichage du site dans une iframe piège
+          (anti-clickjacking).
+        - X-Content-Type-Options : empêche le navigateur de « deviner » le type
+          d'un fichier (anti-sniffing).
+        - Referrer-Policy : ne divulgue pas l'URL interne aux sites externes.
+        - Strict-Transport-Security : en HTTPS, force les connexions chiffrées."""
+        self.send_header("X-Frame-Options", "SAMEORIGIN")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        if (self.headers.get("X-Forwarded-Proto") == "https"
+                or os.environ.get("RAILWAY_ENVIRONMENT")):
+            self.send_header("Strict-Transport-Security",
+                             "max-age=31536000; includeSubDomains")
+
     def send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -1731,6 +1782,7 @@ function filter(type, btn) {{
         # Jamais de cache pour les données API → toujours à jour
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
         self.send_header("Pragma", "no-cache")
+        self._security_headers()
         self.end_headers()
         self.wfile.write(body)
         # Sync DB → R2 après chaque écriture réussie (POST/DELETE)
@@ -1803,6 +1855,29 @@ function filter(type, btn) {{
             if '</head>' in content:
                 content = content.replace('</head>', sw_killer + '</head>', 1)
 
+            # Voile de confidentialité : quand l'appli passe en arrière-plan,
+            # iOS prend une capture d'écran qu'il réaffiche au prochain lancement
+            # (c'est le « flash » où l'on revoit la page avant le mot de passe).
+            # On recouvre l'écran d'un cache opaque dès que la page est masquée →
+            # la capture iOS ne montre que le voile, jamais les données.
+            privacy_veil = (
+                '<style>#gs-privacy-veil{position:fixed;inset:0;background:#0a0a0a;'
+                'z-index:2147483647;display:none;}</style>'
+                '<script>'
+                '(function(){var v=null;'
+                'function mk(){if(!v&&document.body){v=document.createElement("div");'
+                'v.id="gs-privacy-veil";document.body.appendChild(v);}return v;}'
+                'function on(){var e=mk();if(e)e.style.display="block";}'
+                'function off(){if(v)v.style.display="none";}'
+                'document.addEventListener("visibilitychange",function(){'
+                'document.visibilityState==="hidden"?on():off();});'
+                'window.addEventListener("pagehide",on);'
+                'window.addEventListener("pageshow",off);})();'
+                '</script>\n'
+            )
+            if '</head>' in content:
+                content = content.replace('</head>', privacy_veil + '</head>', 1)
+
             # Neutraliser les anciens appels d'enregistrement du SW dans les pages
             content = re.sub(
                 r'navigator\.serviceWorker\.register\([^)]*\)',
@@ -1833,6 +1908,7 @@ function filter(type, btn) {{
             self.send_header("Content-Length", len(body))
             self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
             self.send_header("Pragma", "no-cache")
+            self._security_headers()
             self.end_headers()
             self.wfile.write(body)
         except FileNotFoundError:
@@ -1943,6 +2019,7 @@ function filter(type, btn) {{
                 self.send_header("Cache-Control", "no-cache, must-revalidate")
             else:
                 self.send_header("Cache-Control", "public, max-age=86400")
+            self._security_headers()
             self.end_headers()
             self.wfile.write(content)
         except FileNotFoundError:

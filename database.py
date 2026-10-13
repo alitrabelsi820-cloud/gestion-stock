@@ -8,7 +8,7 @@ import sqlite3
 import json
 import shutil
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from contextlib import contextmanager
 
 BASE_DIR = Path(__file__).parent
@@ -961,17 +961,47 @@ def create_session(token: str, role: str):
             (token, role, now, now)
         )
 
+# Durées de vie d'une session :
+#  - INACTIVITÉ : expire si pas utilisée depuis 7 jours (un token volé sur un
+#    appareil perdu devient inutilisable au bout d'une semaine sans usage).
+#  - ABSOLUE : expire 30 jours après la connexion, même si utilisée tous les
+#    jours (force une re-saisie du mot de passe une fois par mois).
+SESSION_INACTIVITY_HOURS = 24 * 7    # 7 jours
+SESSION_MAX_AGE_HOURS    = 24 * 30   # 30 jours
+
 def get_session_role(token: str):
-    """Retourne le rôle associé au token, ou None si inexistant/expiré."""
+    """Retourne le rôle associé au token, ou None si inexistant/expiré.
+    Une session expirée (inactivité ou âge max) est supprimée et refusée."""
     if not token:
         return None
+    now = datetime.now()
     with get_conn() as conn:
-        row = conn.execute("SELECT role FROM sessions WHERE token=?", (token,)).fetchone()
-        if row:
-            conn.execute("UPDATE sessions SET last_used=? WHERE token=?",
-                         (datetime.now().isoformat(), token))
-            return row["role"]
-    return None
+        row = conn.execute(
+            "SELECT role, created_at, last_used FROM sessions WHERE token=?",
+            (token,)
+        ).fetchone()
+        if not row:
+            return None
+        # ── Vérification d'expiration ─────────────────────────────────────────
+        def _parse(v):
+            try:
+                return datetime.fromisoformat(v) if v else None
+            except Exception:
+                return None
+        last_used = _parse(row["last_used"])
+        created   = _parse(row["created_at"])
+        expired = False
+        if last_used and (now - last_used) > timedelta(hours=SESSION_INACTIVITY_HOURS):
+            expired = True
+        if created and (now - created) > timedelta(hours=SESSION_MAX_AGE_HOURS):
+            expired = True
+        if expired:
+            conn.execute("DELETE FROM sessions WHERE token=?", (token,))
+            return None
+        # Session valide → on rafraîchit la date de dernière utilisation
+        conn.execute("UPDATE sessions SET last_used=? WHERE token=?",
+                     (now.isoformat(), token))
+        return row["role"]
 
 def delete_session(token: str):
     """Supprime une session (logout)."""

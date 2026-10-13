@@ -123,6 +123,16 @@ body::before {
   border-color: #c9a84c;
 }
 
+/* Chiffres visibles (au lieu des points) */
+.digit {
+  min-width: 16px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #c9a84c;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Erreur */
 .error {
   background: rgba(231,76,60,0.1);
@@ -260,9 +270,17 @@ let pwd = '';
 function renderDots() {
   const c = document.getElementById('dots');
   c.innerHTML = '';
-  for (let i = 0; i < Math.max(pwd.length, 1); i++) {
+  // Mot de passe visible : on affiche les chiffres tapés au lieu de points.
+  if (!pwd.length) {
     const d = document.createElement('div');
-    d.className = 'dot' + (i < pwd.length ? ' filled' : '');
+    d.className = 'dot';
+    c.appendChild(d);
+    return;
+  }
+  for (let i = 0; i < pwd.length; i++) {
+    const d = document.createElement('div');
+    d.className = 'digit';
+    d.textContent = pwd[i];
     c.appendChild(d);
   }
 }
