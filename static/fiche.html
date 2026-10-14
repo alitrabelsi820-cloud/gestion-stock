@@ -232,15 +232,13 @@ nav{background:#ffffff;border-bottom:1px solid rgba(201,168,76,.35);padding:0 28
     <div class="search-row">
       <div class="search-field">
         <label>Numéro de référence</label>
-        <input type="text" id="ref-input" placeholder="⌨️  Appuyer pour saisir" readonly
-          style="cursor:pointer;caret-color:transparent;transition:transform .12s,border-color .12s,background .12s,box-shadow .12s"
-          ontouchstart="this.style.transform='scale(0.97)';this.style.borderColor='#c9a84c';this.style.background='#fdf5e0';this.style.boxShadow='0 0 0 4px rgba(201,168,76,0.28)';openNumpad()"
-          ontouchend="this.style.transform='';this.style.borderColor='';this.style.background='';this.style.boxShadow=''"
-          ontouchcancel="this.style.transform='';this.style.borderColor='';this.style.background='';this.style.boxShadow=''"
-          onclick="openNumpad()">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="ref-input"
+          placeholder="Tapez la référence…" autocomplete="off"
+          onkeydown="if(event.key==='Enter')search()">
       </div>
       <button class="btn btn-gold" onclick="search()">🔍 Rechercher</button>
       <button class="btn btn-garder" id="btn-garder" onclick="garder()" disabled title="Garder cet article dans la sélection temporaire">📌 Garder</button>
+      <button class="btn" onclick="printEtiquette(this)" style="background:linear-gradient(135deg,#b8923c,#8a6a28);color:#1a1200;">🏷️ Imprimer l'étiquette</button>
       <button class="btn btn-outline" onclick="clearResult()">✕ Effacer</button>
     </div>
   </div>
@@ -262,6 +260,21 @@ function fmt(v,d=2){return v==null?'—':Number(v).toLocaleString('fr-FR',{maxim
 function fmtN(v){return v==null?'—':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:0});}
 function fmtD(d){if(!d)return '—';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 function togglePR(el){el.classList.toggle('pr-hidden');}
+
+function printEtiquette(btn){
+  const ref=document.getElementById('ref-input').value.trim();
+  if(!ref){ alert('Tapez d\'abord une référence.'); return; }
+  const old=btn.textContent;
+  btn.disabled=true; btn.textContent='⏳ Envoi…';
+  fetch('/api/print-label',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ref:parseInt(ref,10), stones:true, copies:1})
+  }).then(function(r){return r.json();}).then(function(j){
+    if(j&&j.success){ btn.textContent='✅ Envoyée'; }
+    else{ btn.textContent='⚠️ Erreur'; alert((j&&j.error)||'Article introuvable'); }
+  }).catch(function(){ btn.textContent='⚠️ Erreur'; alert('Réseau indisponible'); })
+  .finally(function(){ setTimeout(function(){ btn.disabled=false; btn.textContent=old; },1800); });
+}
 
 async function search(){
   const ref=document.getElementById('ref-input').value.trim();
