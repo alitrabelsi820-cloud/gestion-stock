@@ -789,7 +789,7 @@ body.dark .acc-shortcut-btn{color:#fff;}
         <div class="gs-fiche-btns">
           <button class="gs-fiche-btn gs-fiche-btn-search" onclick="ficheRechercher()">🔍 RECHERCHER</button>
           <button class="gs-fiche-btn gs-fiche-btn-garder" id="fiche-btn-garder" onclick="ficheGarder()">📌 GARDER</button>
-          <button class="gs-fiche-btn gs-fiche-btn-print" onclick="fichePrint(this)">🏷️ IMPRIMER LE TICKET</button>
+          <button class="gs-fiche-btn gs-fiche-btn-print" onclick="fichePrint(this)">🏷️ IMPRIMER L'ÉTIQUETTE</button>
           <button class="gs-fiche-btn gs-fiche-btn-clear" onclick="ficheEffacer()">✕ EFFACER</button>
         </div>
 
@@ -1309,7 +1309,7 @@ function fichePrint(btn){
     method:'POST', headers:{'Content-Type':'application/json'},
     body:JSON.stringify({ref:parseInt(ref,10), stones:true, copies:1})
   }).then(function(r){return r.json();}).then(function(j){
-    if(j&&j.success){ btn.textContent='✅ EN FILE'; ficheToast('Ticket #'+ref+' envoyé à l\'imprimante'); }
+    if(j&&j.success){ btn.textContent='✅ EN FILE'; ficheToast('Étiquette #'+ref+' envoyée à l\'imprimante'); }
     else{ btn.textContent='⚠️ ERREUR'; ficheToast((j&&j.error)||'Article introuvable'); }
   }).catch(function(){ btn.textContent='⚠️ ERREUR'; ficheToast('Réseau indisponible'); })
   .finally(function(){ setTimeout(function(){ btn.disabled=false; btn.textContent=old; }, 1800); });
@@ -1464,7 +1464,7 @@ function fichePrintM(btn){
     method:'POST', headers:{'Content-Type':'application/json'},
     body:JSON.stringify({ref:parseInt(ref,10), stones:true, copies:1})
   }).then(function(r){return r.json();}).then(function(j){
-    ficheToast((j&&j.success)?('Ticket #'+ref+' envoyé à l\'imprimante'):((j&&j.error)||'Article introuvable'));
+    ficheToast((j&&j.success)?('Étiquette #'+ref+' envoyée à l\'imprimante'):((j&&j.error)||'Article introuvable'));
   }).catch(function(){ ficheToast('Réseau indisponible'); })
   .finally(function(){ setTimeout(function(){ btn.disabled=false; btn.textContent=old; },1500); });
 }
