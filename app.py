@@ -68,52 +68,24 @@ def _pwd_match(given, expected):
     """Comparaison en temps constant (anti timing-attack)."""
     return secrets.compare_digest(str(given or ""), str(expected or ""))
 
-# ─── Protection brute-force ───────────────────────────────────────────────────
+# ─── Protection brute-force (par IP) ──────────────────────────────────────────
 # {ip: {"count": int, "blocked_until": float}}
+# NB : volontairement SANS filet « global » toutes-IP-confondues — il bloquait
+# tout le monde en même temps quand l'agent d'impression (mal configuré)
+# enchaînait les échecs. La vraie protection = un mot de passe fort + le blocage
+# par IP ci-dessous. On est tolérant (10 essais) pour ne pas bloquer l'admin qui
+# partage le WiFi de la boutique avec un appareil qui échoue.
 _LOGIN_ATTEMPTS: dict = {}
-MAX_ATTEMPTS    = 5      # tentatives avant blocage (par IP)
-BLOCK_SECONDS   = 900    # 15 minutes de blocage
-
-# Filet de sécurité GLOBAL (toutes IP confondues) : même si un attaquant tente
-# de changer d'IP à chaque essai, au-delà de ce seuil on bloque TOUTE connexion
-# pendant un moment. Seuil assez haut pour ne jamais gêner un usage normal.
-_GLOBAL_FAILS: list = []        # horodatages des échecs récents
-GLOBAL_MAX_FAILS   = 20         # échecs cumulés avant blocage global
-GLOBAL_WINDOW      = 900        # fenêtre d'observation : 15 min
-GLOBAL_BLOCK       = 900        # durée du blocage global : 15 min
-
-# Nombre de proxys de confiance devant l'appli (Railway = 1). La vraie IP du
-# client est celle ajoutée par NOTRE proxy, pas celle que le client prétend.
-TRUSTED_PROXY_HOPS = int(os.environ.get("TRUSTED_PROXY_HOPS", "1"))
+MAX_ATTEMPTS    = 10     # tentatives avant blocage (par IP)
+BLOCK_SECONDS   = 300    # 5 minutes de blocage
 
 def _get_client_ip(headers):
-    """IP réelle du client.
-    On NE fait PAS confiance à la partie gauche de X-Forwarded-For : le client
-    peut l'inventer (c'est ce qui permettait de contourner le blocage). On prend
-    la valeur ajoutée par notre proxy de confiance (Railway), en partant de la
-    DROITE de la chaîne — le client ne peut pas la falsifier."""
-    xff = headers.get("X-Forwarded-For", "")
-    parts = [p.strip() for p in xff.split(",") if p.strip()]
-    if parts:
-        idx = len(parts) - TRUSTED_PROXY_HOPS
-        if idx < 0:
-            idx = 0
-        return parts[idx]
-    return (headers.get("X-Real-IP") or "unknown").strip()
+    return (headers.get("X-Forwarded-For") or headers.get("X-Real-IP") or "unknown").split(",")[0].strip()
 
 def _check_brute_force(ip) -> tuple[bool, int]:
-    """Retourne (bloqué, secondes_restantes). Vérifie le blocage par IP ET le
-    blocage global (anti-rotation d'IP)."""
+    """Retourne (bloqué, secondes_restantes)."""
     import time
     now = time.time()
-    # 1) Blocage global (toutes IP confondues)
-    cutoff = now - GLOBAL_WINDOW
-    while _GLOBAL_FAILS and _GLOBAL_FAILS[0] < cutoff:
-        _GLOBAL_FAILS.pop(0)
-    if len(_GLOBAL_FAILS) >= GLOBAL_MAX_FAILS:
-        # on bloque jusqu'à la fin de la fenêtre du plus ancien échec retenu
-        return True, int(_GLOBAL_FAILS[0] + GLOBAL_BLOCK - now) or 1
-    # 2) Blocage par IP
     rec = _LOGIN_ATTEMPTS.get(ip)
     if rec and rec["count"] >= MAX_ATTEMPTS:
         remaining = int(rec["blocked_until"] - now)
@@ -126,15 +98,13 @@ def _check_brute_force(ip) -> tuple[bool, int]:
 def _record_failed_login(ip):
     import time
     now = time.time()
-    _GLOBAL_FAILS.append(now)
     rec = _LOGIN_ATTEMPTS.setdefault(ip, {"count": 0, "blocked_until": 0})
     rec["count"] += 1
     rec["blocked_until"] = now + BLOCK_SECONDS
-    print(f"⚠️  Tentative échouée #{rec['count']} depuis {ip} (global: {len(_GLOBAL_FAILS)})")
+    print(f"⚠️  Tentative échouée #{rec['count']} depuis {ip}")
 
 def _reset_login_attempts(ip):
     _LOGIN_ATTEMPTS.pop(ip, None)
-    _GLOBAL_FAILS.clear()   # une connexion réussie remet le compteur global à zéro
 
 def get_session_token(headers):
     cookie = headers.get("Cookie", "")

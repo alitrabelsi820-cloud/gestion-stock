@@ -314,6 +314,9 @@ async function login() {
       sessionStorage.setItem('gs_active', '1');
       window.location.href = data.redirect || '/accueil';
     } else {
+      // Affiche le vrai message du serveur (ex: « Trop de tentatives… »)
+      // au lieu de toujours dire « Mot de passe incorrect ».
+      err.textContent = data.error || 'Mot de passe incorrect';
       err.classList.add('show');
       pwd = '';
       renderDots();
