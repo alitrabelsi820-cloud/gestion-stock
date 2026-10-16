@@ -165,6 +165,16 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .bsk-name{font-size:11px;color:var(--muted);margin-top:2px;margin-bottom:8px;}
 .bsk-remove{position:absolute;top:10px;right:10px;background:transparent;border:none;color:rgba(231,76,60,.4);cursor:pointer;font-size:15px;padding:3px 6px;border-radius:6px;}
 .bsk-remove:active{color:#e74c3c;}
+
+/* Système « Garder » (sélection de comparaison) */
+.emp-garder-btn{width:100%;margin-top:12px;padding:13px;border:none;border-radius:11px;background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;font-size:15px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .15s,transform .08s;}
+.emp-garder-btn:active{transform:scale(.98);opacity:.9;}
+.emp-garder-btn:disabled{opacity:.38;cursor:not-allowed;transform:none;}
+.basket-item{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px;position:relative;}
+.basket-remove{position:absolute;top:9px;right:9px;background:transparent;border:none;color:rgba(231,76,60,.5);cursor:pointer;font-size:15px;padding:3px 7px;border-radius:6px;}
+.basket-remove:active{color:#e74c3c;}
+.basket-ref{font-size:16px;font-weight:900;font-family:monospace;color:var(--gold-d);}
+.basket-name{font-size:11px;color:var(--muted);}
 </style>
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/theme.css">
@@ -181,7 +191,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 </div>
 
 <!-- Feuille « Nouvelle vente » -->
-<div class="emp-sheet-overlay" id="emp-sheet-overlay" onclick="closeSaleSheet()"></div>
+<div class="emp-sheet-overlay" id="emp-sheet-overlay" onclick="closeSaleSheet();closeBasketSheet();"></div>
 <div class="emp-sheet" id="emp-sale-sheet">
   <div class="emp-sheet-head">
     <div class="emp-sheet-title">🧾 Nouvelle vente</div>
@@ -219,6 +229,21 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   </div>
 </div>
 
+<!-- Feuille « Articles gardés » (sélection de comparaison) -->
+<div class="emp-sheet" id="emp-basket-sheet">
+  <div class="emp-sheet-head">
+    <div class="emp-sheet-title">📌 Articles gardés (<span id="emp-basket-count">0</span>)</div>
+    <button onclick="closeBasketSheet()" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(184,146,60,.15);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">✕</button>
+  </div>
+  <div class="emp-sheet-body" id="emp-basket-list"></div>
+  <div id="emp-basket-foot" style="display:none;padding:12px 14px;border-top:1px solid rgba(184,146,60,.15);background:var(--bg);flex-shrink:0">
+    <div style="display:flex;gap:8px">
+      <button onclick="copyBasket(this)" style="flex:1;padding:12px;border:1px solid rgba(184,146,60,.3);border-radius:10px;background:transparent;color:var(--gold-d);font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent">📋 Copier</button>
+      <button onclick="clearBasket()" style="flex:1;padding:12px;border:none;border-radius:10px;background:rgba(231,76,60,.12);color:#c0392b;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent">🗑️ Tout vider</button>
+    </div>
+  </div>
+</div>
+
 
 <div class="emp-content">
 
@@ -241,6 +266,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         Entrez une référence pour afficher la fiche article
       </div>
     </div>
+    <button class="emp-garder-btn" id="btn-garder" onclick="garder()" disabled>📌 Garder</button>
   </div>
 
 </div>
@@ -612,8 +638,8 @@ function copyBasket(el){
   });
 }
 
-// Ajouter le CSS du btn-garder qui manque maintenant
-(function(){const s=document.createElement('style');s.textContent='.btn-garder{background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;}.btn-garder:hover{filter:brightness(1.1);}.btn-garder:disabled{opacity:.4;cursor:not-allowed;}';document.head.appendChild(s);})();
+// Initialise l'affichage de la sélection « Gardés » au chargement
+renderBasket();
 
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
@@ -749,9 +775,14 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- Bottom bar -->
 <div class="emp-bottombar">
   <button class="emp-bottom-btn" onclick="openSaleSheet()"
-    style="flex:2.4;flex-direction:row;gap:9px;background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;font-size:15px;font-weight:800;">
+    style="flex:1.9;flex-direction:row;gap:9px;background:linear-gradient(135deg,#0f6b54,#1abc9c);color:#fff;font-size:15px;font-weight:800;">
     <span class="emp-bottom-ico" style="font-size:20px">🧾</span>
-    <span>Enregistrer une vente</span>
+    <span>Vente</span>
+  </button>
+  <button class="emp-bottom-btn" onclick="toggleBasketSheet()" style="position:relative;flex:1;">
+    <span class="emp-bottom-ico">📌</span>
+    <span>Gardés</span>
+    <span id="basket-nav-count" style="display:none;position:absolute;top:5px;right:calc(50% - 22px);min-width:17px;height:17px;padding:0 4px;background:#e74c3c;color:#fff;border-radius:9px;font-size:10px;font-weight:800;line-height:17px;text-align:center;">0</span>
   </button>
   <button class="emp-bottom-btn emp-logout" onclick="if(confirm('Fermer la session ?')) window.location.href='/logout';">
     <span class="emp-bottom-ico">⎋</span>
